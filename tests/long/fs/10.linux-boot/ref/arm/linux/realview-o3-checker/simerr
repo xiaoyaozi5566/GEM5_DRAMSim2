@@ -1,0 +1,11 @@
+warn: Sockets disabled, not accepting vnc client connections
+warn: Sockets disabled, not accepting terminal connections
+warn: Sockets disabled, not accepting gdb connections
+warn: The clidr register always reports 0 caches.
+warn: clidr LoUIS field of 0b001 to match current ARM implementations.
+warn: The csselr register isn't implemented.
+panic: Not supported on checker!
+ @ cycle 197694500
+[getInstPort:build/ARM/cpu/checker/cpu.hh, line 130]
+Memory Usage: 355632 KBytes
+Program aborted at cycle 197694500

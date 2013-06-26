@@ -1,0 +1,3 @@
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py -c tests/test-progs/hello/bin/arm/linux/hello --cpu-type=timing --dramsim2 --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini --systemcfg=./ext/DRAMSim2/system.ini.example
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py -c tests/test-progs/test/arm/test --cpu-type=timing --dramsim2 --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini --systemcfg=./ext/DRAMSim2/system.ini.example
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py --cpu-type=timing --dramsim2 --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini --systemcfg=./ext/DRAMSim2/system.ini.example
