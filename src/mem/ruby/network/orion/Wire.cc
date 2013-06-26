@@ -129,8 +129,9 @@ double Wire::calc_dynamic_energy(double len_) const
     double c_c = 2*m_couple_cap_unit_len*len_;
     double cap_wire = c_g + c_c;
 
-    int k;
-    double h;
+    //Initialization added to stifle warnings.
+    int k = 0;
+    double h = 0;
 
     calc_opt_buffering(&k, &h, len_);
 
@@ -143,8 +144,10 @@ double Wire::calc_dynamic_energy(double len_) const
 
 double Wire::calc_static_power(double len_) const
 {
-    int k;
-    double h;
+    
+    //Initialization added to stifle warnings.
+    int k = 0;
+    double h = 0;
     calc_opt_buffering(&k, &h, len_);
 
     double BufferNMOSOffCurrent = m_tech_param_ptr->get_BufferNMOSOffCurrent();
