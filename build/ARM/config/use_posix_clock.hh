@@ -1,1 +1,0 @@
-#define USE_POSIX_CLOCK 0

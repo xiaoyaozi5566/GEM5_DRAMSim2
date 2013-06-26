@@ -1,1 +1,0 @@
-/Users/yaowang/Desktop/GitHub/GEM5_DRAMSim2/src/sim/syscall_emul.cc
