@@ -1,0 +1,11 @@
+# Authors: Xiangyu Dong
+#          Tao Zhang
+
+Import('main')
+
+main.Library('dramsim2', [main.SharedObject('AddressMapping.cpp'), main.SharedObject('Bank.cpp'), main.SharedObject('BankState.cpp'), main.SharedObject('BusPacket.cpp'), main.SharedObject('CommandQueue.cpp'), main.SharedObject('ClockDomain.cpp'), main.SharedObject('IniReader.cpp'), main.SharedObject('MemoryController.cpp'), main.SharedObject('MemorySystem.cpp'), main.SharedObject('MultiChannelMemorySystem.cpp'), main.SharedObject('Rank.cpp'), main.SharedObject('SimulatorObject.cpp'), main.SharedObject('Transaction.cpp')])
+
+main.Prepend(CPPPATH=Dir('.'))
+main.Append(LIBS=['dramsim2'])
+main.Prepend(LIBPATH=[Dir('.')])
+
