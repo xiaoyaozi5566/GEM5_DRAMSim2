@@ -147,12 +147,12 @@ elif options.cmd:
     multiprocesses.append(process)
 
 process0 = LiveProcess()
-process0.executable = "/Users/yaowang/Desktop/GitHub/GEM5_DRAMSim2/tests/test-progs/hello/bin/arm/linux/hello"
+process0.executable = "./tests/test-progs/hello/bin/arm/linux/hello"
 process0.cmd = ""
 multiprocesses.append(process0)
 
 process1 = LiveProcess()
-process1.executable = "/Users/yaowang/Desktop/GitHub/GEM5_DRAMSim2/tests/test-progs/test/arm/test"
+process1.executable = "./tests/test-progs/test/arm/test"
 process1.cmd = ""
 multiprocesses.append(process1)
 
