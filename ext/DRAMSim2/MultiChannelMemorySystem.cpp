@@ -500,6 +500,8 @@ void MultiChannelMemorySystem::RegisterCallbacks(
 namespace DRAMSim {
 MultiChannelMemorySystem *getMemorySystemInstance(const string &dev, const string &sys, const string &pwd, const string &trc, unsigned megsOfMemory, string *visfilename) 
 {
+    // This interface is misleading because visfilename is used as the outputFilename (result)
+    // and temp is used for the actual visfilename.
 	return new MultiChannelMemorySystem(dev, sys, pwd, trc, megsOfMemory, "temp", visfilename);
 }
 }

@@ -150,6 +150,7 @@ void usage()
 	cout << "\t-S, --size=# \t\t\tSize of the memory system in megabytes [default=2048M]"<<endl;
 	cout << "\t-n, --notiming \t\t\tDo not use the clock cycle information in the trace file"<<endl;
 	cout << "\t-v, --visfile \t\t\tVis output filename"<<endl;
+    cout << "\t-r, --rseult \t\t\tResult output filename"<<endl;
 }
 #endif
 
@@ -555,8 +556,11 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	ofstream inputFile;
-	inputFile.open("t0trace");
+    // This should not be done at runtime, but instead by a script after the run.
+    // In general, any input/output files should be chosen at the command line or
+    // at least declared in the constructor.	
+    // ofstream inputFile;
+	// inputFile.open("t0trace");
 	
 	for (size_t i=0;i<numCycles;i++)
 	{
@@ -569,7 +573,8 @@ int main(int argc, char **argv)
 				if (line.size() > 0)
 				{
 					data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
-					if (pid == 0 && transType == DATA_READ) inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+					// if (pid == 0 && transType == DATA_READ) 
+                    //    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
 					trans = new Transaction(transType, addr, data, pid, 0);
 					alignTransactionAddress(*trans); 
 

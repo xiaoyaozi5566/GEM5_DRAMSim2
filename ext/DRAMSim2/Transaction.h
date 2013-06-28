@@ -68,6 +68,9 @@ public:
 	//functions
 	Transaction(TransactionType transType, uint64_t addr, void *data, uint64_t pid, uint64_t rTime);
 	Transaction(const Transaction &t);
+    
+    // Use something like below to make subclasses easier.
+    // Transaction(BusPacket *bpacket);
 
 	BusPacketType getBusPacketType()
 	{

@@ -62,6 +62,8 @@ Thumbs.db
 *.bak
 *.swp
 *.swo
+*.diff
+*ignore
 *~
 
 # Outputs / data                #

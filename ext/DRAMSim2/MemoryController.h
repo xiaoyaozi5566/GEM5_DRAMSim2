@@ -64,6 +64,7 @@ public:
 
 	bool addTransaction(Transaction *trans);
 	bool WillAcceptTransaction();
+    // WillAcceptTransaction(uint64_t pid) should be private in Subclass.
 	bool WillAcceptTransaction(uint64_t pid);
 	void returnReadData(const Transaction *trans);
 	void receiveFromBus(BusPacket *bpacket);
@@ -76,6 +77,8 @@ public:
 	//fields
 	// Each thread uses a separate transaction queue
 	vector<Transaction *> transactionQueue;
+    // transactionQueues should be a private instance variable of the subclass.
+    // methods that use it should call private virtual "strategy" methods
 	vector<Transaction *> transactionQueues[NUM_PIDS];
 private:
 	ostream &dramsim_log;
