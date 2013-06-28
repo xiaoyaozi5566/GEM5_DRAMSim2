@@ -56,7 +56,8 @@ Transaction::Transaction(const Transaction &t)
 	: transactionType(t.transactionType)
 	  , address(t.address)
 	  , data(NULL)
-	  , timeAdded(t.timeAdded)
+      //Do this in a script
+	  //, timeAdded(t.timeAdded)
 	  , timeReturned(t.timeReturned)
 {
 	#ifndef NO_STORAGE

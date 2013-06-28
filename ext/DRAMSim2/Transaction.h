@@ -57,7 +57,8 @@ public:
 	TransactionType transactionType;
 	uint64_t address;
 	void *data;
-	uint64_t timeAdded;
+    //Do this in a script.
+	//uint64_t timeAdded;
 	uint64_t timeReturned;
 	uint64_t threadID;
 	uint64_t index;

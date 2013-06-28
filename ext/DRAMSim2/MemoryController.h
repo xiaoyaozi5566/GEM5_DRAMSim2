@@ -59,19 +59,29 @@ class MemoryController : public SimulatorObject
 
 public:
 	//functions
-	MemoryController(MemorySystem* ms, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_);
+	MemoryController(MemorySystem* ms, CSVWriter &csvOut_, 
+            ostream &dramsim_log_, const string &outputFilename_);
 	virtual ~MemoryController();
 
 	bool addTransaction(Transaction *trans);
 	bool WillAcceptTransaction();
     // WillAcceptTransaction(uint64_t pid) should be private in Subclass.
+    // The above is easy once youi realize the method isn't in the public interface.
 	bool WillAcceptTransaction(uint64_t pid);
 	void returnReadData(const Transaction *trans);
 	void receiveFromBus(BusPacket *bpacket);
 	void attachRanks(vector<Rank *> *ranks);
 	void update();
 	void printStats(bool finalStats = false);
-	void resetStats(); 
+	void resetStats();
+
+private:
+    virtual void receiveFromBusStrategy(BusPacket *bpacket);
+    virtual bool addTransactionStrategy(Transaction *trans);
+    virtual void updateTransactionQueue();
+    virtual void updateReturnTransactions();
+
+public:
 
 
 	//fields
