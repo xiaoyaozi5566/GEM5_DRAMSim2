@@ -65,15 +65,15 @@ public:
 	CommandQueue(vector< vector<BankState> > &states, ostream &dramsim_log);
 	virtual ~CommandQueue(); 
 
-	void enqueue(BusPacket *newBusPacket);
+	virtual void enqueue(BusPacket *newBusPacket);
 	bool pop(BusPacket **busPacket);
-	bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, unsigned bank, unsigned pid);
+	virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, unsigned bank, unsigned pid);
 	bool isIssuable(BusPacket *busPacket);
-	bool isEmpty(unsigned rank);
+	virtual bool isEmpty(unsigned rank);
 	void needRefresh(unsigned rank);
 	void print();
 	void update(); //SimulatorObject requirement
-	vector<BusPacket *> &getCommandQueue(unsigned rank, unsigned bank);
+	virtual vector<BusPacket *> &getCommandQueue(unsigned rank, unsigned bank);
 
 	//fields
 	
@@ -83,6 +83,8 @@ public:
 	unsigned refreshCounter;
 	
 private:
+    virtual void handleRefreshClosePage(BusPacket **busPacket, bool & sendingREF);
+    virtual bool handleNormalPopClosePage(BusPacket **busPacket, bool & sendingREF);
 	void nextRankAndBank(unsigned &rank, unsigned &bank);
 	//fields
 	unsigned nextBank;
