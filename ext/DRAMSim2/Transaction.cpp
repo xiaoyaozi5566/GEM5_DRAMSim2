@@ -48,7 +48,7 @@ Transaction::Transaction(TransactionType transType, uint64_t addr, void *dat, ui
 	address(addr),
 	data(dat),
 	threadID(pid),
-	index(0),
+	//index(0),
 	returnTime(rTime)
 {}
 
@@ -58,7 +58,7 @@ Transaction::Transaction(const Transaction &t)
 	  , data(NULL)
       //Do this in a script
 	  //, timeAdded(t.timeAdded)
-	  , timeReturned(t.timeReturned)
+	  //, timeReturned(t.timeReturned)
 {
 	#ifndef NO_STORAGE
 	ERROR("Data storage is really outdated and these copies happen in an \n improper way, which will eventually cause problems. Please send an \n email to dramninjas [at] gmail [dot] com if you need data storage");

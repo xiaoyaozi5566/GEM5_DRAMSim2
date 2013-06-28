@@ -59,7 +59,7 @@ public:
 	void *data;
     //Do this in a script.
 	//uint64_t timeAdded;
-	uint64_t timeReturned;
+	//uint64_t timeReturned;
 	uint64_t threadID;
 	uint64_t index;
 	uint64_t returnTime;

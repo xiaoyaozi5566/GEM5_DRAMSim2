@@ -65,7 +65,7 @@ public:
 	uint64_t physicalAddress;
 	void *data;
 	unsigned threadID;
-	unsigned index;
+	//unsigned index;
 	unsigned returnTime;
 
 	//Functions

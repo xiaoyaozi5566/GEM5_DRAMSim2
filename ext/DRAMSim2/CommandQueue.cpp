@@ -321,7 +321,7 @@ bool CommandQueue::pop(BusPacket **busPacket)
 					if (isIssuable(next_busPacket))
 					{
 						*busPacket = next_busPacket;
-						(*busPacket)->index = threadCounters[nextThread];
+						//(*busPacket)->index = threadCounters[nextThread];
 						(*busPacket)->returnTime = worstStartTime + WORST_CASE_DELAY;
 						foundIssuable = true;
 						prev_ACTIVATE = false;
