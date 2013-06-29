@@ -83,8 +83,8 @@ public:
 	unsigned refreshCounter;
 	
 private:
-    virtual void handleRefreshClosePage(BusPacket **busPacket, bool & sendingREF);
-    virtual bool handleNormalPopClosePage(BusPacket **busPacket, bool & sendingREF);
+    virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);
+    virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
 	void nextRankAndBank(unsigned &rank, unsigned &bank);
 	//fields
 	unsigned nextBank;
