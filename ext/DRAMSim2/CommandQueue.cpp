@@ -218,14 +218,14 @@ bool CommandQueue::pop(BusPacket **busPacket)
         //if the memory controller set the flags signaling that we need to issue a refresh
         if (refreshWaiting)
         {
-            handleRefreshClosePage(busPacket,sendingREF);
+            refreshPopClosePage(busPacket,sendingREF);
 
         } // refreshWaiting
 
         //if we're not sending a REF, proceed as normal
         if (!sendingREF)
         {
-            if (!handleNormalPopClosePage(busPacket,sendingREF))
+            if (!normalPopClosePage(busPacket,sendingREF))
                     return false;
         }
     }
@@ -458,7 +458,7 @@ bool CommandQueue::pop(BusPacket **busPacket)
     return true;
 }
 
-void CommandQueue::handleRefreshClosePage(BusPacket **busPacket, bool &sendingREF)
+void CommandQueue::refreshPopClosePage(BusPacket **busPacket, bool &sendingREF)
 {
     bool foundActiveOrTooEarly = false;
     //look for an open bank
@@ -550,7 +550,7 @@ void CommandQueue::handleRefreshClosePage(BusPacket **busPacket, bool &sendingRE
     }
 }
 
-bool CommandQueue::handleNormalPopClosePage(BusPacket **busPacket, bool & sendingREF)
+bool CommandQueue::normalPopClosePage(BusPacket **busPacket, bool & sendingREF)
 {
     bool foundIssuable = false;
     unsigned startingRank = nextRank;
@@ -697,6 +697,7 @@ bool CommandQueue::handleNormalPopClosePage(BusPacket **busPacket, bool & sendin
         //if we couldn't find anything to send, return false
         if (!foundIssuable) return false;
     }
+    return true;
 }
 
 //check if a rank/bank queue has room for a certain number of bus packets

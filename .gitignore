@@ -73,6 +73,7 @@ Thumbs.db
 *.dat
 *.csv
 *.txt
+result_*
 
 # The GEM5 generated code #
 # ######################################## #
