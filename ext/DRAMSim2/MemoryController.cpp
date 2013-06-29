@@ -86,9 +86,9 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     currentClockCycle = 0;
 
     // reserve for each process
-    for (int i=0;i<NUM_PIDS;i++){
-        transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
-    }
+    //  for (int i=0;i<NUM_PIDS;i++){
+    //     transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
+    // }
 
     powerDown = vector<bool>(NUM_RANKS,false);
     grandTotalBankAccesses = vector<uint64_t>(NUM_RANKS*NUM_BANKS,0);
@@ -118,11 +118,6 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
 
 //get a bus packet from either data or cmd bus
 void MemoryController::receiveFromBus(BusPacket *bpacket)
-{
-   receiveFromBusStrategy(bpacket); 
-}
-
-void MemoryController::receiveFromBusStrategy(BusPacket *bpacket)
 {
     if (bpacket->busPacketType != DATA)
     {
@@ -589,7 +584,7 @@ void MemoryController::update()
             }
         }
     }
-    
+
     //check for outstanding data to return to the CPU
     updateReturnTransactions();
 
@@ -656,275 +651,129 @@ void MemoryController::update()
 
 void MemoryController::updateTransactionQueue()
 {
-    //This clause goes in the subclass...
-    if (queuingStructure == PerRankPerThread)
+    for (size_t i=0;i<transactionQueue.size();i++)
     {
-        for (size_t i=0;i<NUM_PIDS;i++)
-            for (size_t j=0;j<transactionQueues[i].size();j++)
-            {
-                Transaction *transaction = transactionQueues[i][j];
-                //map address to rank,bank,row,col
-                unsigned newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn;
+        //pop off top transaction from queue
+        //
+        //	assuming simple scheduling at the moment
+        //	will eventually add policies here
+        Transaction *transaction = transactionQueue[i];
 
-                // pass these in as references so they get set by the addressMapping function
-                addressMapping(transaction->address, newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn);
+        //map address to rank,bank,row,col
+        unsigned newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn;
 
-                //if we have room, break up the transaction into the appropriate commands
-                //and add them to the command queue
-                if (commandQueue.hasRoomFor(2, newTransactionRank, newTransactionBank, transaction->threadID))
-                {
-                    if (DEBUG_ADDR_MAP) 
-                    {
-                        PRINTN("== New Transaction - Mapping Address [0x" << hex << transaction->address << dec << "]");
-                        if (transaction->transactionType == DATA_READ) 
-                        {
-                            PRINT(" (Read)");
-                        }
-                        else
-                        {
-                            PRINT(" (Write)");
-                        }
-                        PRINT("  Rank : " << newTransactionRank);
-                        PRINT("  Bank : " << newTransactionBank);
-                        PRINT("  Row  : " << newTransactionRow);
-                        PRINT("  Col  : " << newTransactionColumn);
-                    }
-                    //PRINT("ID: " << i << " Request " << hex << transaction->address << " enqueue at " << dec << currentClockCycle);
+        // pass these in as references so they get set by the addressMapping function
+        addressMapping(transaction->address, newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn);
 
-
-
-                    //now that we know there is room in the command queue, we can remove from the transaction queue
-                    transactionQueues[i].erase(transactionQueues[i].begin()+j);
-
-                    //create activate command to the row we just translated
-                    BusPacket *ACTcommand = new BusPacket(ACTIVATE, transaction->address,
-                            newTransactionColumn, newTransactionRow, newTransactionRank,
-                            newTransactionBank, 0, transaction->threadID, dramsim_log);
-
-                    //create read or write command and enqueue it
-                    BusPacketType bpType = transaction->getBusPacketType();
-                    BusPacket *command = new BusPacket(bpType, transaction->address,
-                            newTransactionColumn, newTransactionRow, newTransactionRank,
-                            newTransactionBank, transaction->data, transaction->threadID, dramsim_log);
-
-
-
-                    commandQueue.enqueue(ACTcommand);
-                    commandQueue.enqueue(command);
-
-                    // If we have a read, save the transaction so when the data comes back
-                    // in a bus packet, we can staple it back into a transaction and return it
-                    if (transaction->transactionType == DATA_READ)
-                    {
-                        pendingReadTransactions.push_back(transaction);
-                    }
-                    else
-                    {
-                        // just delete the transaction now that it's a buspacket
-                        delete transaction; 
-                    }
-                    /* only allow one transaction to be scheduled per cycle -- this should
-                     * be a reasonable assumption considering how much logic would be
-                     * required to schedule multiple entries per cycle (parallel data
-                     * lines, switching logic, decision logic)
-                     */
-                    break;
-                }
-                else // no room, do nothing this cycle
-                {
-                    //PRINT( "== Warning - No room in command queue" << endl;
-                }
-            }			
-    }
-    // And eventually this will be the entire method for this base class.
-    else {
-        for (size_t i=0;i<transactionQueue.size();i++)
+        //if we have room, break up the transaction into the appropriate commands
+        //and add them to the command queue
+        if (commandQueue.hasRoomFor(2, newTransactionRank, newTransactionBank, transaction->threadID))
         {
-            //pop off top transaction from queue
-            //
-            //	assuming simple scheduling at the moment
-            //	will eventually add policies here
-            Transaction *transaction = transactionQueue[i];
-
-            //map address to rank,bank,row,col
-            unsigned newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn;
-
-            // pass these in as references so they get set by the addressMapping function
-            addressMapping(transaction->address, newTransactionChan, newTransactionRank, newTransactionBank, newTransactionRow, newTransactionColumn);
-
-            //if we have room, break up the transaction into the appropriate commands
-            //and add them to the command queue
-            if (commandQueue.hasRoomFor(2, newTransactionRank, newTransactionBank, transaction->threadID))
+            if (DEBUG_ADDR_MAP) 
             {
-                if (DEBUG_ADDR_MAP) 
+                PRINTN("== New Transaction - Mapping Address [0x" << hex << transaction->address << dec << "]");
+                if (transaction->transactionType == DATA_READ) 
                 {
-                    PRINTN("== New Transaction - Mapping Address [0x" << hex << transaction->address << dec << "]");
-                    if (transaction->transactionType == DATA_READ) 
-                    {
-                        PRINT(" (Read)");
-                    }
-                    else
-                    {
-                        PRINT(" (Write)");
-                    }
-                    PRINT("  Rank : " << newTransactionRank);
-                    PRINT("  Bank : " << newTransactionBank);
-                    PRINT("  Row  : " << newTransactionRow);
-                    PRINT("  Col  : " << newTransactionColumn);
-                }
-
-
-
-                //now that we know there is room in the command queue, we can remove from the transaction queue
-                transactionQueue.erase(transactionQueue.begin()+i);
-
-                //create activate command to the row we just translated
-                BusPacket *ACTcommand = new BusPacket(ACTIVATE, transaction->address,
-                        newTransactionColumn, newTransactionRow, newTransactionRank,
-                        newTransactionBank, 0, transaction->threadID, dramsim_log);
-
-                //create read or write command and enqueue it
-                BusPacketType bpType = transaction->getBusPacketType();
-                BusPacket *command = new BusPacket(bpType, transaction->address,
-                        newTransactionColumn, newTransactionRow, newTransactionRank,
-                        newTransactionBank, transaction->data, transaction->threadID, dramsim_log);
-
-
-
-                commandQueue.enqueue(ACTcommand);
-                commandQueue.enqueue(command);
-
-                // If we have a read, save the transaction so when the data comes back
-                // in a bus packet, we can staple it back into a transaction and return it
-                if (transaction->transactionType == DATA_READ)
-                {
-                    pendingReadTransactions.push_back(transaction);
+                    PRINT(" (Read)");
                 }
                 else
                 {
-                    // just delete the transaction now that it's a buspacket
-                    delete transaction; 
+                    PRINT(" (Write)");
                 }
-                /* only allow one transaction to be scheduled per cycle -- this should
-                 * be a reasonable assumption considering how much logic would be
-                 * required to schedule multiple entries per cycle (parallel data
-                 * lines, switching logic, decision logic)
-                 */
-                break;
+                PRINT("  Rank : " << newTransactionRank);
+                PRINT("  Bank : " << newTransactionBank);
+                PRINT("  Row  : " << newTransactionRow);
+                PRINT("  Col  : " << newTransactionColumn);
             }
-            else // no room, do nothing this cycle
+
+
+
+            //now that we know there is room in the command queue, we can remove from the transaction queue
+            transactionQueue.erase(transactionQueue.begin()+i);
+
+            //create activate command to the row we just translated
+            BusPacket *ACTcommand = new BusPacket(ACTIVATE, transaction->address,
+                    newTransactionColumn, newTransactionRow, newTransactionRank,
+                    newTransactionBank, 0, transaction->threadID, dramsim_log);
+
+            //create read or write command and enqueue it
+            BusPacketType bpType = transaction->getBusPacketType();
+            BusPacket *command = new BusPacket(bpType, transaction->address,
+                    newTransactionColumn, newTransactionRow, newTransactionRank,
+                    newTransactionBank, transaction->data, transaction->threadID, dramsim_log);
+
+
+
+            commandQueue.enqueue(ACTcommand);
+            commandQueue.enqueue(command);
+
+            // If we have a read, save the transaction so when the data comes back
+            // in a bus packet, we can staple it back into a transaction and return it
+            if (transaction->transactionType == DATA_READ)
             {
-                //PRINT( "== Warning - No room in command queue" << endl;
+                pendingReadTransactions.push_back(transaction);
             }
+            else
+            {
+                // just delete the transaction now that it's a buspacket
+                delete transaction; 
+            }
+            /* only allow one transaction to be scheduled per cycle -- this should
+             * be a reasonable assumption considering how much logic would be
+             * required to schedule multiple entries per cycle (parallel data
+             * lines, switching logic, decision logic)
+             */
+            break;
+        }
+        else // no room, do nothing this cycle
+        {
+            //PRINT( "== Warning - No room in command queue" << endl;
         }
     }
 }
 
 void MemoryController::updateReturnTransactions()
 {
-    //This clause will go in the overloaded subclass method.
-    if (queuingStructure == PerRankPerThread)
+    if (returnTransaction.size()>0)
     {
-        if (returnTransaction.size()>0)
+        if (DEBUG_BUS)
         {
-            if (DEBUG_BUS)
-            {
-                PRINTN(" -- MC Issuing to CPU bus : " << *returnTransaction[0]);
-            }
-            totalTransactions++;
+            PRINTN(" -- MC Issuing to CPU bus : " << *returnTransaction[0]);
+        }
+        totalTransactions++;
 
-            bool foundMatch=false;
-            size_t j;
-            //find the pending read transaction to calculate latency
-            for (j=0;j<returnTransaction.size();j++)
+        bool foundMatch=false;
+        //find the pending read transaction to calculate latency
+        for (size_t i=0;i<pendingReadTransactions.size();i++)
+        {
+            if (pendingReadTransactions[i]->address == returnTransaction[0]->address)
             {
-                unsigned returnTime = returnTransaction[j]->returnTime;
-                // Spin until the proper return time has been reached.
-                if (returnTime > currentClockCycle) continue;
-                else
-                {
-                    for (size_t i=0;i<pendingReadTransactions.size();i++)
-                    {
-                        if (pendingReadTransactions[i]->address == returnTransaction[j]->address)
-                        {
-                            //if(currentClockCycle - pendingReadTransactions[i]->timeAdded > 2000)
-                            //	{
-                            //		pendingReadTransactions[i]->print();
-                            //		exit(0);
-                            //	}
-                            unsigned chan,rank,bank,row,col;
-                            addressMapping(returnTransaction[j]->address,chan,rank,bank,row,col);
-                            //PRINTN("ID: " << returnTransaction[j]->threadID << " rank: " << rank << " bank: " << bank <<" Address: " << hex << returnTransaction[j]->address << " Time: " << dec << currentClockCycle << '\n');
-                            //insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
-                            //return latency
-                            returnReadData(pendingReadTransactions[i]);
-                            if (returnTransaction[j]->threadID == 0){
-                                outputFile << "Address: " << hex << returnTransaction[j]->address << "  Return time: " << dec << currentClockCycle << '\n';
-                                cout << "Address: " << hex << returnTransaction[j]->address << "  Return time: " << dec << currentClockCycle << '\n';
-                            }
+                //if(currentClockCycle - pendingReadTransactions[i]->timeAdded > 2000)
+                //	{
+                //		pendingReadTransactions[i]->print();
+                //		exit(0);
+                //	}
+                unsigned chan,rank,bank,row,col;
+                addressMapping(returnTransaction[0]->address,chan,rank,bank,row,col);
+                //insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
+                //return latency
+                returnReadData(pendingReadTransactions[i]);
+                if (returnTransaction[0]->threadID == 0)
+                    outputFile << "Address: " << hex << returnTransaction[0]->address << "  Return time: " << dec << currentClockCycle << '\n';
 
-                            delete pendingReadTransactions[i];
-                            pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
-                            foundMatch=true; 
-                            delete returnTransaction[j];
-                            returnTransaction.erase(returnTransaction.begin()+j);
-                            break;
-                        }
-                    }
-                    if (!foundMatch)
-                    {
-                        ERROR("Can't find a matching transaction for 0x"<<hex<<returnTransaction[j]->address<<dec);
-                        abort(); 
-                    }
-                    break;
-                }
+                delete pendingReadTransactions[i];
+                pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
+                foundMatch=true; 
+                break;
             }
         }
-    }
-    //This is the clause of the base class.
-    else
-    {
-        if (returnTransaction.size()>0)
+        if (!foundMatch)
         {
-            if (DEBUG_BUS)
-            {
-                PRINTN(" -- MC Issuing to CPU bus : " << *returnTransaction[0]);
-            }
-            totalTransactions++;
-
-            bool foundMatch=false;
-            //find the pending read transaction to calculate latency
-            for (size_t i=0;i<pendingReadTransactions.size();i++)
-            {
-                if (pendingReadTransactions[i]->address == returnTransaction[0]->address)
-                {
-                    //if(currentClockCycle - pendingReadTransactions[i]->timeAdded > 2000)
-                    //	{
-                    //		pendingReadTransactions[i]->print();
-                    //		exit(0);
-                    //	}
-                    unsigned chan,rank,bank,row,col;
-                    addressMapping(returnTransaction[0]->address,chan,rank,bank,row,col);
-                    //insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
-                    //return latency
-                    returnReadData(pendingReadTransactions[i]);
-                    if (returnTransaction[0]->threadID == 0)
-                        outputFile << "Address: " << hex << returnTransaction[0]->address << "  Return time: " << dec << currentClockCycle << '\n';
-
-                    delete pendingReadTransactions[i];
-                    pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
-                    foundMatch=true; 
-                    break;
-                }
-            }
-            if (!foundMatch)
-            {
-                ERROR("Can't find a matching transaction for 0x"<<hex<<returnTransaction[0]->address<<dec);
-                abort(); 
-            }
-            delete returnTransaction[0];
-            returnTransaction.erase(returnTransaction.begin());
+            ERROR("Can't find a matching transaction for 0x"<<hex<<returnTransaction[0]->address<<dec);
+            abort(); 
         }
+        delete returnTransaction[0];
+        returnTransaction.erase(returnTransaction.begin());
     }
 }
 
@@ -933,49 +782,19 @@ bool MemoryController::WillAcceptTransaction()
     return transactionQueue.size() < TRANS_QUEUE_DEPTH;
 }
 
-//Only needed in the base class. Nonsensical for vanilla DRAMSim
-bool MemoryController::WillAcceptTransaction(uint64_t pid)
-{
-    return transactionQueues[pid].size() < TRANS_QUEUE_DEPTH;
-}
 
-//allows outside source to make request of memory system
 bool MemoryController::addTransaction(Transaction *trans)
 {
-    return addTransactionStrategy(trans);
 
-}
-
-bool MemoryController::addTransactionStrategy(Transaction *trans)
-{
-    //This clause goes in the FixedTiming subclass...
-    if (queuingStructure == PerRankPerThread)
+    if (WillAcceptTransaction())
     {
-        if (WillAcceptTransaction(trans->threadID))
-        {
-            //trans->timeAdded = currentClockCycle;
-            transactionQueues[trans->threadID].push_back(trans);
-            //PRINTN("Transaction queue " << trans->threadID << " size " << transactionQueues[trans->threadID].size() << endl);
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        //trans->timeAdded = currentClockCycle;
+        transactionQueue.push_back(trans);
+        return true;
     }
-    // And eventually this will be the entire method of the base class.
     else
     {
-        if (WillAcceptTransaction())
-        {
-            //trans->timeAdded = currentClockCycle;
-            transactionQueue.push_back(trans);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 }
 
@@ -1173,10 +992,10 @@ MemoryController::~MemoryController()
 //inserts a latency into the latency histogram
 //Do this in a script outside of the simulator.
 /*
-void MemoryController::insertHistogram(unsigned latencyValue, unsigned rank, unsigned bank)
-{
-    totalEpochLatency[SEQUENTIAL(rank,bank)] += latencyValue;
-    //poor man's way to bin things.
-    latencies[(latencyValue/HISTOGRAM_BIN_SIZE)*HISTOGRAM_BIN_SIZE]++;
+   void MemoryController::insertHistogram(unsigned latencyValue, unsigned rank, unsigned bank)
+   {
+   totalEpochLatency[SEQUENTIAL(rank,bank)] += latencyValue;
+//poor man's way to bin things.
+latencies[(latencyValue/HISTOGRAM_BIN_SIZE)*HISTOGRAM_BIN_SIZE]++;
 }
 */

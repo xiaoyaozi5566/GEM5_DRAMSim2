@@ -129,7 +129,11 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, CSVWriter &cs
 	DEBUG("CH. " <<systemID<<" TOTAL_STORAGE : "<< TOTAL_STORAGE << "MB | "<<NUM_RANKS<<" Ranks | "<< NUM_DEVICES <<" Devices per rank");
 
 
-	memoryController = new MemoryController(this, csvOut, dramsim_log, outputFilename);
+    if(queuingStructure == PerRankPerThread){
+        memoryController = new MemoryControllerFT(this, csvOut, dramsim_log, outputFilename);
+    } else {
+        memoryController = new MemoryController(this, csvOut, dramsim_log, outputFilename);
+    }
 
 	// TODO: change to other vector constructor?
 	ranks = new vector<Rank *>();

@@ -41,6 +41,7 @@
 #include "SimulatorObject.h"
 #include "SystemConfiguration.h"
 #include "MemoryController.h"
+#include "MemoryControllerFT.h"
 #include "Rank.h"
 #include "Transaction.h"
 #include "Callback.h"
