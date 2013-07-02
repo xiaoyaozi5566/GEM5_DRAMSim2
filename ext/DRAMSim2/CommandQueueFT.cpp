@@ -8,8 +8,8 @@ CommandQueueFT::CommandQueueFT(vector< vector<BankState> > &states, ostream
         &dramsim_log_):
     CommandQueue(states,dramsim_log_)
 {
-    //TODO
 }
+
 
 void CommandQueueFT::enqueue(BusPacket *newBusPacket)
 {

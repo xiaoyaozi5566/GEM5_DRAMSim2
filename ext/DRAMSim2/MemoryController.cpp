@@ -745,7 +745,6 @@ void MemoryController::updateReturnTransactions()
 
         bool foundMatch=false;
         //find the pending read transaction to calculate latency
-        cout << "PRT.size()"<< pendingReadTransactions.size() << endl;
         for (size_t i=0;i<pendingReadTransactions.size();i++)
         {
 

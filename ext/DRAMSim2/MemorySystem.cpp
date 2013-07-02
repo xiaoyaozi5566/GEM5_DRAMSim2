@@ -130,9 +130,15 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, CSVWriter &cs
 
 
     if(timingProtection == FixedTiming){
-        memoryController = new MemoryControllerFT(this, csvOut, dramsim_log, outputFilename);
+        memoryController = 
+            new MemoryControllerFT(this, csvOut, dramsim_log, outputFilename);
+    } else if(timingProtection == TimingPartitioning){
+        cout << "Timing Partitioning found in Memory System." << endl;
+        memoryController = 
+            new MemoryControllerTP(this, csvOut, dramsim_log, outputFilename);
     } else {
-        memoryController = new MemoryController(this, csvOut, dramsim_log, outputFilename);
+        memoryController = 
+            new MemoryController(this, csvOut, dramsim_log, outputFilename);
     }
 
 	// TODO: change to other vector constructor?

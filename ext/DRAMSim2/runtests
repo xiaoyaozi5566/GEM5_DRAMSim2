@@ -1,9 +1,9 @@
 #!/bin/bash
-./DRAMSim -s system.ini -c 10000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
+./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
     -t traces/mase_art_MT_LOW.trc > results/low.out &
-./DRAMSim -s system.ini -c 10000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
+./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
     -t traces/mase_art_MT_MEDIUM.trc > results/med.out &
-./DRAMSim -s system.ini -c 10000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
+./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
     -t traces/mase_art_MT_HIGH.trc > results/high.out
 
 cat results/low.out  | grep "Return time" > results/low_rt.out
