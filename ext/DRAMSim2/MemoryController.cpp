@@ -38,6 +38,7 @@
 #include "MemoryController.h"
 #include "MemorySystem.h"
 #include "AddressMapping.h"
+#include <iomanip>
 
 #define SEQUENTIAL(rank,bank) (rank*NUM_BANKS)+bank
 
@@ -544,7 +545,8 @@ void MemoryController::update()
 					BusPacket *command = new BusPacket(bpType, transaction->address,
 							newTransactionColumn, newTransactionRow, newTransactionRank,
 							newTransactionBank, transaction->data, transaction->threadID, dramsim_log);
-
+					//PRINTN("Cycle:" << currentClockCycle << endl);
+					//command->print();
 
 
 					commandQueue.enqueue(ACTcommand);
@@ -625,7 +627,8 @@ void MemoryController::update()
 				BusPacket *command = new BusPacket(bpType, transaction->address,
 						newTransactionColumn, newTransactionRow, newTransactionRank,
 						newTransactionBank, transaction->data, transaction->threadID, dramsim_log);
-
+				PRINTN("Cycle:" << currentClockCycle << endl);
+				command->print();
 
 
 				commandQueue.enqueue(ACTcommand);
@@ -781,8 +784,8 @@ void MemoryController::update()
 							insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
 							//return latency
 							returnReadData(pendingReadTransactions[i]);
-							if (returnTransaction[j]->threadID == 0)
-								outputFile << "Address: " << hex << returnTransaction[j]->address << "  Return time: " << dec << currentClockCycle << '\n';
+							//if (returnTransaction[j]->threadID == 0)
+							outputFile << "Address: " << hex << setw(8) << setfill('0') << returnTransaction[j]->address << "  Return time: " << dec << currentClockCycle << " Thread: " << returnTransaction[j]->threadID <<'\n';
 
 							delete pendingReadTransactions[i];
 							pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
@@ -828,8 +831,8 @@ void MemoryController::update()
 					insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
 					//return latency
 					returnReadData(pendingReadTransactions[i]);
-					if (returnTransaction[0]->threadID == 0)
-								outputFile << "Address: " << hex << returnTransaction[0]->address << "  Return time: " << dec << currentClockCycle << '\n';
+					//if (returnTransaction[0]->threadID == 0)
+					outputFile << "Address: " << hex << setw(8) << setfill('0') << returnTransaction[0]->address << "  Return time: " << dec << currentClockCycle << " Thread: " << returnTransaction[0]->threadID <<'\n';
 
 					delete pendingReadTransactions[i];
 					pendingReadTransactions.erase(pendingReadTransactions.begin()+i);

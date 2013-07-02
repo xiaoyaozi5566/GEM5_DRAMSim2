@@ -226,22 +226,22 @@ bool CommandQueue::pop(BusPacket **busPacket)
 					if (bankStates[refreshRank][b].currentBankState == RowActive)
 					{
 						foundActiveOrTooEarly = true;
-						for (size_t p=0;p<NUM_PIDS;p++)
-						{
-							vector<BusPacket *> &queue = getCommandQueue(refreshRank, p);
-							BusPacket *packet = queue[0];
-							if (packet->row == bankStates[refreshRank][b].openRowAddress &&
-									packet->bank == b)
-							{
-								if (packet->busPacketType != ACTIVATE && isIssuable(packet))
-								{
-									*busPacket = packet;
-									queue.erase(queue.begin());
-									sendingREF = true;
-								}
-								break;
-							}
-						}
+// 						for (size_t p=0;p<NUM_PIDS;p++)
+// 						{
+// 							vector<BusPacket *> &queue = getCommandQueue(refreshRank, p);
+// 							BusPacket *packet = queue[0];
+// 							if (packet->row == bankStates[refreshRank][b].openRowAddress &&
+// 									packet->bank == b)
+// 							{
+// 								if (packet->busPacketType != ACTIVATE && isIssuable(packet))
+// 								{
+// 									//*busPacket = packet;
+// 									//queue.erase(queue.begin());
+// 									//sendingREF = true;
+// 								}
+// 								break;
+// 							}
+// 						}
 						break;
 					}
 					//	NOTE: checks nextActivate time for each bank to make sure tRP is being
@@ -297,7 +297,7 @@ bool CommandQueue::pop(BusPacket **busPacket)
 			if (!foundActiveOrTooEarly && bankStates[refreshRank][0].currentBankState != PowerDown)
 			{
 				*busPacket = new BusPacket(REFRESH, 0, 0, 0, refreshRank, 0, 0, dramsim_log);
-				PRINTN("Refresh at " << currentClockCycle << " for rank " << refreshRank << endl);
+				//PRINTN("Refresh at " << currentClockCycle << " for rank " << refreshRank << endl);
 				refreshRank = -1;
 				refreshWaiting = false;
 				sendingREF = true;

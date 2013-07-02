@@ -116,12 +116,18 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             if (transType == DATA_WRITE)
                 index = index | 0x1;
             dram->ongoingAccess.insert(make_pair(index, meta));
-            Transaction tr = Transaction(transType, addr, NULL, 0, 0);
+            uint64_t threadID;
+            if (pkt->getSrc() == 1 || pkt->getSrc() == 2) threadID = 0;
+            else threadID = 1;
+            Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
             retVal = dramsim2->addTransaction(tr);
         } else {
             if (pkt->isWrite()) {	// write-back does not need a response, but DRAMsim2 needs to track it
                 transType = DATA_WRITE;
-                Transaction tr = Transaction(transType, addr, NULL, 0, 0);
+                uint64_t threadID;
+                if (pkt->getSrc() == 1 || pkt->getSrc() == 2) threadID = 0;
+                else threadID = 1;
+                Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
                 retVal = dramsim2->addTransaction(tr);
                 assert(retVal == true);
             }
