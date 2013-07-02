@@ -63,7 +63,7 @@ using namespace DRAMSim;
 MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
     dramsim_log(dramsim_log_),
     bankStates(NUM_RANKS, vector<BankState>(NUM_BANKS, dramsim_log)),
-    commandQueue(bankStates, dramsim_log_),
+    //commandQueue(bankStates, dramsim_log_),
     poppedBusPacket(NULL),
     csvOut(csvOut_),
     totalTransactions(0),
@@ -75,6 +75,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     //get handle on parent
     parentMemorySystem = parent;
 
+    commandQueue = new CommandQueue(bankStates,dramsim_log_);
 
     //bus related fields
     outgoingCmdPacket = NULL;
@@ -269,7 +270,7 @@ void MemoryController::update()
     // else pop from command queue if it's not empty
     if (refreshCountdown[refreshRank]==0)
     {
-        commandQueue.needRefresh(refreshRank);
+        commandQueue->needRefresh(refreshRank);
         (*ranks)[refreshRank]->refreshWaiting = true;
         refreshCountdown[refreshRank] =	 REFRESH_PERIOD/tCK;
         refreshRank++;
@@ -287,7 +288,7 @@ void MemoryController::update()
     //pass a pointer to a poppedBusPacket
 
     //function returns true if there is something valid in poppedBusPacket
-    if (commandQueue.pop(&poppedBusPacket))
+    if (commandQueue->pop(&poppedBusPacket))
     {
         if (poppedBusPacket->busPacketType == WRITE || poppedBusPacket->busPacketType == WRITE_P)
         {
@@ -504,7 +505,7 @@ void MemoryController::update()
         if (USE_LOW_POWER)
         {
             //if there are no commands in the queue and that particular rank is not waiting for a refresh...
-            if (commandQueue.isEmpty(i) && !(*ranks)[i]->refreshWaiting)
+            if (commandQueue->isEmpty(i) && !(*ranks)[i]->refreshWaiting)
             {
                 //check to make sure all banks are idle
                 bool allIdle = true;
@@ -642,10 +643,10 @@ void MemoryController::update()
 
     if (DEBUG_CMD_Q)
     {
-        commandQueue.print();
+        commandQueue->print();
     }
 
-    commandQueue.step();
+    commandQueue->step();
 
 }
 
@@ -667,7 +668,7 @@ void MemoryController::updateTransactionQueue()
 
         //if we have room, break up the transaction into the appropriate commands
         //and add them to the command queue
-        if (commandQueue.hasRoomFor(2, newTransactionRank, newTransactionBank, transaction->threadID))
+        if (commandQueue->hasRoomFor(2, newTransactionRank, newTransactionBank, transaction->threadID))
         {
             if (DEBUG_ADDR_MAP) 
             {
@@ -704,8 +705,8 @@ void MemoryController::updateTransactionQueue()
 
 
 
-            commandQueue.enqueue(ACTcommand);
-            commandQueue.enqueue(command);
+            commandQueue->enqueue(ACTcommand);
+            commandQueue->enqueue(command);
 
             // If we have a read, save the transaction so when the data comes back
             // in a bus packet, we can staple it back into a transaction and return it

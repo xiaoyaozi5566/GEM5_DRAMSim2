@@ -1,5 +1,6 @@
 #include "MemoryControllerFT.h"
 #include "MemoryController.h"
+#include "CommandQueueFT.h"
 #include "AddressMapping.h"
 using namespace DRAMSim;
 
@@ -7,6 +8,9 @@ MemoryControllerFT::MemoryControllerFT(MemorySystem *parent, CSVWriter
         &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
     MemoryController(parent,csvOut_,dramsim_log_,outputFilename_)
 {
+
+    commandQueue = new CommandQueueFT(bankStates,dramsim_log_); 
+
     // reserve for each process
     for (int i=0;i<NUM_PIDS;i++){
         transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
@@ -38,7 +42,7 @@ void MemoryControllerFT::updateTransactionQueue()
             //if we have room, break up the transaction into the appropriate 
             //commands
             //and add them to the command queue
-            if (commandQueue.hasRoomFor(2, newTransactionRank, 
+            if (commandQueue->hasRoomFor(2, newTransactionRank, 
                         newTransactionBank, transaction->threadID))
             {
                 if (DEBUG_ADDR_MAP) {
@@ -85,8 +89,8 @@ void MemoryControllerFT::updateTransactionQueue()
 
 
 
-                commandQueue.enqueue(ACTcommand);
-                commandQueue.enqueue(command);
+                commandQueue->enqueue(ACTcommand);
+                commandQueue->enqueue(command);
 
                 // If we have a read, save the transaction so when the data 
                 // comes back

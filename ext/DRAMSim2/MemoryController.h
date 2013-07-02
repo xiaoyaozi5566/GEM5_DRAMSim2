@@ -109,7 +109,7 @@ namespace DRAMSim
             //fields
             MemorySystem *parentMemorySystem;
 
-            CommandQueue commandQueue;
+            CommandQueue *commandQueue;
             BusPacket *poppedBusPacket;
             vector<unsigned>refreshCountdown;
             vector<BusPacket *> writeDataToSend;
