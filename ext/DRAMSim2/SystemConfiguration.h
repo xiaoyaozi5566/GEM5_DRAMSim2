@@ -167,6 +167,13 @@ enum QueuingStructure
 	PerRankPerThread
 };
 
+enum TimingProtection
+{
+    None,
+    FixedTiming,
+    TimingPartitioning
+};
+
 enum SchedulingPolicy
 {
 	RankThenBankRoundRobin,
@@ -186,6 +193,7 @@ extern RowBufferPolicy rowBufferPolicy;
 extern SchedulingPolicy schedulingPolicy;
 extern AddressMappingScheme addressMappingScheme;
 extern QueuingStructure queuingStructure;
+extern TimingProtection timingProtection;
 //
 //FUNCTIONS
 //

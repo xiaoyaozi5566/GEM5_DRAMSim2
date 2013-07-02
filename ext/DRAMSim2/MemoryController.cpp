@@ -745,8 +745,10 @@ void MemoryController::updateReturnTransactions()
 
         bool foundMatch=false;
         //find the pending read transaction to calculate latency
+        cout << "PRT.size()"<< pendingReadTransactions.size() << endl;
         for (size_t i=0;i<pendingReadTransactions.size();i++)
         {
+
             if (pendingReadTransactions[i]->address == returnTransaction[0]->address)
             {
                 //if(currentClockCycle - pendingReadTransactions[i]->timeAdded > 2000)
@@ -759,8 +761,14 @@ void MemoryController::updateReturnTransactions()
                 //insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
                 //return latency
                 returnReadData(pendingReadTransactions[i]);
-                if (returnTransaction[0]->threadID == 0)
-                    outputFile << "Address: " << hex << returnTransaction[0]->address << "  Return time: " << dec << currentClockCycle << '\n';
+                if (returnTransaction[0]->threadID == 0){
+                    outputFile << "Address: " << hex << 
+                        returnTransaction[0]->address << "  Return "
+                        "time: " << dec << currentClockCycle << '\n';
+                    cout       << "Address: " << hex << 
+                        returnTransaction[0]->address << "  Return "
+                        "time: " << dec << currentClockCycle << '\n';
+                }
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
