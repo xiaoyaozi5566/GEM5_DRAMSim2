@@ -763,14 +763,14 @@ void MemoryController::updateReturnTransactions()
                 returnReadData(pendingReadTransactions[i]);
                 //Formerly outputs just if transaction->threadID==0
                 outputFile << "Address: " << hex << setw(8) << 
-                    setfill('0') << returnTransaction[j]->address << 
+                    setfill('0') << returnTransaction[i]->address << 
                     " Return time: " << dec << currentClockCycle << 
-                    " Thread: " << returnTransaction[j]->threadID <<'\n';
+                    " Thread: " << returnTransaction[i]->threadID <<'\n';
 
                 cout       << "Address: " << hex << setw(8) << 
-                    setfill('0') << returnTransaction[j]->address << 
+                    setfill('0') << returnTransaction[i]->address << 
                     " Return time: " << dec << currentClockCycle << 
-                    " Thread: " << returnTransaction[j]->threadID <<'\n';
+                    " Thread: " << returnTransaction[i]->threadID <<'\n';
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);

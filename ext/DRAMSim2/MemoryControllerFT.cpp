@@ -2,6 +2,7 @@
 #include "MemoryController.h"
 #include "CommandQueueFT.h"
 #include "AddressMapping.h"
+#include <iomanip>
 using namespace DRAMSim;
 
 MemoryControllerFT::MemoryControllerFT(MemorySystem *parent, CSVWriter 
