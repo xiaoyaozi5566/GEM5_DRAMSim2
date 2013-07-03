@@ -105,6 +105,7 @@ string ROW_BUFFER_POLICY;
 string SCHEDULING_POLICY;
 string ADDRESS_MAPPING_SCHEME;
 string QUEUING_STRUCTURE;
+string TIMING_PROTECTION;
 
 bool DEBUG_TRANS_Q;
 bool DEBUG_CMD_Q;
@@ -126,6 +127,7 @@ RowBufferPolicy rowBufferPolicy;
 SchedulingPolicy schedulingPolicy;
 AddressMappingScheme addressMappingScheme;
 QueuingStructure queuingStructure;
+TimingProtection timingProtection;
 
 
 //Map the string names to the variables they set
@@ -188,6 +190,7 @@ static ConfigMap configMap[] =
 	DEFINE_STRING_PARAM(SCHEDULING_POLICY,SYS_PARAM),
 	DEFINE_STRING_PARAM(ADDRESS_MAPPING_SCHEME,SYS_PARAM),
 	DEFINE_STRING_PARAM(QUEUING_STRUCTURE,SYS_PARAM),
+    DEFINE_STRING_PARAM(TIMING_PROTECTION,SYS_PARAM),
 	// debug flags
 	DEFINE_BOOL_PARAM(DEBUG_TRANS_Q,SYS_PARAM),
 	DEFINE_BOOL_PARAM(DEBUG_CMD_Q,SYS_PARAM),
@@ -578,6 +581,16 @@ void IniReader::InitEnumsFromStrings()
 		cout << "WARNING: Unknown queueing structure '"<<QUEUING_STRUCTURE<<"'; valid options are 'per_rank' and 'per_rank_per_bank', defaulting to Per Rank Per Bank"<<endl;
 		queuingStructure = PerRankPerBank;
 	}
+
+    if (TIMING_PROTECTION == "NONE"){
+        timingProtection = None;
+    } else if(TIMING_PROTECTION == "fixed_timing"){
+        timingProtection = FixedTiming;
+        queuingStructure = PerRankPerThread;
+    } else if(TIMING_PROTECTION == "timing_partitioning"){
+        timingProtection = TimingPartitioning;
+        queuingStructure = PerRankPerThread;
+    }
 
 	if (SCHEDULING_POLICY == "rank_then_bank_round_robin")
 	{

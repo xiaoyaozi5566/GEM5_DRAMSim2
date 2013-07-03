@@ -56,7 +56,7 @@ BusPacket::BusPacket(BusPacketType packtype, uint64_t physicalAddr,
 	rank(r),
 	physicalAddress(physicalAddr),
 	data(dat),
-	index(0),
+	//index(0),
 	returnTime(0)
 {}
 
@@ -71,8 +71,8 @@ BusPacket::BusPacket(BusPacketType packtype, uint64_t physicalAddr,
 	rank(r),
 	physicalAddress(physicalAddr),
 	data(dat),
-	threadID(pid),
-	index(0)
+	threadID(pid)
+	//index(0)
 {}
 
 void BusPacket::print(uint64_t currentClockCycle, bool dataStart)

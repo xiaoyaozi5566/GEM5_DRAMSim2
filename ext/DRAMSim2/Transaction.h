@@ -57,8 +57,9 @@ public:
 	TransactionType transactionType;
 	uint64_t address;
 	void *data;
-	uint64_t timeAdded;
-	uint64_t timeReturned;
+    //Do this in a script.
+	//uint64_t timeAdded;
+	//uint64_t timeReturned;
 	uint64_t threadID;
 	uint64_t index;
 	uint64_t returnTime;
@@ -68,6 +69,9 @@ public:
 	//functions
 	Transaction(TransactionType transType, uint64_t addr, void *data, uint64_t pid, uint64_t rTime);
 	Transaction(const Transaction &t);
+    
+    // Use something like below to make subclasses easier.
+    // Transaction(BusPacket *bpacket);
 
 	BusPacketType getBusPacketType()
 	{

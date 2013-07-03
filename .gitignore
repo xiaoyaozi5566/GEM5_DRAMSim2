@@ -25,6 +25,7 @@
 *.dep
 *.deppo
 *.pyc
+ext/DRAMSim2/DRAMSim
 
 # # Packages #
 # ############
@@ -62,6 +63,8 @@ Thumbs.db
 *.bak
 *.swp
 *.swo
+*.diff
+*ignore
 *~
 
 # Outputs / data                #
@@ -71,6 +74,7 @@ Thumbs.db
 *.dat
 *.csv
 *.txt
+ext/DRAMSim/results/result_*
 
 # The GEM5 generated code #
 # ######################################## #
