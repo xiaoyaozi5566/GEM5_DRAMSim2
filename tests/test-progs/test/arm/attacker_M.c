@@ -11,8 +11,6 @@ int main() {
 		for (j = 0; j < 10; j++)
 			buffer[i] = i;
 	}
-
-	printf ("Finish initialization\n");
 	
 	return 0;
 }
