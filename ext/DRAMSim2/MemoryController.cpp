@@ -648,7 +648,6 @@ void MemoryController::update()
     }
 
     commandQueue->step();
-    >>>>>>> unified
 
 }
 

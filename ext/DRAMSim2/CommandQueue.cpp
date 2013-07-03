@@ -577,7 +577,6 @@ bool CommandQueue::normalPopClosePage(BusPacket **busPacket, bool & sendingREF)
     //if we couldn't find anything to send, return false
     if (!foundIssuable) return false;
     return true;
->>>>>>> unified
 }
 
 //check if a rank/bank queue has room for a certain number of bus packets
