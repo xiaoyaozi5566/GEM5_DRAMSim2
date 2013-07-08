@@ -61,7 +61,9 @@ class TimeHash < Hash
             m =rf_line.match regex
             address = m[1]
             time = m[2].to_i
-            self[address]=time
+            if (m.length <4 || m[3].to_i==0)
+                self[address]=time
+            end
         end
     end
 end
@@ -72,7 +74,7 @@ if __FILE__ == $0
     outDelayHist=ARGV[2]
     outAddrDelayHist=ARGV[3]
 
-    result_regex = /Address:\s?(\w*)\s*?Return time:\s?(\d*)/
+    result_regex = /Address:\s?(\w*)\s*?Return time:\s?(\d*)\s?Thread:\s?(\d*)/
     trace_regex  = /0x(\w*)\s?\w*\s?(\d*)/
 
     resultsHash=TimeHash.new(fileone,result_regex)

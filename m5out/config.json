@@ -53,37 +53,7 @@
                     "type": "ArmTLB", 
                     "size": 64
                 }, 
-                "dcache": {
-                    "cxx_class": "BaseCache", 
-                    "write_buffers": 8, 
-                    "is_top_level": true, 
-                    "block_size": 64, 
-                    "size": 65536, 
-                    "latency": 1e-09, 
-                    "clock": 1, 
-                    "trace_addr": 0, 
-                    "max_miss_count": 0, 
-                    "mem_side": {
-                        "peer": "system.membus.slave[2]", 
-                        "role": "MASTER"
-                    }, 
-                    "mshrs": 10, 
-                    "forward_snoops": true, 
-                    "tgts_per_mshr": 20, 
-                    "cpu_side": {
-                        "peer": "system.cpu0.dcache_port", 
-                        "role": "SLAVE"
-                    }, 
-                    "prefetch_on_access": false, 
-                    "path": "system.cpu0.dcache", 
-                    "prioritizeRequests": false, 
-                    "name": "dcache", 
-                    "type": "BaseCache", 
-                    "hash_delay": 1, 
-                    "subblock_size": 0, 
-                    "assoc": 2, 
-                    "two_queue": false
-                }, 
+                "function_trace": false, 
                 "do_checkpoint_insts": true, 
                 "cxx_class": "TimingSimpleCPU", 
                 "max_loads_all_threads": 0, 
@@ -94,39 +64,8 @@
                 "type": "TimingSimpleCPU", 
                 "profile": 0.0, 
                 "icache_port": {
-                    "peer": "system.cpu0.icache.cpu_side", 
+                    "peer": "system.membus.slave[1]", 
                     "role": "MASTER"
-                }, 
-                "icache": {
-                    "cxx_class": "BaseCache", 
-                    "write_buffers": 8, 
-                    "is_top_level": true, 
-                    "block_size": 64, 
-                    "size": 32768, 
-                    "latency": 1e-09, 
-                    "clock": 1, 
-                    "trace_addr": 0, 
-                    "max_miss_count": 0, 
-                    "mem_side": {
-                        "peer": "system.membus.slave[1]", 
-                        "role": "MASTER"
-                    }, 
-                    "mshrs": 10, 
-                    "forward_snoops": true, 
-                    "tgts_per_mshr": 20, 
-                    "cpu_side": {
-                        "peer": "system.cpu0.icache_port", 
-                        "role": "SLAVE"
-                    }, 
-                    "prefetch_on_access": false, 
-                    "path": "system.cpu0.icache", 
-                    "prioritizeRequests": false, 
-                    "name": "icache", 
-                    "type": "BaseCache", 
-                    "hash_delay": 1, 
-                    "subblock_size": 0, 
-                    "assoc": 2, 
-                    "two_queue": false
                 }, 
                 "defer_registration": false, 
                 "interrupts": {
@@ -175,10 +114,9 @@
                 "max_insts_any_thread": 0, 
                 "progress_interval": 0.0, 
                 "dcache_port": {
-                    "peer": "system.cpu0.dcache.cpu_side", 
+                    "peer": "system.membus.slave[2]", 
                     "role": "MASTER"
                 }, 
-                "function_trace": false, 
                 "max_loads_any_thread": 0, 
                 "tracer": {
                     "path": "system.cpu0.tracer", 
@@ -208,37 +146,7 @@
                     "type": "ArmTLB", 
                     "size": 64
                 }, 
-                "dcache": {
-                    "cxx_class": "BaseCache", 
-                    "write_buffers": 8, 
-                    "is_top_level": true, 
-                    "block_size": 64, 
-                    "size": 65536, 
-                    "latency": 1e-09, 
-                    "clock": 1, 
-                    "trace_addr": 0, 
-                    "max_miss_count": 0, 
-                    "mem_side": {
-                        "peer": "system.membus.slave[6]", 
-                        "role": "MASTER"
-                    }, 
-                    "mshrs": 10, 
-                    "forward_snoops": true, 
-                    "tgts_per_mshr": 20, 
-                    "cpu_side": {
-                        "peer": "system.cpu1.dcache_port", 
-                        "role": "SLAVE"
-                    }, 
-                    "prefetch_on_access": false, 
-                    "path": "system.cpu1.dcache", 
-                    "prioritizeRequests": false, 
-                    "name": "dcache", 
-                    "type": "BaseCache", 
-                    "hash_delay": 1, 
-                    "subblock_size": 0, 
-                    "assoc": 2, 
-                    "two_queue": false
-                }, 
+                "function_trace": false, 
                 "do_checkpoint_insts": true, 
                 "cxx_class": "TimingSimpleCPU", 
                 "max_loads_all_threads": 0, 
@@ -249,39 +157,8 @@
                 "type": "TimingSimpleCPU", 
                 "profile": 0.0, 
                 "icache_port": {
-                    "peer": "system.cpu1.icache.cpu_side", 
+                    "peer": "system.membus.slave[5]", 
                     "role": "MASTER"
-                }, 
-                "icache": {
-                    "cxx_class": "BaseCache", 
-                    "write_buffers": 8, 
-                    "is_top_level": true, 
-                    "block_size": 64, 
-                    "size": 32768, 
-                    "latency": 1e-09, 
-                    "clock": 1, 
-                    "trace_addr": 0, 
-                    "max_miss_count": 0, 
-                    "mem_side": {
-                        "peer": "system.membus.slave[5]", 
-                        "role": "MASTER"
-                    }, 
-                    "mshrs": 10, 
-                    "forward_snoops": true, 
-                    "tgts_per_mshr": 20, 
-                    "cpu_side": {
-                        "peer": "system.cpu1.icache_port", 
-                        "role": "SLAVE"
-                    }, 
-                    "prefetch_on_access": false, 
-                    "path": "system.cpu1.icache", 
-                    "prioritizeRequests": false, 
-                    "name": "icache", 
-                    "type": "BaseCache", 
-                    "hash_delay": 1, 
-                    "subblock_size": 0, 
-                    "assoc": 2, 
-                    "two_queue": false
                 }, 
                 "defer_registration": false, 
                 "interrupts": {
@@ -330,10 +207,9 @@
                 "max_insts_any_thread": 0, 
                 "progress_interval": 0.0, 
                 "dcache_port": {
-                    "peer": "system.cpu1.dcache.cpu_side", 
+                    "peer": "system.membus.slave[6]", 
                     "role": "MASTER"
                 }, 
-                "function_trace": false, 
                 "max_loads_any_thread": 0, 
                 "tracer": {
                     "path": "system.cpu1.tracer", 
@@ -347,12 +223,12 @@
             "slave": {
                 "peer": [
                     "system.system_port", 
-                    "system.cpu0.icache.mem_side", 
-                    "system.cpu0.dcache.mem_side", 
+                    "system.cpu0.icache_port", 
+                    "system.cpu0.dcache_port", 
                     "system.cpu0.itb.walker.port", 
                     "system.cpu0.dtb.walker.port", 
-                    "system.cpu1.icache.mem_side", 
-                    "system.cpu1.dcache.mem_side", 
+                    "system.cpu1.icache_port", 
+                    "system.cpu1.dcache_port", 
                     "system.cpu1.itb.walker.port", 
                     "system.cpu1.dtb.walker.port"
                 ], 

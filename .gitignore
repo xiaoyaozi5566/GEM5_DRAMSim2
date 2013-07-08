@@ -80,3 +80,4 @@ ext/DRAMSim/results/result_*
 # ######################################## #
 build/
 parsetab.py
+parsetab.pyc
