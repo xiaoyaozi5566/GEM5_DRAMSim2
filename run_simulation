@@ -1,9 +1,107 @@
 #!/bin/bash
 
+# No Timing Protection
 build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
--c tests/test-progs/hello/bin/arm/linux/hello \
---cpu-type=timing \
---dramsim2 \
---devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
---systemcfg=./ext/DRAMSim2/system.ini \
---outputfile=./results/DRAMSim_results.out
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_none.ini \
+    --outputfile=./results/none_low.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_L
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_none.ini \
+    --outputfile=./results/none_med.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_M
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_none.ini \
+    --outputfile=./results/none_high.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_H
+
+#Timing Partitioning
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_low.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_L
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_med.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_M
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_high.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_H
+
+#Fixed Timing
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+    --outputfile=./results/ft_low.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_L
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+    --outputfile=./results/ft_med.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_M
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+    --outputfile=./results/ft_high.out \
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./tests/test-progs/test/arm/attacker_H
+
+
+cat results/none_low.out | grep "Thread: 0" > results/none_low_t0.out
+cat results/none_med.out | grep "Thread: 0" > results/none_med_t0.out
+cat results/none_high.out | grep "Thread: 0" > results/none_high_t0.out
+
+cat results/tp_low.out | grep "Thread: 0" > results/tp_low_t0.out
+cat results/tp_med.out | grep "Thread: 0" > results/tp_med_t0.out
+cat results/tp_high.out | grep "Thread: 0" > results/tp_high_t0.out
+
+cat results/ft_low.out | grep "Thread: 0" > results/ft_low_t0.out
+cat results/ft_med.out | grep "Thread: 0" > results/ft_med_t0.out
+cat results/ft_high.out | grep "Thread: 0" > results/ft_high_t0.out

@@ -157,10 +157,12 @@ void MemoryControllerFT::updateReturnTransactions()
                             " Return time: " << dec << currentClockCycle << 
                             " Thread: " << returnTransaction[j]->threadID <<'\n';
 
+                        /*
                         cout       << "Address: " << hex << setw(8) << 
                             setfill('0') << returnTransaction[j]->address << 
                             " Return time: " << dec << currentClockCycle << 
                             " Thread: " << returnTransaction[j]->threadID <<'\n';
+                        */
 
                         delete pendingReadTransactions[i];
                         pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
