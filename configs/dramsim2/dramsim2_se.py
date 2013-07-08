@@ -73,7 +73,9 @@ if '--dramsim2' in sys.argv:
     parser.add_option("--devicecfg", type="string", default="",
             help="device configuration file to be used by DRAMSim2")
     parser.add_option("--systemcfg", type="string", default="", 
-            help=" system configuration file to be used by DRAMSim2")
+            help="system configuration file to be used by DRAMSim2")
+    parser.add_option("--outputfile", type="string", default="",
+            help="output file for DRAMSim results.")
 ######################################################################
 
 ######################################################################
@@ -114,7 +116,9 @@ if options.dramsim2 :
                         # device (timing and power) configure file
                         deviceConfigFile = options.devicecfg,
                         # system (channel number, scheduling policy) configure file
-                        systemConfigFile=options.systemcfg
+                        systemConfigFile=options.systemcfg,
+                        # output file for DRAMSim results
+                        outputFile=options.outputfile
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

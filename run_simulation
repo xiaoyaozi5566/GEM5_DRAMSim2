@@ -5,4 +5,5 @@ build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
 --cpu-type=timing \
 --dramsim2 \
 --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
---systemcfg=./ext/DRAMSim2/system.ini
+--systemcfg=./ext/DRAMSim2/system.ini \
+--outputfile=./results/DRAMSim_results.out

@@ -45,7 +45,9 @@ DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
     int memoryCapacity = (int)(params()->range.size() / 1024 / 1024);
     std::cout << "device file: " << p->deviceConfigFile << std::endl;
     std::cout << "system file: " << p->systemConfigFile << std::endl;
-    dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, p->systemConfigFile, p->cwd, p->traceFile, memoryCapacity, "./results/output", NULL, NULL);
+    std::cout << "output file: " << p->outputFile << std::endl;
+    //dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, p->systemConfigFile, p->cwd, p->traceFile, memoryCapacity, "./results/output", NULL, NULL);
+    dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, p->systemConfigFile, p->cwd, p->traceFile, memoryCapacity, p->outputFile, NULL, NULL);
     // intentionally set CPU:Memory clock ratio as 1, we do the synchronization later
     dramsim2->setCPUClockSpeed(0);
     
