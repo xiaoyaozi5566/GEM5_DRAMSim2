@@ -133,7 +133,6 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, CSVWriter &cs
         memoryController = 
             new MemoryControllerFT(this, csvOut, dramsim_log, outputFilename);
     } else if(timingProtection == TimingPartitioning){
-        cout << "Timing Partitioning found in Memory System." << endl;
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, outputFilename);
     } else {

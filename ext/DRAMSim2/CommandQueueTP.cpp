@@ -7,9 +7,7 @@ using namespace DRAMSim;
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, ostream 
         &dramsim_log_):
     CommandQueue(states,dramsim_log_)
-{
-    cout << "Hello from CommandQueueTP" << endl;
-}
+{}
 
 void CommandQueueTP::enqueue(BusPacket *newBusPacket)
 {
