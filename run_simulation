@@ -24,6 +24,7 @@ build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
 build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
     --cpu-type=timing \
     --caches \
+    --maxtick 200000000 \
     --dramsim2 \
     --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
     --systemcfg=./ext/DRAMSim2/system_none.ini \
@@ -55,6 +56,7 @@ build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
 build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
     --cpu-type=timing \
     --caches \
+    --maxtick 200000000 \
     --dramsim2 \
     --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
     --systemcfg=./ext/DRAMSim2/system_tp.ini \
@@ -86,6 +88,7 @@ build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
 build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
     --cpu-type=timing \
     --caches \
+    --maxtick 200000000 \
     --dramsim2 \
     --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
     --systemcfg=./ext/DRAMSim2/system_ft.ini \

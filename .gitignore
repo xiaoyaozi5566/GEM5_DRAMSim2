@@ -21,6 +21,7 @@
 *.dll
 *.exe
 *.o
+*.obj
 *.so
 *.dep
 *.deppo
