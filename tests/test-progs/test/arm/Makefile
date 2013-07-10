@@ -19,5 +19,5 @@ attacker_H: attacker_H.c
 
 
 clean:
-	rm -f * *.obj
+	rm -f attacker_L attacker_M attacker_H victim *.obj
 

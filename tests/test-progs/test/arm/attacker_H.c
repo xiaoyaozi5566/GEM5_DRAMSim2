@@ -2,14 +2,15 @@
 #include <stdlib.h>
 
 int main() {
-    int i, j;
-    int * buffer;
-    buffer = (int *) malloc(sizeof(int)*1000);
-
-
-    for (i = 0; i < 1000; i++) buffer[i] = i;
-
-    printf("High finished\n");
-
-    return 0;
+	int i, j;
+	int * buffer;
+	buffer = (int *) malloc(sizeof(int)*2000);
+	
+	for (i = 0; i < 2000; i++) 
+	{
+		for (j = 0; j < 2; j++)
+			buffer[i] = i;
+	}
+	
+	return 0;
 }
