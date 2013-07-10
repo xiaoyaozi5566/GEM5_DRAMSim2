@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir ./results
+
 # No Timing Protection
 build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
     --cpu-type=timing \
