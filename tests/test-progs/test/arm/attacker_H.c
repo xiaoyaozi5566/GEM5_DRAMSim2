@@ -8,7 +8,8 @@ int main() {
 
 
     for (i = 0; i < 1000; i++) buffer[i] = i;
-    while(1){}
+    
+    printf("High finished\n");
 
     return 0;
 }
