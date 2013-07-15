@@ -80,7 +80,7 @@ results/
 m5out/
 
 # The GEM5 generated code #
-# ######################################## #
+# ####################### #
 build/
 parsetab.py
 parsetab.pyc

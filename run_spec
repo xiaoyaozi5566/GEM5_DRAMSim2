@@ -1,0 +1,38 @@
+#!/bin/bash
+
+mkdir ./results
+
+# No Timing Protection
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_none.ini \
+    --outputfile=./results/none_bzip2.out\
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./benchmarks/spec2k6bin/bzip2_base.gcc47
+
+
+# Timing Partitioning 
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_bzip2.out\
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./benchmarks/spec2k6bin/bzip2_base.gcc47
+
+# Fixed Timing 
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+    --outputfile=./results/ft_bzip2.out\
+    --p0=./tests/test-progs/test/arm/victim \
+    --p1=./benchmarks/spec2k6bin/bzip2_base.gcc47
