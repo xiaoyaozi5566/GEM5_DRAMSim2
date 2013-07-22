@@ -23,9 +23,19 @@ bool MemoryControllerTP::addTransaction(Transaction *trans)
     if (WillAcceptTransaction(trans->threadID))
     {
         transactionQueues[trans->threadID].push_back(trans);
+                if(trans->address==0x000a8fc0){
+                    PRINT("Added transaction with addr 0x000a8fc0 at time="
+                            << currentClockCycle);
+                    commandQueue->print();
+                }
         return true;
     }
     else {
+                if(trans->address==0x000a8fc0){
+                    PRINT("Failed to add transaction w addr 0x000a8fc0 at time="
+                            << currentClockCycle);
+                    commandQueue->print();
+                }
         return false;
     }
 }
@@ -109,6 +119,16 @@ void MemoryControllerTP::updateTransactionQueue()
                 //Formerly has second argument 'j'
                 commandQueue->enqueue(ACTcommand);
                 commandQueue->enqueue(command);
+
+                if(transaction->address==0x000a8fc0){
+                    PRINT("Added commands with addr 0x000a8fc0 at time=" << currentClockCycle);
+                    commandQueue->print();
+                }
+
+                if(transaction->address==0x00032100){
+                    PRINT("Added commands with addr 0x00032100 at time=" << currentClockCycle);
+                    commandQueue->print();
+                }
 
                 // If we have a read, save the transaction so when the data 
                 // comes back

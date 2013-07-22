@@ -1,0 +1,78 @@
+#!/bin/bash
+
+mkdir ./results
+
+# No Timing Protection
+#build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+#    --cpu-type=timing \
+#    --caches \
+#    --dramsim2 \
+#    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+#    --systemcfg=./ext/DRAMSim2/system_none.ini \
+#    --outputfile=./results/none_astar_bzip2.out\
+#    --p0=./benchmarks/spec2k6bin/specint/astar \
+#    --p1=./benchmarks/spec2k6bin/specint/bzip2
+#
+#build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+#    --cpu-type=timing \
+#    --caches \
+#    --dramsim2 \
+#    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+#    --systemcfg=./ext/DRAMSim2/system_none.ini \
+#    --outputfile=./results/none_astar_gcc.out\
+#    --p0=./benchmarks/spec2k6bin/specint/astar \
+#    --p1=./benchmarks/spec2k6bin/specint/gcc
+
+# Timing Protection
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_astar_bzip2.out \
+    --p0=./benchmarks/spec2k6bin/specint/astar \
+    --p1=./benchmarks/spec2k6bin/specint/bzip2 \
+    > results/stdout_bzip2.out
+
+build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+    --cpu-type=timing \
+    --caches \
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_tp.ini \
+    --outputfile=./results/tp_astar_perlbench.out \
+    --p0=./benchmarks/spec2k6bin/specint/astar \
+    --p1=./benchmarks/spec2k6bin/specint/perlbench \
+    > results/stdout_perlbench.out
+
+
+# Fixed Timing
+#build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+#    --cpu-type=timing \
+#    --caches \
+#    --dramsim2 \
+#    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+#    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+#    --outputfile=./results/ft_astar_bzip2.out\
+#    --p0=./benchmarks/spec2k6bin/specint/astar \
+#    --p1=./benchmarks/spec2k6bin/specint/bzip2
+#
+#build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \
+#    --cpu-type=timing \
+#    --caches \
+#    --dramsim2 \
+#    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+#    --systemcfg=./ext/DRAMSim2/system_ft.ini \
+#    --outputfile=./results/ft_astar_gcc.out\
+#    --p0=./benchmarks/spec2k6bin/specint/astar \
+#    --p1=./benchmarks/spec2k6bin/specint/gcc
+
+#cat results/none_astar_bzip2.out | grep "Thread: 0" > results/none_astar_bzip2_t0.out
+#cat results/none_astar_gcc.out | grep "Thread: 0" > results/none_astar_gcc_t0.out
+
+cat results/tp_astar_bzip2.out | grep "Thread: 0" > results/tp_astar_bzip2_t0.out
+cat results/tp_astar_perlbench.out | grep "Thread: 0" > results/tp_astar_perlbench_t0.out
+
+#cat results/ft_astar_bzip2.out | grep "Thread: 0" > results/ft_astar_bzip2_t0.out
+#cat results/ft_astar_gcc.out | grep "Thread: 0" > results/ft_astar_gcc_t0.out

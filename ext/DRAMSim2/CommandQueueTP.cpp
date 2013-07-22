@@ -124,11 +124,15 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
         nextRank = nextBank =0;
         startingRank = nextRank;
         startingBank = nextBank;
-
+        PRINT("Starting turn "<<currentPID<<" at cycle "<<currentClockCycle);
+        print();
     }
     lastPID = currentPID;
     unsigned btime = 1<<BLOCK_TIME;
     bool isBufferTime = (btime - (currentClockCycle & (btime-1))) -1  <= 151;
+    //if (isBufferTime)
+    //    PRINT("It's buffer time during cycle "<<currentClockCycle);
+
 
     while(true)
     {
@@ -145,6 +149,17 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
             //search from beginning to find first issuable bus packet
             for (size_t i=0;i<queue.size();i++)
             {
+                    if(queue[i]->physicalAddress==0x000a8fc0
+                            && !isIssuable(queue[i])){
+                        cout << "cmd with addr a8fc0 not issuable at time: "
+                             <<currentClockCycle<<endl;
+                    }
+                    if(queue[i]->physicalAddress==0x00032100 
+                                && !isIssuable(queue[i])){
+                        cout << "cmd with addr 32100 not issuable at time: "
+                             <<currentClockCycle<<endl;
+                    }
+
                 if (isIssuable(queue[i]))
                 {
                     //If a turn change is about to happen, don't
@@ -161,12 +176,36 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
                         continue;
 
                     *busPacket = queue[i];
+
+                    if(queue[i]->physicalAddress==0x000a8fc0){
+                        cout << "cmdq popped bpacket with addr a8fc0 at time: "
+                            <<currentClockCycle<<endl;
+                    }
+
+                    if(queue[i]->physicalAddress==0x00032100){
+                        cout << "cmdq popped bpacket with addr 32100 at time: "
+                            <<currentClockCycle<<endl;
+                    }
+
                     queue.erase(queue.begin()+i);
                     foundIssuable = true;
                     break;
                 }
             }
+        } else {
+            for(size_t i=0;i<queue.size();i++){
+                if(queue[i]->physicalAddress==0x000a8fc0
+                        || queue[i]->physicalAddress==0x00032100){
+                    PRINT("Rank is empty or waiting for a refresh"
+                            "while a8fc0 was inside.");
+                }
+                if(queue[i]->physicalAddress==0x00032100){
+                    PRINT("Rank is empty or waiting for a refresh"
+                            "while 32100 was inside.");
+                }
+            }
         }
+
 
         //if we found something, break out of do-while
         if (foundIssuable) break;
@@ -192,4 +231,24 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
     //if we couldn't find anything to send, return false
     if (!foundIssuable) return false;
     return true;
+}
+
+void CommandQueueTP::print()
+{
+    PRINT("\n== Printing Timing Partitioning Command Queue" );
+
+    for (size_t i=0;i<NUM_RANKS;i++)
+    {
+        PRINT(" = Rank " << i );
+        for (size_t j=0;j<NUM_PIDS;j++)
+        {
+            PRINT("    PID "<< j << "   size : " << queues[i][j].size() );
+
+            for (size_t k=0;k<queues[i][j].size();k++)
+            {
+                PRINTN("       " << k << "]");
+                queues[i][j][k]->print();
+            }
+        }
+    }
 }

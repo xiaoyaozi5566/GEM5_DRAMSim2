@@ -1,6 +1,6 @@
 #include "CommandQueue.h"
 
-#define BLOCK_TIME 9
+#define BLOCK_TIME 12
 
 using namespace std;
 
@@ -17,6 +17,7 @@ namespace DRAMSim
             virtual bool isEmpty(unsigned rank);
             virtual vector<BusPacket *> &getCommandQueue(unsigned rank, 
                     unsigned pid);
+            virtual void print();
 
         private:
             virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);

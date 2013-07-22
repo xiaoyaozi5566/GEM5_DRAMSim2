@@ -78,7 +78,7 @@ namespace DRAMSim
         bool isIssuable(BusPacket *busPacket);
         virtual bool isEmpty(unsigned rank);
         void needRefresh(unsigned rank);
-        void print();
+        virtual void print();
         void update(); //SimulatorObject requirement
         virtual vector<BusPacket *> &getCommandQueue(unsigned rank, unsigned bank);
 
