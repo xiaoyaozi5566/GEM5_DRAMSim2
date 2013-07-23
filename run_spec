@@ -1,31 +1,37 @@
 #!/usr/bin/ruby
 
-require 'tempfile'
+require 'fileutils'
 
 ruby=`which ruby`
 gem5home = Dir.new(Dir.pwd)
+puts gem5home.path
 specint_dir = Dir.new(Dir.pwd+"/benchmarks/spec2k6bin/specint")
+unless File.directory? File.expand_path(Dir.pwd+"/scriptgen")
+    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/scriptgen")
+end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
+
 schemes = ["none","tp","ft"]
-Dir.chdir(specint_dir)
+Dir.chdir(specint_dir.path)
 schemes.each do |scheme|
     Dir.glob("*") do |p0file|
         Dir.glob("*") do |p1file|
-            script = File.new(scriptgen_dir.to_path+"/run_#{scheme}_#{p0file}_#{p1file}","w")
-            script.puts("#!/bin/bash
-build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\
-    --cpu-type=timing \\
-    --caches \\
-    --dramsim2 \\
-    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\
-    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\
-    --outputfile=./results/#{scheme}_#{p0file}_#{p1file}.out \\
-    --p0=#{p0file} \\
-    --p1=#{p1file} \\
-    > results/stdout_#{scheme}_#{p0file}_#{p1file}.out ")
-            exec "qsub -cwd #{ruby} #{script}"
+            script = File.new(scriptgen_dir.path+"/run_#{scheme}_#{p0file}_#{p1file}","w+")
+            script.puts("#!/bin/bash")
+            script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
+            script.puts("    --cpu-type=timing \\")
+            script.puts("    --caches \\")
+            script.puts("    --dramsim2 \\")
+            script.puts("    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
+            script.puts("    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\")
+            script.puts("    --outputfile=./results/#{scheme}_#{p0file}_#{p1file}.out \\")
+            script.puts("    --p0=#{p0file} \\")
+            script.puts("    --p1=#{p1file} \\")
+            script.puts("    > results/stdout_#{scheme}_#{p0file}_#{p1file}.out")
+            script_abspath = File.expand_path(script.path)
+            script.close
+            system "qsub -wd #{gem5home.path} #{script_abspath}"
         end
     end
 end
-
