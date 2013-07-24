@@ -26,8 +26,8 @@ schemes.each do |scheme|
             script.puts("    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
             script.puts("    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\")
             script.puts("    --outputfile=./results/#{scheme}_#{p0file}_#{p1file}.out \\")
-            script.puts("    --p0=#{p0file} \\")
-            script.puts("    --p1=#{p1file} \\")
+            script.puts("    --p0=#{File.expand_path p0file} \\")
+            script.puts("    --p1=#{File.expand_path p1file} \\")
             script.puts("    > results/stdout_#{scheme}_#{p0file}_#{p1file}.out")
             script_abspath = File.expand_path(script.path)
             script.close
