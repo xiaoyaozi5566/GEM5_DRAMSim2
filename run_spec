@@ -12,26 +12,29 @@ end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
 
+cpus = [ "timing", "detailed"]
 schemes = ["none","tp","ft"]
 Dir.chdir(specint_dir.path)
-schemes.each do |scheme|
-    Dir.glob("*") do |p0file|
-        Dir.glob("*") do |p1file|
-            script = File.new(scriptgen_dir.path+"/run_#{scheme}_#{p0file}_#{p1file}","w+")
-            script.puts("#!/bin/bash")
-            script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
-            script.puts("    --cpu-type=timing \\")
-            script.puts("    --caches \\")
-            script.puts("    --dramsim2 \\")
-            script.puts("    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
-            script.puts("    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\")
-            script.puts("    --outputfile=./results/#{scheme}_#{p0file}_#{p1file}.out \\")
-            script.puts("    --p0=#{File.expand_path p0file} \\")
-            script.puts("    --p1=#{File.expand_path p1file} \\")
-            script.puts("    > results/stdout_#{scheme}_#{p0file}_#{p1file}.out")
-            script_abspath = File.expand_path(script.path)
-            script.close
-            system "qsub -wd #{gem5home.path} #{script_abspath}"
+cpus.each do |cpu|
+    schemes.each do |scheme|
+        Dir.glob("*") do |p0file|
+            Dir.glob("*") do |p1file|
+                script = File.new(scriptgen_dir.path+"/run_#{scheme}_#{p0file}_#{p1file}","w+")
+                script.puts("#!/bin/bash")
+                script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
+                script.puts("    --cpu-type=#{cpu} \\")
+                script.puts("    --caches \\")
+                script.puts("    --dramsim2 \\")
+                script.puts("    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
+                script.puts("    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\")
+                script.puts("    --outputfile=./results/#{scheme}_#{cpu}_#{p0file}_#{p1file}.out \\")
+                script.puts("    --p0=#{File.expand_path p0file} \\")
+                script.puts("    --p1=#{File.expand_path p1file} \\")
+                script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}.out")
+                script_abspath = File.expand_path(script.path)
+                script.close
+                system "qsub -wd #{gem5home.path} #{script_abspath}"
+            end
         end
     end
 end
