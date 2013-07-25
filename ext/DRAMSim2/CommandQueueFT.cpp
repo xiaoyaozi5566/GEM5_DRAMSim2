@@ -98,7 +98,7 @@ void CommandQueueFT::refreshPopClosePage(BusPacket **busPacket,
     if (!foundActiveOrTooEarly && bankStates[refreshRank][0].currentBankState != PowerDown)
     {
         *busPacket = new BusPacket(REFRESH, 0, 0, 0, refreshRank, 0, 0, dramsim_log);
-        PRINTN("Refresh at " << currentClockCycle << " for rank " << refreshRank << endl);
+        //PRINTN("Refresh at " << currentClockCycle << " for rank " << refreshRank << endl);
         refreshRank = -1;
         refreshWaiting = false;
         sendingREF = true;
