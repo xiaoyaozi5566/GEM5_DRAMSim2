@@ -9,6 +9,9 @@ specint_dir = Dir.new(Dir.pwd+"/benchmarks/spec2k6bin/specint")
 unless File.directory? File.expand_path(Dir.pwd+"/scriptgen")
     FileUtils.mkdir_p File.expand_path(Dir.pwd+"/scriptgen")
 end
+unless File.directory? File.expand_path(Dir.pwd+"/results")
+    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/results")
+end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
 
@@ -19,7 +22,7 @@ cpus.each do |cpu|
     schemes.each do |scheme|
         Dir.glob("*") do |p0file|
             Dir.glob("*") do |p1file|
-                script = File.new(scriptgen_dir.path+"/run_#{scheme}_#{p0file}_#{p1file}","w+")
+                script = File.new(scriptgen_dir.path+"/run_#{scheme}_#{cpu}_#{p0file}_#{p1file}","w+")
                 script.puts("#!/bin/bash")
                 script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
