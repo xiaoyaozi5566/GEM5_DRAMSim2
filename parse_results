@@ -22,7 +22,7 @@ $specint = [
 def make_t0_files indir
     oldDir = Dir.pwd
     Dir.chdir(File.expand_path indir.path)
-    Dir.glob("{none,tp,ft}*") do |rtfile|
+    Parallel.each(Dir.glob("{none,tp,ft}*"),:in_threads=>4) do |rtfile|
         rtfile_noex = (rtfile.match /([\w\s]*)\.out/)[1]
         system "cat #{rtfile} | grep \"Thread: 0\" > #{rtfile_noex}_t0.out"
     end
@@ -32,11 +32,11 @@ end
 def make_security_reports(indir,outdir)
     oldDir = Dir.pwd
     Dir.chdir(indir.path)
-    $schemes.each do |scheme|
+    Parallel.each($schemes,:in_threads=>3) do |scheme|
         $models.each do |model|
             currFile = File.new(outdir.path+
                                 "/security_#{scheme}_#{model}.out",'w')
-            Parallel.each($specint, :in_threads=>4) do |p0bench|
+            $specint.each do |p0bench|
                 currFile.puts("#{p0bench}:")
                 globber = "#{scheme}_#{model}_#{p0bench}_"+
                     "{#{$specint.join(',')}}*"
