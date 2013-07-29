@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 require 'fileutils'
+require 'parallel'
 
 $schemes = ['none','tp','ft']
 $models = ['timing','detailed']
@@ -35,7 +36,7 @@ def make_security_reports(indir,outdir)
         $models.each do |model|
             currFile = File.new(outdir.path+
                                 "/security_#{scheme}_#{model}.out",'w')
-            $specint.each do |p0bench|
+            Parallel.each($specint, :in_threads=>4) do |p0bench|
                 currFile.puts("#{p0bench}:")
                 globber = "#{scheme}_#{model}_#{p0bench}_"+
                     "{#{$specint.join(',')}}*"
