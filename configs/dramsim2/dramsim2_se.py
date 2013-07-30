@@ -160,12 +160,14 @@ process0 = LiveProcess()
 #process0.executable = "./tests/test-progs/test/arm/victim"
 process0.executable = options.p0
 process0.cmd = ""
+process0.pid = 0
 multiprocesses.append(process0)
 
 process1 = LiveProcess()
 #process1.executable = "./tests/test-progs/test/arm/attacker_H"
 process1.executable = options.p1
 process1.cmd = ""
+process1.pid = 1
 multiprocesses.append(process1)
 
 #if len(multiprocesses) == 0:

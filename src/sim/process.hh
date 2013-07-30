@@ -101,6 +101,9 @@ class Process : public SimObject
 
     // addr to use for next stack region (for multithreaded apps)
     Addr next_thread_stack_base;
+    
+    //process id
+    uint64_t __pid;
 
     // Base of region for mmaps (when user doesn't specify an address).
     Addr mmap_start;
@@ -250,7 +253,6 @@ class LiveProcess : public Process
     uint64_t __egid;
 
     // pid of the process and it's parent
-    uint64_t __pid;
     uint64_t __ppid;
 
   public:
