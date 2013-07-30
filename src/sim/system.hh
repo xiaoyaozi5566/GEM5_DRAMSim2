@@ -98,6 +98,8 @@ class System : public MemObject
 
   public:
 
+    int num_exits;
+
     /**
      * After all objects have been created and all ports are
      * connected, check that the system port is connected.
