@@ -72,8 +72,6 @@ void CommandQueueTP::refreshPopClosePage(BusPacket **busPacket, bool &
                             *busPacket = packet;
                             queue.erase(queue.begin() + j);
                             sendingREF = true;
-                            cout << "Sending REF at time "
-                                <<currentClockCycle<<endl;
                         }
                         break;
                     }
@@ -124,8 +122,6 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
         nextRank = nextBank =0;
         startingRank = nextRank;
         startingBank = nextBank;
-        PRINT("Starting turn "<<currentPID<<" at cycle "<<currentClockCycle);
-        print();
     }
     lastPID = currentPID;
     unsigned btime = 1<<BLOCK_TIME;
