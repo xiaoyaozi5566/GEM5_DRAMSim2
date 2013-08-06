@@ -77,7 +77,7 @@ Thumbs.db
 *.txt
 ext/DRAMSim/results/result_*
 results/
-m5out/
+m5out/*
 scriptgen/*
 
 # The GEM5 generated code #

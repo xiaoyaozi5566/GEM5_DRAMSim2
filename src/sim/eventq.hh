@@ -49,6 +49,8 @@
 #include "debug/Event.hh"
 #include "sim/serialize.hh"
 
+
+
 class EventQueue;       // forward declaration
 
 extern EventQueue mainEventQueue;
@@ -369,6 +371,7 @@ class EventQueue : public Serializable
     const EventQueue &operator=(const EventQueue &);
 
   public:
+    int maxinst_proc_count;
     EventQueue(const std::string &n);
 
     virtual const std::string name() const { return objName; }

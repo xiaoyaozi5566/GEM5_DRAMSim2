@@ -1,0 +1,20 @@
+# specinvoke r6392
+#  Invoked as: specinvoke -n
+# timer ticks over every 1000 ns
+# Use another -n on the command line to see chdir commands and env dump
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib attrs.pl > attrs.out 2>> attrs.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib gv.pl > gv.out 2>> gv.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib makerand.pl > makerand.out 2>> makerand.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib pack.pl > pack.out 2>> pack.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib redef.pl > redef.out 2>> redef.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib ref.pl > ref.out 2>> ref.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib regmesg.pl > regmesg.out 2>> regmesg.err
+# Starting run for copy #0
+../run_base_test_gcc47.0000/perlbench_base.gcc47 -I. -I./lib test.pl > test.out 2>> test.err

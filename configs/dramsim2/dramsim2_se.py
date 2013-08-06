@@ -77,10 +77,8 @@ if '--dramsim2' in sys.argv:
     parser.add_option("--outputfile", type="string", default="",
             help="output file for DRAMSim results."),
     parser.add_option("--p0", type="string", 
-            default="./tests/test-progs/test/arm/victim",
             help="workload for processor 0, usually the victim."),
     parser.add_option("--p1", type="string",
-            default="./tests/test-progs/test/arm/attacker_L",
             help="workload for processor 1, usually the attacker.")
 ######################################################################
 
@@ -158,15 +156,15 @@ elif options.cmd:
 
 process0 = LiveProcess()
 #process0.executable = "./tests/test-progs/test/arm/victim"
-process0.executable = options.p0
-process0.cmd = ""
+#process0.executable = options.p0
+process0.cmd = options.p0.split()
 process0.pid = 0
 multiprocesses.append(process0)
 
 process1 = LiveProcess()
 #process1.executable = "./tests/test-progs/test/arm/attacker_H"
-process1.executable = options.p1
-process1.cmd = ""
+#process1.executable = options.p1
+process1.cmd = options.p1.split()
 process1.pid = 1
 multiprocesses.append(process1)
 

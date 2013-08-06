@@ -51,6 +51,13 @@ SimLoopExitEvent::SimLoopExitEvent(const std::string &_cause, int c, Tick r)
 void
 SimLoopExitEvent::process()
 {
+    if(cause == "a thread reached the max instruction count"){
+        if(!(--(mainEventQueue.maxinst_proc_count)==0)){
+            cout << "A thread reached the max instruction count at @ tick" <<
+                curTick() << endl;
+            return;
+        }
+    }
     // if this got scheduled on a different queue (e.g. the committed
     // instruction queue) then make a corresponding event on the main
     // queue.
