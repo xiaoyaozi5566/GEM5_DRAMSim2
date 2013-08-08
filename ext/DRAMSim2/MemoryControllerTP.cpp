@@ -5,11 +5,12 @@
 using namespace DRAMSim;
 
 MemoryControllerTP::MemoryControllerTP(MemorySystem *parent, CSVWriter 
-        &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
+        &csvOut_, ostream &dramsim_log_, const string &outputFilename_,
+        unsigned tpTurnLength) :
     MemoryController(parent,csvOut_,dramsim_log_,outputFilename_)
 {
 
-    commandQueue = new CommandQueueTP(bankStates,dramsim_log_); 
+    commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength); 
 
     // reserve for each process
     for (int i=0;i<NUM_PIDS;i++){
@@ -150,6 +151,7 @@ bool MemoryControllerTP::WillAcceptTransaction(uint64_t pid)
 
     return transactionQueues[pid].size() < TRANS_QUEUE_DEPTH;
 }
+
 
 /*
    void MemoryController::printtransactionQueues(){

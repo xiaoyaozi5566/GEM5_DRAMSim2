@@ -4,10 +4,12 @@
 
 using namespace DRAMSim;
 
-CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, ostream 
-        &dramsim_log_):
+CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
+        ostream &dramsim_log_, unsigned tpTurnLength_):
     CommandQueue(states,dramsim_log_)
-{}
+{
+    tpTurnLength = tpTurnLength_;
+}
 
 void CommandQueueTP::enqueue(BusPacket *newBusPacket)
 {
@@ -115,7 +117,7 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
     bool foundIssuable = false;
     unsigned startingRank = nextRank;
     unsigned startingBank = nextBank;
-    unsigned currentPID = (currentClockCycle >> BLOCK_TIME) % (NUM_PIDS);
+    unsigned currentPID = (currentClockCycle >> tpTurnLength) % (NUM_PIDS);
     if(lastPID!=currentPID){
         //if the turn changes, reset the nextRank, nextBank, and
         //starters. It seems to have no effect on interference.
@@ -124,7 +126,7 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
         startingBank = nextBank;
     }
     lastPID = currentPID;
-    unsigned btime = 1<<BLOCK_TIME;
+    unsigned btime = 1<<tpTurnLength;
     bool isBufferTime = (btime - (currentClockCycle & (btime-1))) -1  <= 151;
 
     while(true)

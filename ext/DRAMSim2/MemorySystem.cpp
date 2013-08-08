@@ -52,7 +52,9 @@ namespace DRAMSim {
 
 powerCallBack_t MemorySystem::ReportPower = NULL;
 
-MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
+MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, 
+        CSVWriter &csvOut_, ostream &dramsim_log_, 
+        const string &outputFilename_, unsigned tpTurnLength) :
 		dramsim_log(dramsim_log_),
 		ReturnReadData(NULL),
 		WriteDataDone(NULL),
@@ -134,7 +136,8 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, CSVWriter &cs
             new MemoryControllerFT(this, csvOut, dramsim_log, outputFilename);
     } else if(timingProtection == TimingPartitioning){
         memoryController = 
-            new MemoryControllerTP(this, csvOut, dramsim_log, outputFilename);
+            new MemoryControllerTP(this, csvOut, dramsim_log, 
+                    outputFilename, tpTurnLength);
     } else {
         memoryController = 
             new MemoryController(this, csvOut, dramsim_log, outputFilename);

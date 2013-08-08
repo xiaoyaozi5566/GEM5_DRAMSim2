@@ -10,7 +10,7 @@ namespace DRAMSim
     {
         public:
             CommandQueueTP(vector< vector<BankState> > &states,
-                    ostream &dramsim_log_);
+                    ostream &dramsim_log_,unsigned tpTurnLength);
             virtual void enqueue(BusPacket *newBusPacket);
             virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, 
                     unsigned bank, unsigned pid);
@@ -24,5 +24,6 @@ namespace DRAMSim
             virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
 
             unsigned lastPID;
+            unsigned tpTurnLength;
     };
 }

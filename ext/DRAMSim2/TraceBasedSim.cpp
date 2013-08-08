@@ -382,6 +382,7 @@ int main(int argc, char **argv)
 	TraceType traceType;
 	string traceFileName;
 	string systemIniFilename("system.ini");
+    unsigned tpTurnLength=12;
 	string deviceIniFilename;
 	string pwdString;
 	string *visFilename = NULL;
@@ -400,6 +401,7 @@ int main(int argc, char **argv)
 			{"deviceini", required_argument, 0, 'd'},
 			{"tracefile", required_argument, 0, 't'},
 			{"systemini", required_argument, 0, 's'},
+            {"tpturnlength", required_argument, 0, 'l'},
 
 			{"pwd", required_argument, 0, 'p'},
 			{"numcycles",  required_argument,	0, 'c'},
@@ -412,7 +414,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0; //for getopt
-		c = getopt_long (argc, argv, "t:s:r:c:d:o:p:S:v:qn", long_options, &option_index);
+		c = getopt_long (argc, argv, "t:s:l:r:c:d:o:p:S:v:qn", long_options, &option_index);
 		if (c == -1)
 		{
 			break;
@@ -442,6 +444,9 @@ int main(int argc, char **argv)
 		case 's':
 			systemIniFilename = string(optarg);
 			break;
+        case 'l':
+            tpTurnLength = atoi(optarg);
+            break;
 		case 'd':
 			deviceIniFilename = string(optarg);
 			break;
@@ -521,10 +526,13 @@ int main(int argc, char **argv)
 	string line;
 
 
-	MultiChannelMemorySystem *memorySystem = new MultiChannelMemorySystem(deviceIniFilename, systemIniFilename, pwdString, traceFileName, megsOfMemory, outputFilename, visFilename, paramOverrides);
+	MultiChannelMemorySystem *memorySystem = new MultiChannelMemorySystem(
+            deviceIniFilename, systemIniFilename, tpTurnLength,
+            pwdString, traceFileName, 
+            megsOfMemory, outputFilename, visFilename, paramOverrides);
 	// set the frequency ratio to 1:1
 	memorySystem->setCPUClockSpeed(0); 
-	std::ostream &dramsim_logfile = memorySystem->getLogFile(); 
+    //std::ostream &dramsim_logfile = memorySystem->getLogFile(); 
 	// don't need this anymore 
 	delete paramOverrides;
 

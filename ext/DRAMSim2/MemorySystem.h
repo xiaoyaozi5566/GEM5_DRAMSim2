@@ -57,7 +57,9 @@ class MemorySystem : public SimulatorObject
 	ostream &dramsim_log;
 public:
 	//functions
-	MemorySystem(unsigned id, unsigned megsOfMemory, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_);
+	MemorySystem(unsigned id, unsigned megsOfMemory, 
+            CSVWriter &csvOut_, ostream &dramsim_log_, 
+            const string &outputFilename_, unsigned tpTurnLength);
 	virtual ~MemorySystem();
 	void update();
 	bool addTransaction(Transaction *trans);
@@ -73,7 +75,6 @@ public:
 	MemoryController *memoryController;
 	vector<Rank *> *ranks;
 	deque<Transaction *> pendingTransactions; 
-
 
 	//function pointers
 	Callback_t* ReturnReadData;
