@@ -11,6 +11,7 @@ class DRAMSim2(DRAMSim2Wrapper):
     finalStatsOnly = Param.Bool(True, "only the final stats print out when it's true")
     deviceConfigFile = Param.String("/home/mdl/tzz106/Simulator/GEM5/gem5_9196/ext/DRAMSim2/ini/DDR3_micron_32M_8B_x8_sg15.ini", "DRAM device-specific configuration file")
     systemConfigFile = Param.String("/home/mdl/tzz106/Simulator/GEM5/gem5_9196/ext/DRAMSim2/system.ini.example", "Memory system configuration file")
+    tpTurnLength = Param.String("12", "Turn Length for Timing Partitioning")
     cwd = Param.String("", "current work directory");
     traceFile = Param.String("", "output file for trace generation");
     outputFile = Param.String("./results/DRAMSim.out", "output file containing DRAMSim results");

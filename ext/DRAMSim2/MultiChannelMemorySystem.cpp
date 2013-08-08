@@ -64,6 +64,8 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
             ),
     csvOut(new CSVWriter(visDataOut))
 {
+
+    cout << "DEBUGSTR My tpTurnLength is "<< tpTurnLength<<endl;
     currentClockCycle=0; 
     if (visFilename)
         printf("CC VISFILENAME=%s\n",visFilename->c_str());

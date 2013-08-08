@@ -74,6 +74,8 @@ if '--dramsim2' in sys.argv:
             help="device configuration file to be used by DRAMSim2")
     parser.add_option("--systemcfg", type="string", default="", 
             help="system configuration file to be used by DRAMSim2")
+    parser.add_option("--tpturnlength", type="string", default="12",
+            help="Turn length for TP. Unused if another scheme is used.")
     parser.add_option("--outputfile", type="string", default="",
             help="output file for DRAMSim results."),
     parser.add_option("--p0", type="string", 
@@ -122,7 +124,9 @@ if options.dramsim2 :
                         # system (channel number, scheduling policy) configure file
                         systemConfigFile=options.systemcfg,
                         # output file for DRAMSim results
-                        outputFile=options.outputfile
+                        outputFile=options.outputfile,
+                        #TP Turn Length
+                        tpTurnLength=options.tpturnlength
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
