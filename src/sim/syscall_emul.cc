@@ -119,7 +119,7 @@ exitFunc(SyscallDesc *desc, int callnum, LiveProcess *process,
         int index = 0;
         if(process->system->num_exits==0){
             process->system->num_exits++;
-            printf("First process exited @ Tick %lu\n",curTick());
+            printf("First process exited @ Tick %llu\n",curTick());
         }
         else {
             exitSimLoop("target called exit()",
@@ -143,7 +143,7 @@ exitGroupFunc(SyscallDesc *desc, int callnum, LiveProcess *process,
     int index = 0;
     if(process->system->num_exits==0){
         process->system->num_exits++;
-        printf("First process exited @ Tick %lu\n",curTick());
+        printf("First process exited @ Tick %llu\n",curTick());
     }
     else {
         exitSimLoop("target called exit()",

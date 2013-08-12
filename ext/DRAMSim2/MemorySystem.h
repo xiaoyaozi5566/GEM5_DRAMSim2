@@ -59,7 +59,7 @@ public:
 	//functions
 	MemorySystem(unsigned id, unsigned megsOfMemory, 
             CSVWriter &csvOut_, ostream &dramsim_log_, 
-            const string &outputFilename_, unsigned tpTurnLength);
+            const string &outputFilename_, unsigned tpTurnLength, bool genTrace, const string &traceFilename);
 	virtual ~MemorySystem();
 	void update();
 	bool addTransaction(Transaction *trans);

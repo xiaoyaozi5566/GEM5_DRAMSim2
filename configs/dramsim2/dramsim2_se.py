@@ -82,6 +82,8 @@ if '--dramsim2' in sys.argv:
             help="workload for processor 0, usually the victim."),
     parser.add_option("--p1", type="string",
             help="workload for processor 1, usually the attacker.")
+    parser.add_option("--gentrace", type="bool", default="false",
+            help="generate the trace for benchmarks.")
 ######################################################################
 
 ######################################################################
@@ -126,7 +128,9 @@ if options.dramsim2 :
                         # output file for DRAMSim results
                         outputFile=options.outputfile,
                         #TP Turn Length
-                        tpTurnLength=options.tpturnlength
+                        tpTurnLength=options.tpturnlength,
+                        #Generate trace
+                        genTrace=options.gentrace,
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

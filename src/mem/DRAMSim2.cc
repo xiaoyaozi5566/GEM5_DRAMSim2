@@ -48,7 +48,7 @@ DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
     std::cout << "output file: " << p->outputFile << std::endl;
     //dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, p->systemConfigFile, p->cwd, p->traceFile, memoryCapacity, "./results/output", NULL, NULL);
     dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, 
-            p->systemConfigFile, atoi((p->tpTurnLength).c_str()), p->cwd, p->traceFile, 
+            p->systemConfigFile, atoi((p->tpTurnLength).c_str()), p->genTrace, p->cwd, p->traceFile, 
             memoryCapacity, p->outputFile, NULL, NULL);
     // intentionally set CPU:Memory clock ratio as 1, we do the synchronization later
     dramsim2->setCPUClockSpeed(0);

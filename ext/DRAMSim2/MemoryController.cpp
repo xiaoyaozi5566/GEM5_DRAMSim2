@@ -61,7 +61,7 @@ extern float Vdd;
 
 using namespace DRAMSim;
 
-MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
+MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_, bool genTrace_, const string &traceFilename_) :
     dramsim_log(dramsim_log_),
     bankStates(NUM_RANKS, vector<BankState>(NUM_BANKS, dramsim_log)),
     //commandQueue(bankStates, dramsim_log_),
@@ -69,8 +69,12 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     csvOut(csvOut_),
     totalTransactions(0),
     refreshRank(0),
-    outputFilename(outputFilename_)
+    outputFilename(outputFilename_),
+    genTrace(genTrace_),
+    traceFilename(traceFilename_),
+    lastReturnTime(0)
 {
+    if (genTrace) traceFile.open(traceFilename.c_str());
     outputFile.open(outputFilename.c_str());
     //cout << outputFilename << endl;
     //get handle on parent
@@ -772,6 +776,7 @@ void MemoryController::updateReturnTransactions()
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 */
+                lastReturnTime = currentClockCycle;
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
@@ -802,6 +807,18 @@ bool MemoryController::addTransaction(Transaction *trans)
     {
         //trans->timeAdded = currentClockCycle;
         transactionQueue.push_back(trans);
+        // Generate trace
+        if (genTrace)
+        {
+        	if (trans->transactionType == DATA_READ) {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        	}
+        	else {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        	}
+        }
         return true;
     }
     else
@@ -999,6 +1016,7 @@ MemoryController::~MemoryController()
         delete returnTransaction[i];
     }
     outputFile.close();
+    if (genTrace) traceFile.close();
 
 }
 //inserts a latency into the latency histogram

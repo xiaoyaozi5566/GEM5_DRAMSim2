@@ -45,7 +45,8 @@ using namespace DRAMSim;
 
 MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilename_, 
         const string &systemIniFilename_,
-        unsigned tpTurnLength_, 
+        unsigned tpTurnLength_,
+        bool genTrace_, 
         const string &pwd_, 
         const string &traceFilename_, unsigned megsOfMemory_, 
         const string &outputFilename_, string *visFilename_, 
@@ -54,6 +55,7 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
     deviceIniFilename(deviceIniFilename_),
     systemIniFilename(systemIniFilename_),
     tpTurnLength(tpTurnLength_),
+    genTrace(genTrace_),
     traceFilename(traceFilename_),
     pwd(pwd_), 
     visFilename(visFilename_), 
@@ -66,6 +68,7 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
 {
 
     cout << "DEBUGSTR My tpTurnLength is "<< tpTurnLength<<endl;
+    cout << "genTrace is " << genTrace << endl;
     currentClockCycle=0; 
     if (visFilename)
         printf("CC VISFILENAME=%s\n",visFilename->c_str());
@@ -113,7 +116,7 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
     for (size_t i=0; i<NUM_CHANS; i++)
     {
         MemorySystem *channel = new MemorySystem(i, megsOfMemory/NUM_CHANS, 
-                (*csvOut), dramsim_log, outputFilename, tpTurnLength_);
+                (*csvOut), dramsim_log, outputFilename, tpTurnLength_, genTrace, traceFilename);
         channels.push_back(channel);
     }
 }
@@ -514,13 +517,13 @@ void MultiChannelMemorySystem::RegisterCallbacks(
 }
 namespace DRAMSim {
     MultiChannelMemorySystem *getMemorySystemInstance(const string &dev, 
-            const string &sys, unsigned tpTurnLength,
+            const string &sys, unsigned tpTurnLength, bool genTrace,
             const string &pwd, const string &trc, 
             unsigned megsOfMemory, string *visfilename) 
     {
         // This interface is misleading because visfilename is used as the outputFilename (result)
         // and temp is used for the actual visfilename.
-        return new MultiChannelMemorySystem(dev, sys, tpTurnLength,
+        return new MultiChannelMemorySystem(dev, sys, tpTurnLength, genTrace,
                 pwd, trc, megsOfMemory, "temp", visfilename);
     }
 }
