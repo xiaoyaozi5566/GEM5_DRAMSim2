@@ -1,0 +1,13 @@
+#!/bin/bash
+build/ARM/gem5.fast configs/dramsim2/gen_trace.py \
+    --cpu-type=timing \
+    --caches \
+    --maxinsts=$((10**7))\
+    --dramsim2 \
+    --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    --systemcfg=./ext/DRAMSim2/system_none.ini \
+    --outputfile=./results/astar_trace.out \
+    --gentrace \
+    --tracefile=./ext/DRAMSim2/traces/astar.trc \
+    --p0='/Users/yaowang/Desktop/GitHub/GEM5_DRAMSim2/benchmarks/spec2k6bin/specint/astar /Users/yaowang/Desktop/GitHub/GEM5_DRAMSim2/benchmarks/spec2k6bin/specint/lake.cfg' \
+    > results/stdout_astar_trace.out
