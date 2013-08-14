@@ -14,5 +14,5 @@ class DRAMSim2(DRAMSim2Wrapper):
     tpTurnLength = Param.String("12", "Turn Length for Timing Partitioning")
     genTrace = Param.Bool(False, "Generate trace for benchmark")
     cwd = Param.String("", "current work directory");
-    traceFile = Param.String("", "output file for trace generation");
+    traceFile = Param.String("./results/DRAMSim.trc", "output file for trace generation");
     outputFile = Param.String("./results/DRAMSim.out", "output file containing DRAMSim results");

@@ -74,7 +74,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     traceFilename(traceFilename_),
     lastReturnTime(0)
 {
-    if (genTrace) traceFile.open(traceFilename.c_str());
+    if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
     //cout << outputFilename << endl;
     //get handle on parent
@@ -120,6 +120,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     {
         refreshCountdown.push_back((int)((REFRESH_PERIOD/tCK)/NUM_RANKS)*(i+1));
     }
+    cout << "finish initializing memory controller" << endl;
 }
 
 //get a bus packet from either data or cmd bus
@@ -810,6 +811,7 @@ bool MemoryController::addTransaction(Transaction *trans)
         // Generate trace
         if (genTrace)
         {
+        	cout << "before writing" << endl;
         	if (trans->transactionType == DATA_READ) {
         		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
         			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
@@ -818,6 +820,7 @@ bool MemoryController::addTransaction(Transaction *trans)
         		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
         			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
         	}
+        	cout << "after writing" << endl;
         }
         return true;
     }
