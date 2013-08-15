@@ -114,13 +114,18 @@ class TransactionReceiver
 			{
 				flag = 1;
 			}
-			else
+			else if (threadID == 1)
 			{
 				flag1 = 1;
 			}
+			else
+			{
+				ERROR("Wrong threadID found");
+				exit(0);
+			}
 
 			pendingReadRequests[address].pop_front();
-			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
 		void write_complete(unsigned id, uint64_t address, uint64_t done_cycle, uint64_t threadID)
 		{
@@ -144,16 +149,21 @@ class TransactionReceiver
 			{
 				flag = 1;
 			}
-			else
+			else if (threadID == 1)
 			{
 				flag1 = 1;
+			}
+			else
+			{
+				ERROR("Wrong threadID found");
+				exit(0);
 			}
 
 			uint64_t added_cycle = pendingWriteRequests[address].front();
 			uint64_t latency = done_cycle - added_cycle;
 
 			pendingWriteRequests[address].pop_front();
-			cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+			cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
 };
 #endif
@@ -734,7 +744,7 @@ int main(int argc, char **argv)
 				{
 					getline(traceFile, line);
 
-					if (line.size() > 0)
+					if (line.size() > 24)
 					{
 						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
@@ -796,7 +806,7 @@ int main(int argc, char **argv)
 				{
 					getline(traceFile1, line);
 
-					if (line.size() > 0)
+					if (line.size() > 24)
 					{
 						data = parseTraceFileLine(line, addr, transType,clockCycle1, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
@@ -853,6 +863,8 @@ int main(int argc, char **argv)
 			}
 
 			(*memorySystem).update();
+			
+			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
 		}
 		traceFile1.close();
 	}

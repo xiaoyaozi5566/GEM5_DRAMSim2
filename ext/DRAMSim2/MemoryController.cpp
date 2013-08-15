@@ -301,7 +301,7 @@ void MemoryController::update()
 
             writeDataToSend.push_back(new BusPacket(DATA, poppedBusPacket->physicalAddress, poppedBusPacket->column,
                         poppedBusPacket->row, poppedBusPacket->rank, poppedBusPacket->bank,
-                        poppedBusPacket->data, dramsim_log));
+                        poppedBusPacket->data, poppedBusPacket->threadID, dramsim_log));
             writeDataCountdown.push_back(WL);
         }
 
