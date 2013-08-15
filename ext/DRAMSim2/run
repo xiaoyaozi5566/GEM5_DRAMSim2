@@ -1,6 +1,6 @@
 #! /bin/bash
 # run DRAMSim2
 
-./DRAMSim -s system_tp.ini -l 12 -r results/result_LOW -d ini/DDR3_micron_64M_8B_x4_sg15.ini -t traces/mase_art_MT_LOW.trc -S 8192 -c 10000 -o QUEUING_STRUCTURE=per_rank_per_thread,SCHEDULING_POLICY=rank_then_bank_round_robin,ROW_BUFFER_POLICY=close_page -q
+./DRAMSim -s system_none.ini -l 12 -r results/result_astar_astar -d ini/DDR3_micron_16M_8B_x8_sg15.ini -t traces/timing_astar_p0.trc -T traces/timing_astar_p1.trc -S 8192 -c 10000
 #./DRAMSim -s system.ini -r results/result_MEDIUM -d ini/DDR3_micron_64M_8B_x4_sg15.ini -t traces/mase_art_MT_MEDIUM.trc -S 8192 -c 10000 -o QUEUING_STRUCTURE=per_rank_per_thread,SCHEDULING_POLICY=rank_then_bank_round_robin,ROW_BUFFER_POLICY=close_page -q
 #./DRAMSim -s system.ini -r results/result_HIGH -d ini/DDR3_micron_64M_8B_x4_sg15.ini -t traces/mase_art_MT_HIGH.trc -S 8192 -c 10000 -o QUEUING_STRUCTURE=per_rank_per_thread,SCHEDULING_POLICY=rank_then_bank_round_robin,ROW_BUFFER_POLICY=close_page -q

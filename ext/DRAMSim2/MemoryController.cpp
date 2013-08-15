@@ -152,7 +152,7 @@ void MemoryController::returnReadData(const Transaction *trans)
 {
     if (parentMemorySystem->ReturnReadData!=NULL)
     {
-        (*parentMemorySystem->ReturnReadData)(parentMemorySystem->systemID, trans->address, currentClockCycle);
+        (*parentMemorySystem->ReturnReadData)(parentMemorySystem->systemID, trans->address, currentClockCycle, trans->threadID);
     }
 }
 
@@ -224,7 +224,7 @@ void MemoryController::update()
             //inform upper levels that a write is done
             if (parentMemorySystem->WriteDataDone!=NULL)
             {
-                (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle);
+                (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle, outgoingDataPacket->threadID);
             }
 
             (*ranks)[outgoingDataPacket->rank]->receiveFromBus(outgoingDataPacket);
