@@ -7,7 +7,7 @@ using namespace DRAMSim;
 MemoryControllerTP::MemoryControllerTP(MemorySystem *parent, CSVWriter 
         &csvOut_, ostream &dramsim_log_, const string &outputFilename_,
         unsigned tpTurnLength) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_)
+    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "")
 {
 
     commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength); 

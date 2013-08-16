@@ -67,7 +67,7 @@ namespace DRAMSim
         public:
             //functions
             MemoryController(MemorySystem* ms, CSVWriter &csvOut_, ostream 
-                    &dramsim_log_, const string &outputFilename_);
+                    &dramsim_log_, const string &outputFilename_, bool genTrace_, const string &traceFilename_);
             virtual ~MemoryController();
 
             virtual bool addTransaction(Transaction *trans);
@@ -94,6 +94,10 @@ namespace DRAMSim
             //fields
             // Each thread uses a separate transaction queue
             vector<Transaction *> transactionQueue;
+            bool genTrace;
+            string traceFilename;
+            ofstream traceFile;
+            unsigned lastReturnTime;
             // transactionQueues should be a private instance variable of the 
             // subclass.
             // methods that use it should call private virtual "strategy" 

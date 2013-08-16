@@ -54,13 +54,14 @@ powerCallBack_t MemorySystem::ReportPower = NULL;
 
 MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, 
         CSVWriter &csvOut_, ostream &dramsim_log_, 
-        const string &outputFilename_, unsigned tpTurnLength) :
+        const string &outputFilename_, unsigned tpTurnLength, bool genTrace, const string &traceFilename_) :
 		dramsim_log(dramsim_log_),
 		ReturnReadData(NULL),
 		WriteDataDone(NULL),
 		systemID(id),
 		csvOut(csvOut_),
-		outputFilename(outputFilename_)
+		outputFilename(outputFilename_),
+		traceFilename(traceFilename_)
 {
 	currentClockCycle = 0;
 
@@ -140,7 +141,7 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
                     outputFilename, tpTurnLength);
     } else {
         memoryController = 
-            new MemoryController(this, csvOut, dramsim_log, outputFilename);
+            new MemoryController(this, csvOut, dramsim_log, outputFilename, genTrace, traceFilename);
     }
 
 	// TODO: change to other vector constructor?

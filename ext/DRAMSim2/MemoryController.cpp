@@ -63,7 +63,7 @@ extern float Vdd;
 
 using namespace DRAMSim;
 
-MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
+MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_, bool genTrace_, const string &traceFilename_) :
     dramsim_log(dramsim_log_),
     bankStates(NUM_RANKS, vector<BankState>(NUM_BANKS, dramsim_log)),
     //commandQueue(bankStates, dramsim_log_),
@@ -71,8 +71,12 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     csvOut(csvOut_),
     totalTransactions(0),
     refreshRank(0),
-    outputFilename(outputFilename_)
+    outputFilename(outputFilename_),
+    genTrace(genTrace_),
+    traceFilename(traceFilename_),
+    lastReturnTime(0)
 {
+    if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
     //cout << outputFilename << endl;
     //get handle on parent
@@ -118,6 +122,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     {
         refreshCountdown.push_back((int)((REFRESH_PERIOD/tCK)/NUM_RANKS)*(i+1));
     }
+    cout << "finish initializing memory controller" << endl;
 }
 
 //get a bus packet from either data or cmd bus
@@ -149,7 +154,7 @@ void MemoryController::returnReadData(const Transaction *trans)
 {
     if (parentMemorySystem->ReturnReadData!=NULL)
     {
-        (*parentMemorySystem->ReturnReadData)(parentMemorySystem->systemID, trans->address, currentClockCycle);
+        (*parentMemorySystem->ReturnReadData)(parentMemorySystem->systemID, trans->address, currentClockCycle, trans->threadID);
     }
 }
 
@@ -221,7 +226,7 @@ void MemoryController::update()
             //inform upper levels that a write is done
             if (parentMemorySystem->WriteDataDone!=NULL)
             {
-                (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle);
+                (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle, outgoingDataPacket->threadID);
             }
 
             (*ranks)[outgoingDataPacket->rank]->receiveFromBus(outgoingDataPacket);
@@ -298,7 +303,7 @@ void MemoryController::update()
 
             writeDataToSend.push_back(new BusPacket(DATA, poppedBusPacket->physicalAddress, poppedBusPacket->column,
                         poppedBusPacket->row, poppedBusPacket->rank, poppedBusPacket->bank,
-                        poppedBusPacket->data, dramsim_log));
+                        poppedBusPacket->data, poppedBusPacket->threadID, dramsim_log));
             writeDataCountdown.push_back(WL);
         }
 
@@ -832,11 +837,12 @@ void MemoryController::updateReturnTransactions()
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 /*
-                   cout       << "Address: " << hex << setw(8) << 
-                   setfill('0') << returnTransaction[0]->address << 
-                   " Return time: " << dec << currentClockCycle << 
-                   " Thread: " << returnTransaction[0]->threadID <<'\n';
-                   */
+                cout       << "Address: " << hex << setw(8) << 
+                    setfill('0') << returnTransaction[0]->address << 
+                    " Return time: " << dec << currentClockCycle << 
+                    " Thread: " << returnTransaction[0]->threadID <<'\n';
+                */
+                lastReturnTime = currentClockCycle;
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
@@ -867,6 +873,20 @@ bool MemoryController::addTransaction(Transaction *trans)
     {
         //trans->timeAdded = currentClockCycle;
         transactionQueue.push_back(trans);
+        // Generate trace
+        if (genTrace)
+        {
+        	cout << "before writing" << endl;
+        	if (trans->transactionType == DATA_READ) {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        	}
+        	else {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        	}
+        	cout << "after writing" << endl;
+        }
         return true;
     }
     else
@@ -1064,6 +1084,7 @@ MemoryController::~MemoryController()
         delete returnTransaction[i];
     }
     outputFile.close();
+    if (genTrace) traceFile.close();
 
 }
 //inserts a latency into the latency histogram

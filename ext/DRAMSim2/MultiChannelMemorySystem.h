@@ -43,7 +43,7 @@ namespace DRAMSim {
         public: 
 
             MultiChannelMemorySystem(const string &dev, const string &sys, 
-                    unsigned tpTurnLength,
+                    unsigned tpTurnLength, bool genTrace,
                     const string &pwd, const string &trc, unsigned megsOfMemory,
                     const string &output, string *visFilename=NULL, 
                     const IniReader::OverrideMap *paramOverrides=NULL);
@@ -78,6 +78,7 @@ namespace DRAMSim {
             string deviceIniFilename;
             string systemIniFilename;
             unsigned tpTurnLength;
+            bool genTrace;
             string traceFilename;
             string pwd;
             string *visFilename;

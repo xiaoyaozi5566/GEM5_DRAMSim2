@@ -52,7 +52,11 @@
 using namespace DRAMSim;
 using namespace std;
 
-//#define RETURN_TRANSACTIONS 1
+#define RETURN_TRANSACTIONS 1
+
+// Flag to indicate whether previous request has returned
+bool flag = 1;
+bool flag1 = 1;
 
 #ifndef _SIM_
 int SHOW_SIM_OUTPUT = 1;
@@ -85,7 +89,7 @@ class TransactionReceiver
 			}
 		}
 
-		void read_complete(unsigned id, uint64_t address, uint64_t done_cycle)
+		void read_complete(unsigned id, uint64_t address, uint64_t done_cycle, uint64_t threadID)
 		{
 			map<uint64_t, list<uint64_t> >::iterator it;
 			it = pendingReadRequests.find(address); 
@@ -105,11 +109,25 @@ class TransactionReceiver
 
 			uint64_t added_cycle = pendingReadRequests[address].front();
 			uint64_t latency = done_cycle - added_cycle;
+			
+			if (threadID == 0)
+			{
+				flag = 1;
+			}
+			else if (threadID == 1)
+			{
+				flag1 = 1;
+			}
+			else
+			{
+				ERROR("Wrong threadID found");
+				exit(0);
+			}
 
 			pendingReadRequests[address].pop_front();
-			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
-		void write_complete(unsigned id, uint64_t address, uint64_t done_cycle)
+		void write_complete(unsigned id, uint64_t address, uint64_t done_cycle, uint64_t threadID)
 		{
 			map<uint64_t, list<uint64_t> >::iterator it;
 			it = pendingWriteRequests.find(address); 
@@ -126,12 +144,26 @@ class TransactionReceiver
 					exit(-1); 
 				}
 			}
+			
+			if (threadID == 0)
+			{
+				flag = 1;
+			}
+			else if (threadID == 1)
+			{
+				flag1 = 1;
+			}
+			else
+			{
+				ERROR("Wrong threadID found");
+				exit(0);
+			}
 
 			uint64_t added_cycle = pendingWriteRequests[address].front();
 			uint64_t latency = done_cycle - added_cycle;
 
 			pendingWriteRequests[address].pop_front();
-			cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<")"<<endl;
+			cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
 };
 #endif
@@ -245,6 +277,47 @@ void *parseTraceFileLine(string &line, uint64_t &addr, enum TransactionType &tra
 		
 		istringstream p(pidStr);
 		p>>pid;
+
+		//if this is set to false, clockCycle will remain at 0, and every line read from the trace
+		//  will be allowed to be issued
+		if (useClockCycle)
+		{
+			istringstream b(ccStr);
+			b>>clockCycle;
+		}
+
+		break;
+	}
+	case spec:
+	{
+		spaceIndex = line.find_first_of(" ", 0);
+
+		addressStr = line.substr(0, spaceIndex);
+		previousIndex = spaceIndex;
+
+		spaceIndex = line.find_first_not_of(" ", previousIndex);
+		cmdStr = line.substr(spaceIndex, line.find_first_of(" ", spaceIndex) - spaceIndex);
+		previousIndex = line.find_first_of(" ", spaceIndex);
+
+		spaceIndex = line.find_first_not_of(" ", previousIndex);
+		ccStr = line.substr(spaceIndex, line.find_first_of(" ", spaceIndex) - spaceIndex);
+		previousIndex = line.find_first_of(" ", spaceIndex);
+
+		if (cmdStr.compare("DATA_READ")==0)
+		{
+			transType = DATA_READ;
+		}
+		else if (cmdStr.compare("DATA_WRITE")==0)
+		{
+			transType = DATA_WRITE;
+		}
+		else
+		{
+			ERROR("== Unknown command in tracefile : "<<cmdStr);
+		}
+
+		istringstream a(addressStr.substr(2));//gets rid of 0x
+		a>>hex>>addr;
 
 		//if this is set to false, clockCycle will remain at 0, and every line read from the trace
 		//  will be allowed to be issued
@@ -381,6 +454,7 @@ int main(int argc, char **argv)
 	int c;
 	TraceType traceType;
 	string traceFileName;
+	string traceFileName1;
 	string systemIniFilename("system.ini");
     unsigned tpTurnLength=12;
 	string deviceIniFilename;
@@ -400,6 +474,7 @@ int main(int argc, char **argv)
 		{
 			{"deviceini", required_argument, 0, 'd'},
 			{"tracefile", required_argument, 0, 't'},
+			{"tracefile1", required_argument, 0, 'T'},
 			{"systemini", required_argument, 0, 's'},
             {"tpturnlength", required_argument, 0, 'l'},
 
@@ -414,7 +489,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0; //for getopt
-		c = getopt_long (argc, argv, "t:s:l:r:c:d:o:p:S:v:qn", long_options, &option_index);
+		c = getopt_long (argc, argv, "t:T:s:l:r:c:d:o:p:S:v:qn", long_options, &option_index);
 		if (c == -1)
 		{
 			break;
@@ -440,6 +515,9 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			traceFileName = string(optarg);
+			break;
+		case 'T':
+			traceFileName1 = string(optarg);
 			break;
 		case 's':
 			systemIniFilename = string(optarg);
@@ -500,8 +578,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		ERROR("== Unknown Tracefile Type : "<<temp);
-		exit(0);
+		traceType = spec;
 	}
 
 
@@ -519,15 +596,22 @@ int main(int argc, char **argv)
 	{
 		traceFileName = pwdString + "/" +traceFileName;
 	}
+	
+	if (pwdString.length() > 0 && traceFileName1[0] != '/')
+	{
+		traceFileName1 = pwdString + "/" +traceFileName1;
+	}
 
 	DEBUG("== Loading trace file '"<<traceFileName<<"' == ");
+	DEBUG("== Loading trace file '"<<traceFileName1<<"' == ");
 
 	ifstream traceFile;
+	ifstream traceFile1;
 	string line;
 
 
 	MultiChannelMemorySystem *memorySystem = new MultiChannelMemorySystem(
-            deviceIniFilename, systemIniFilename, tpTurnLength,
+            deviceIniFilename, systemIniFilename, tpTurnLength, 0, 
             pwdString, traceFileName, 
             megsOfMemory, outputFilename, visFilename, paramOverrides);
 	// set the frequency ratio to 1:1
@@ -540,21 +624,25 @@ int main(int argc, char **argv)
 #ifdef RETURN_TRANSACTIONS
 	TransactionReceiver transactionReceiver; 
 	/* create and register our callback functions */
-	Callback_t *read_cb = new Callback<TransactionReceiver, void, unsigned, uint64_t, uint64_t>(&transactionReceiver, &TransactionReceiver::read_complete);
-	Callback_t *write_cb = new Callback<TransactionReceiver, void, unsigned, uint64_t, uint64_t>(&transactionReceiver, &TransactionReceiver::write_complete);
+	Callback_t *read_cb = new Callback<TransactionReceiver, void, unsigned, uint64_t, uint64_t, uint64_t>(&transactionReceiver, &TransactionReceiver::read_complete);
+	Callback_t *write_cb = new Callback<TransactionReceiver, void, unsigned, uint64_t, uint64_t, uint64_t>(&transactionReceiver, &TransactionReceiver::write_complete);
 	memorySystem->RegisterCallbacks(read_cb, write_cb, NULL);
 #endif
 
 
 	uint64_t addr;
 	uint64_t clockCycle=0;
+	uint64_t clockCycle1=0;
 	uint64_t pid;
 	enum TransactionType transType;
 
 	void *data = NULL;
 	int lineNumber = 0;
+	int lineNumber1 = 0;
 	Transaction *trans=NULL;
+	Transaction *trans1=NULL;
 	bool pendingTrans = false;
+	bool pendingTrans1 = false;
 
 	traceFile.open(traceFileName.c_str());
 
@@ -570,69 +658,215 @@ int main(int argc, char **argv)
     // ofstream inputFile;
 	// inputFile.open("t0trace");
 	
-	for (size_t i=0;i<numCycles;i++)
-	{
-		if (!pendingTrans)
+	// For normal traces with absolute time
+	if (traceType != spec) {
+		for (size_t i=0;i<numCycles;i++)
 		{
-			if (!traceFile.eof())
+			if (!pendingTrans)
 			{
-				getline(traceFile, line);
-
-				if (line.size() > 0)
+				if (!traceFile.eof())
 				{
-					data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
-					// if (pid == 0 && transType == DATA_READ) 
-                    //    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
-					trans = new Transaction(transType, addr, data, pid, 0);
-					alignTransactionAddress(*trans); 
+					getline(traceFile, line);
 
-					if (i>=clockCycle)
+					if (line.size() > 0)
 					{
-						if (!(*memorySystem).addTransaction(trans))
+						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
+						// if (pid == 0 && transType == DATA_READ) 
+						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+						trans = new Transaction(transType, addr, data, pid, 0);
+						alignTransactionAddress(*trans); 
+
+						if (i>=clockCycle)
 						{
-							pendingTrans = true;
+							if (!(*memorySystem).addTransaction(trans))
+							{
+								pendingTrans = true;
+							}
+							else
+							{
+	#ifdef RETURN_TRANSACTIONS
+								transactionReceiver.add_pending(*trans, i); 
+	#endif
+								// the memory system accepted our request so now it takes ownership of it
+								trans = NULL; 
+							}
 						}
 						else
 						{
-#ifdef RETURN_TRANSACTIONS
-							transactionReceiver.add_pending(trans, i); 
-#endif
-							// the memory system accepted our request so now it takes ownership of it
-							trans = NULL; 
+							pendingTrans = true;
 						}
 					}
 					else
 					{
-						pendingTrans = true;
+						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
 					}
+					lineNumber++;
 				}
 				else
 				{
-					DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
+					//we're out of trace, set pending=false and let the thing spin without adding transactions
+					pendingTrans = false; 
 				}
-				lineNumber++;
 			}
-			else
-			{
-				//we're out of trace, set pending=false and let the thing spin without adding transactions
-				pendingTrans = false; 
-			}
-		}
 
-		else if (pendingTrans && i >= clockCycle)
+			else if (pendingTrans && i >= clockCycle)
+			{
+				pendingTrans = !(*memorySystem).addTransaction(trans);
+				if (!pendingTrans)
+				{
+	#ifdef RETURN_TRANSACTIONS
+					transactionReceiver.add_pending(*trans, i); 
+	#endif
+					trans=NULL;
+				}
+				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+
+			(*memorySystem).update();
+		}
+	}
+	// For spec traces with relative time
+	else {
+		traceFile1.open(traceFileName1.c_str());
+
+		if (!traceFile1.is_open())
 		{
-			pendingTrans = !(*memorySystem).addTransaction(trans);
+			cout << "== Error - Could not open trace file 1"<<endl;
+			exit(0);
+		}
+		
+		for (size_t i=0;i<numCycles;i++)
+		{
+			// For thread 0 
 			if (!pendingTrans)
 			{
-#ifdef RETURN_TRANSACTIONS
-				transactionReceiver.add_pending(trans, i); 
-#endif
-				trans=NULL;
-			}
-			//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
-		}
+				if (!traceFile.eof() && flag == 1)
+				{
+					getline(traceFile, line);
 
-		(*memorySystem).update();
+					if (line.size() > 24)
+					{
+						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
+						// if (pid == 0 && transType == DATA_READ) 
+						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+						trans = new Transaction(transType, addr, data, 0, 0);
+						alignTransactionAddress(*trans); 
+						clockCycle = clockCycle + i;
+						flag = 0;
+
+						if (i>=clockCycle)
+						{
+							if (!(*memorySystem).addTransaction(trans))
+							{
+								pendingTrans = true;
+							}
+							else
+							{
+	#ifdef RETURN_TRANSACTIONS
+								transactionReceiver.add_pending(*trans, i); 
+	#endif
+								// the memory system accepted our request so now it takes ownership of it
+								trans = NULL; 
+							}
+						}
+						else
+						{
+							pendingTrans = true;
+						}
+					}
+					else
+					{
+						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
+					}
+					lineNumber++;
+				}
+				else
+				{
+					//we're out of trace, set pending=false and let the thing spin without adding transactions
+					pendingTrans = false; 
+				}
+			}
+
+			else if (pendingTrans && i >= clockCycle)
+			{
+				pendingTrans = !(*memorySystem).addTransaction(trans);
+				if (!pendingTrans)
+				{
+	#ifdef RETURN_TRANSACTIONS
+					transactionReceiver.add_pending(*trans, i); 
+	#endif
+					trans=NULL;
+				}
+				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+			// For thread 1
+			if (!pendingTrans1)
+			{
+				if (!traceFile1.eof() && flag1 == 1)
+				{
+					getline(traceFile1, line);
+
+					if (line.size() > 24)
+					{
+						data = parseTraceFileLine(line, addr, transType,clockCycle1, pid, traceType,useClockCycle);
+						// if (pid == 0 && transType == DATA_READ) 
+						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+						trans1 = new Transaction(transType, addr, data, 1, 0);
+						alignTransactionAddress(*trans1); 
+						clockCycle1 = clockCycle1 + i;
+						flag1 = 0;
+
+						if (i>=clockCycle1)
+						{
+							if (!(*memorySystem).addTransaction(trans1))
+							{
+								pendingTrans1 = true;
+							}
+							else
+							{
+	#ifdef RETURN_TRANSACTIONS
+								transactionReceiver.add_pending(*trans1, i); 
+	#endif
+								// the memory system accepted our request so now it takes ownership of it
+								trans1 = NULL; 
+							}
+						}
+						else
+						{
+							pendingTrans1 = true;
+						}
+					}
+					else
+					{
+						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile");
+					}
+					lineNumber1++;
+				}
+				else
+				{
+					//we're out of trace, set pending=false and let the thing spin without adding transactions
+					pendingTrans1 = false; 
+				}
+			}
+
+			else if (pendingTrans1 && i >= clockCycle1)
+			{
+				pendingTrans1 = !(*memorySystem).addTransaction(trans1);
+				if (!pendingTrans1)
+				{
+	#ifdef RETURN_TRANSACTIONS
+					transactionReceiver.add_pending(*trans1, i); 
+	#endif
+					trans1=NULL;
+				}
+				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+
+			(*memorySystem).update();
+			
+			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
+		}
+		traceFile1.close();
 	}
 
 	traceFile.close();

@@ -82,8 +82,10 @@ if '--dramsim2' in sys.argv:
             help="workload for processor 0, usually the victim."),
     parser.add_option("--p1", type="string",
             help="workload for processor 1, usually the attacker.")
-    parser.add_option("--gentrace", type="bool", default="false",
+    parser.add_option("--gentrace", action="store_true", default=False,
             help="generate the trace for benchmarks.")
+    parser.add_option("--tracefile", type="string", default="",
+            help="trace file to be generated.")
 ######################################################################
 
 ######################################################################
@@ -101,7 +103,7 @@ if args:
     sys.exit(1)
 
 # Number of CPUs
-options.num_cpus = 2
+options.num_cpus = 1
 
 ######################################################################
 # Add DRAMSim2 into the system
@@ -131,6 +133,8 @@ if options.dramsim2 :
                         tpTurnLength=options.tpturnlength,
                         #Generate trace
                         genTrace=options.gentrace,
+                        #Trace file 
+                        traceFile=options.tracefile
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
@@ -168,13 +172,6 @@ process0 = LiveProcess()
 process0.cmd = options.p0.split()
 process0.pid = 0
 multiprocesses.append(process0)
-
-process1 = LiveProcess()
-#process1.executable = "./tests/test-progs/test/arm/attacker_H"
-#process1.executable = options.p1
-process1.cmd = options.p1.split()
-process1.pid = 1
-multiprocesses.append(process1)
 
 #if len(multiprocesses) == 0:
 #    print >> sys.stderr, "No workload specified. Exiting!\n"

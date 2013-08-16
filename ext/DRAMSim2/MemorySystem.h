@@ -51,7 +51,7 @@
 
 namespace DRAMSim
 {
-typedef CallbackBase<void,unsigned,uint64_t,uint64_t> Callback_t;
+typedef CallbackBase<void,unsigned,uint64_t,uint64_t,uint64_t> Callback_t;
 class MemorySystem : public SimulatorObject
 {
 	ostream &dramsim_log;
@@ -59,7 +59,7 @@ public:
 	//functions
 	MemorySystem(unsigned id, unsigned megsOfMemory, 
             CSVWriter &csvOut_, ostream &dramsim_log_, 
-            const string &outputFilename_, unsigned tpTurnLength);
+            const string &outputFilename_, unsigned tpTurnLength, bool genTrace, const string &traceFilename_);
 	virtual ~MemorySystem();
 	void update();
 	bool addTransaction(Transaction *trans);
@@ -86,6 +86,7 @@ public:
 private:
 	CSVWriter &csvOut;
 	string outputFilename;
+	string traceFilename;
 };
 }
 
