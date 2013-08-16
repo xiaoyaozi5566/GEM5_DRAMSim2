@@ -652,15 +652,16 @@ vector<BusPacket *> &CommandQueue::getCommandQueue(unsigned rank, unsigned bank)
 //checks if busPacket is allowed to be issued
 bool CommandQueue::isIssuable(BusPacket *busPacket)
 {
+    BankState bPacketState = bankStates[busPacket->rank][busPacket->bank];
     switch (busPacket->busPacketType)
     {
         case REFRESH:
 
             break;
         case ACTIVATE:
-            if ((bankStates[busPacket->rank][busPacket->bank].currentBankState == Idle ||
-                        bankStates[busPacket->rank][busPacket->bank].currentBankState == Refreshing) &&
-                    currentClockCycle >= bankStates[busPacket->rank][busPacket->bank].nextActivate &&
+            if ((bPacketState.currentBankState == Idle ||
+                        bPacketState.currentBankState == Refreshing) &&
+                    currentClockCycle >= bPacketState.nextActivate &&
                     tFAWCountdown[busPacket->rank].size() < 4)
             {
                 return true;
@@ -672,9 +673,9 @@ bool CommandQueue::isIssuable(BusPacket *busPacket)
             break;
         case WRITE:
         case WRITE_P:
-            if (bankStates[busPacket->rank][busPacket->bank].currentBankState == RowActive &&
-                    currentClockCycle >= bankStates[busPacket->rank][busPacket->bank].nextWrite &&
-                    busPacket->row == bankStates[busPacket->rank][busPacket->bank].openRowAddress &&
+            if (bPacketState.currentBankState == RowActive &&
+                    currentClockCycle >= bPacketState.nextWrite &&
+                    busPacket->row == bPacketState.openRowAddress &&
                     rowAccessCounters[busPacket->rank][busPacket->bank] < TOTAL_ROW_ACCESSES)
             {
                 return true;
@@ -686,9 +687,9 @@ bool CommandQueue::isIssuable(BusPacket *busPacket)
             break;
         case READ_P:
         case READ:
-            if (bankStates[busPacket->rank][busPacket->bank].currentBankState == RowActive &&
-                    currentClockCycle >= bankStates[busPacket->rank][busPacket->bank].nextRead &&
-                    busPacket->row == bankStates[busPacket->rank][busPacket->bank].openRowAddress &&
+            if (bPacketState.currentBankState == RowActive &&
+                    currentClockCycle >= bPacketState.nextRead &&
+                    busPacket->row == bPacketState.openRowAddress &&
                     rowAccessCounters[busPacket->rank][busPacket->bank] < TOTAL_ROW_ACCESSES)
             {
                 return true;
@@ -699,8 +700,8 @@ bool CommandQueue::isIssuable(BusPacket *busPacket)
             }
             break;
         case PRECHARGE:
-            if (bankStates[busPacket->rank][busPacket->bank].currentBankState == RowActive &&
-                    currentClockCycle >= bankStates[busPacket->rank][busPacket->bank].nextPrecharge)
+            if (bPacketState.currentBankState == RowActive &&
+                    currentClockCycle >= bPacketState.nextPrecharge)
             {
                 return true;
             }
@@ -716,6 +717,12 @@ bool CommandQueue::isIssuable(BusPacket *busPacket)
     }
     return false;
 }
+
+#ifdef DEBUG_TP
+bool CommandQueue::hasInteresting(){
+    return false;
+}
+#endif
 
 //figures out if a rank's queue is empty
 bool CommandQueue::isEmpty(unsigned rank)
@@ -744,6 +751,10 @@ void CommandQueue::needRefresh(unsigned rank)
 {
     refreshWaiting = true;
     refreshRank = rank;
+#ifdef DEBUG_TP
+    cout << "Called needRefresh setting refreshRank="<<refreshRank<<endl;
+    cout <<" call happened at "<< currentClockCycle<<endl;
+#endif /*DEBUG_TP*/
 }
 
 void CommandQueue::nextRankAndBank(unsigned &rank, unsigned &bank)

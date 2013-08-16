@@ -35,6 +35,8 @@
 //Class file for memory controller object
 //
 
+//#define DEBUG_TP
+
 #include "MemoryController.h"
 #include "MemorySystem.h"
 #include "AddressMapping.h"
@@ -345,6 +347,15 @@ void MemoryController::update()
                                 bankStates[i][j].nextRead = max(currentClockCycle + BL/2 + tRTRS, bankStates[i][j].nextRead);
                                 bankStates[i][j].nextWrite = max(currentClockCycle + READ_TO_WRITE_DELAY,
                                         bankStates[i][j].nextWrite);
+#ifdef DEBUG_TP
+                                uint64_t nextRead = bankStates[i][j].nextRead;
+                                if(commandQueue->hasInteresting()&&i==0&&j==1){
+                                    PRINT("nextRead updated to " << nextRead << " at "
+                                            << currentClockCycle << endl);
+                                    poppedBusPacket->print();
+                                    PRINT(poppedBusPacket->physicalAddress<<endl);
+                                }
+#endif /*DEBUG_TP*/
                             }
                         }
                         else
@@ -352,6 +363,15 @@ void MemoryController::update()
                             bankStates[i][j].nextRead = max(currentClockCycle + max(tCCD, BL/2), bankStates[i][j].nextRead);
                             bankStates[i][j].nextWrite = max(currentClockCycle + READ_TO_WRITE_DELAY,
                                     bankStates[i][j].nextWrite);
+#ifdef DEBUG_TP
+                            uint64_t nextRead = bankStates[i][j].nextRead;
+                            if(commandQueue->hasInteresting()&&i==0&&j==1){
+                                PRINT("nextRead updated to " << nextRead << " at "
+                                        << currentClockCycle << endl);
+                                poppedBusPacket->print();
+                                PRINT(poppedBusPacket->physicalAddress<<endl);
+                            }
+#endif /*DEBUG_TP*/
                         }
                     }
                 }
@@ -363,6 +383,15 @@ void MemoryController::update()
                     //  auto-precharge associated with this command
                     bankStates[rank][bank].nextRead = bankStates[rank][bank].nextActivate;
                     bankStates[rank][bank].nextWrite = bankStates[rank][bank].nextActivate;
+#ifdef DEBUG_TP
+                    uint64_t nextRead = bankStates[rank][bank].nextRead;
+                    if(commandQueue->hasInteresting()){
+                        PRINT("nextRead updated to " << nextRead << " at "
+                                << currentClockCycle << endl);
+                        poppedBusPacket->print();
+                        PRINT(poppedBusPacket->physicalAddress<<endl);
+                    }
+#endif /*DEBUG_TP*/
                 }
 
                 break;
@@ -401,6 +430,15 @@ void MemoryController::update()
                                 bankStates[i][j].nextWrite = max(currentClockCycle + BL/2 + tRTRS, bankStates[i][j].nextWrite);
                                 bankStates[i][j].nextRead = max(currentClockCycle + WRITE_TO_READ_DELAY_R,
                                         bankStates[i][j].nextRead);
+#ifdef DEBUG_TP
+                                uint64_t nextRead = bankStates[i][j].nextRead;
+                                if(commandQueue->hasInteresting() &&i==0&&j==1){
+                                    PRINT("nextRead updated to " << nextRead << " at "
+                                            << currentClockCycle << endl);
+                                    poppedBusPacket->print();
+                                    PRINT(poppedBusPacket->physicalAddress<<endl);
+                                }
+#endif /*DEBUG_TP*/
                             }
                         }
                         else
@@ -408,6 +446,15 @@ void MemoryController::update()
                             bankStates[i][j].nextWrite = max(currentClockCycle + max(BL/2, tCCD), bankStates[i][j].nextWrite);
                             bankStates[i][j].nextRead = max(currentClockCycle + WRITE_TO_READ_DELAY_B,
                                     bankStates[i][j].nextRead);
+#ifdef DEBUG_TP
+                            uint64_t nextRead = bankStates[i][j].nextRead;
+                            if(commandQueue->hasInteresting()&& i==0 && j==1){
+                                PRINT("nextRead updated to " << nextRead << " at "
+                                        << currentClockCycle << endl);
+                                poppedBusPacket->print();
+                                PRINT(poppedBusPacket->physicalAddress<<endl);
+                            }
+#endif /*DEBUG_TP*/
                         }
                     }
                 }
@@ -419,6 +466,15 @@ void MemoryController::update()
                 {
                     bankStates[rank][bank].nextRead = bankStates[rank][bank].nextActivate;
                     bankStates[rank][bank].nextWrite = bankStates[rank][bank].nextActivate;
+#ifdef DEBUG_TP
+                    uint64_t nextRead = bankStates[rank][bank].nextRead;
+                    if(commandQueue->hasInteresting()){
+                        PRINT("nextRead updated to " << nextRead << " at "
+                                << currentClockCycle << endl);
+                        poppedBusPacket->print();
+                        PRINT(poppedBusPacket->physicalAddress<<endl);
+                    }
+#endif /*DEBUG_TP*/
                 }
 
                 break;
@@ -440,6 +496,15 @@ void MemoryController::update()
 
                 bankStates[rank][bank].nextRead = max(currentClockCycle + (tRCD-AL), bankStates[rank][bank].nextRead);
                 bankStates[rank][bank].nextWrite = max(currentClockCycle + (tRCD-AL), bankStates[rank][bank].nextWrite);
+#ifdef DEBUG_TP
+                if(commandQueue->hasInteresting()){
+                uint64_t nextRead = bankStates[rank][bank].nextRead;
+                    PRINT("nextRead updated to " << nextRead << " at "
+                            << currentClockCycle << endl);
+                    poppedBusPacket->print();
+                    PRINT(poppedBusPacket->physicalAddress<<endl);
+                }
+#endif /*DEBUG_TP*/
 
                 for (size_t i=0;i<NUM_BANKS;i++)
                 {
@@ -767,11 +832,11 @@ void MemoryController::updateReturnTransactions()
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 /*
-                cout       << "Address: " << hex << setw(8) << 
-                    setfill('0') << returnTransaction[0]->address << 
-                    " Return time: " << dec << currentClockCycle << 
-                    " Thread: " << returnTransaction[0]->threadID <<'\n';
-                */
+                   cout       << "Address: " << hex << setw(8) << 
+                   setfill('0') << returnTransaction[0]->address << 
+                   " Return time: " << dec << currentClockCycle << 
+                   " Thread: " << returnTransaction[0]->threadID <<'\n';
+                   */
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);

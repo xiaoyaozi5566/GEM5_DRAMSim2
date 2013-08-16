@@ -1,14 +1,38 @@
 #!/bin/bash
-./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
-    -t traces/mase_art_MT_LOW.trc -r results/low.out &
-./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
-    -t traces/mase_art_MT_MEDIUM.trc -r results/med.out &
-./DRAMSim -s system.ini -c 30000 -S 4096 -d ini/DDR3_micron_64M_8B_x4_sg15.ini \
-    -t traces/mase_art_MT_HIGH.trc -r results/high.out
+./DRAMSim -s system_ft.ini -c 100000 -l 11 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_LOW.trc -r results/low.out > /dev/null 
+./DRAMSim -s system_ft.ini -c 100000 -l 11 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_MEDIUM.trc -r results/med.out > /dev/null 
+./DRAMSim -s system_ft.ini -c 100000 -l 11 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_HIGH.trc -r results/high.out > /dev/null 
+./DRAMSim -s system_ft.ini -c 100000 -l 11 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_HIGHER.trc -r results/higher.out > /dev/null 
 
-cat results/low.out  | grep "Thread: 0" > results/low_rt.out
-cat results/med.out  | grep "Thread: 0" > results/med_rt.out
-cat results/high.out | grep "Thread: 0" > results/high_rt.out
+cat results/low.out  | grep "Thread: 0" > results/ft_low_rt.out
+cat results/med.out  | grep "Thread: 0" > results/ft_med_rt.out
+cat results/high.out | grep "Thread: 0" > results/ft_high_rt.out
+cat results/higher.out | grep "Thread: 0" > results/ft_higher_rt.out
 
-ruby get_delay_dist.rb results/low.out traces/mase_art_MT_LOW.trc \
-    results/latencies.csv results/addressed_latencies.csv > results/mean.txt
+./DRAMSim -s system_tp.ini -c 100000 -l 8 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_LOW.trc -r results/low_tp.out > low_stdout
+./DRAMSim -s system_tp.ini -c 100000 -l 8 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_MEDIUM.trc -r results/med_tp.out > med_stdout
+./DRAMSim -s system_tp.ini -c 100000 -l 8 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_HIGH.trc -r results/high_tp.out > /dev/null 
+./DRAMSim -s system_tp.ini -c 100000 -l 8 -S 4096 \
+    -d ini/DDR3_micron_16M_8B_x8_sg15.ini \
+    -t traces/mase_art_MT_HIGHER.trc -r results/higher_tp.out > higher_stdout
+
+cat results/low_tp.out  | grep "Thread: 0" > results/tp_low_rt.out
+cat results/med_tp.out  | grep "Thread: 0" > results/tp_med_rt.out
+cat results/high_tp.out | grep "Thread: 0" > results/tp_high_rt.out
+cat results/higher_tp.out | grep "Thread: 0" > results/tp_higher_rt.out
+
+echo "done"

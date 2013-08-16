@@ -36,7 +36,7 @@
 
 
 
-
+//#define DEBUG_TP
 
 
 #ifndef CMDQUEUE_H
@@ -89,9 +89,14 @@ namespace DRAMSim
 
         unsigned refreshCounter;
 
+#ifdef DEBUG_TP
+        virtual bool hasInteresting();
+#endif /*DEBUG_TP*/
+
         protected:
         virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);
         virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
+
         void nextRankAndBank(unsigned &rank, unsigned &bank);
         //fields
         unsigned nextBank;

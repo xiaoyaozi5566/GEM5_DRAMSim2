@@ -2,6 +2,9 @@
 #include "CommandQueueTP.h"
 #include "MemoryController.h"
 
+#define interesting 0x2e065700
+//#define DEBUG_TP
+
 using namespace DRAMSim;
 
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
@@ -9,6 +12,9 @@ CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states,
     CommandQueue(states,dramsim_log_)
 {
     tpTurnLength = tpTurnLength_;
+#ifdef DEBUG_TP
+    cout << "TP Debugging is on." <<endl;
+#endif
 }
 
 void CommandQueueTP::enqueue(BusPacket *newBusPacket)
@@ -16,6 +22,10 @@ void CommandQueueTP::enqueue(BusPacket *newBusPacket)
     unsigned rank = newBusPacket->rank;
     unsigned pid = newBusPacket->threadID;
     queues[rank][pid].push_back(newBusPacket);
+#ifdef DEBUG_TP
+    if(newBusPacket->physicalAddress == interesting)
+        cout << "Enqueued interesting @ "<< currentClockCycle <<endl;
+#endif /*DEBUG_TP*/
     if (queues[rank][pid].size()>CMD_QUEUE_DEPTH)
     {
         ERROR("== Error - Enqueued more than allowed in command queue");
@@ -53,48 +63,59 @@ void CommandQueueTP::refreshPopClosePage(BusPacket **busPacket, bool &
     //look for an open bank
     for (size_t b=0;b<NUM_BANKS;b++)
     {
-        for (size_t pid_i=0; pid_i<NUM_PIDS; pid_i++){
-            vector<BusPacket *> &queue = getCommandQueue(refreshRank,pid_i);
-            //checks to make sure that all banks are idle
-            if (bankStates[refreshRank][b].currentBankState == RowActive)
+        vector<BusPacket *> &queue = getCommandQueue(refreshRank,getCurrentPID());
+        //checks to make sure that all banks are idle
+        if (bankStates[refreshRank][b].currentBankState == RowActive)
+        {
+            foundActiveOrTooEarly = true;
+#ifdef DEBUG_TP
+            cout << "TooEarly because row is active with pid " << getCurrentPID()
+                << " at time " << currentClockCycle <<endl;
+            bankStates[refreshRank][b].print();
+            print();
+#endif /*DEBUG_TP*/
+            //if the bank is open, make sure there is nothing else
+            // going there before we close it
+            for (size_t j=0;j<queue.size();j++)
             {
-                foundActiveOrTooEarly = true;
-                //if the bank is open, make sure there is nothing else
-                // going there before we close it
-                for (size_t j=0;j<queue.size();j++)
+                BusPacket *packet = queue[j];
+                if (packet->row == 
+                        bankStates[refreshRank][b].openRowAddress &&
+                        packet->bank == b)
                 {
-                    BusPacket *packet = queue[j];
-                    if (packet->row == 
-                            bankStates[refreshRank][b].openRowAddress &&
-                            packet->bank == b)
+                    if (packet->busPacketType != ACTIVATE && 
+                            isIssuable(packet))
                     {
-                        if (packet->busPacketType != ACTIVATE && 
-                                isIssuable(packet))
-                        {
-                            *busPacket = packet;
-                            queue.erase(queue.begin() + j);
-                            sendingREF = true;
-                        }
-                        break;
+                        *busPacket = packet;
+                        queue.erase(queue.begin() + j);
+                        sendingREF = true;
                     }
-                }
 
-                break;
+                    break;
+                }
             }
-            //	NOTE: checks nextActivate time for each bank to make sure tRP 
-            //	is being
-            //				satisfied.	the next ACT and next REF can be issued 
-            //				at the same
-            //				point in the future, so just use nextActivate field 
-            //				instead of
-            //				creating a nextRefresh field
-            else if (bankStates[refreshRank][b].nextActivate > 
-                    currentClockCycle)
-            {
-                foundActiveOrTooEarly = true;
-                break;
-            }
+
+            break;
         }
+        //	NOTE: checks nextActivate time for each bank to make sure tRP 
+        //	is being
+        //				satisfied.	the next ACT and next REF can be issued 
+        //				at the same
+        //				point in the future, so just use nextActivate field 
+        //				instead of
+        //				creating a nextRefresh field
+        else if (bankStates[refreshRank][b].nextActivate > 
+                currentClockCycle)
+        {
+            foundActiveOrTooEarly = true;
+#ifdef DEBUG_TP
+            cout << "TooEarly because nextActivate is "
+                <<bankStates[refreshRank][b].nextActivate
+                << " at time " << currentClockCycle <<endl;
+#endif /*DEBUG_TP*/
+            break;
+        }
+        //}
     }
 
     //if there are no open banks and timing has been met, send out the refresh
@@ -104,6 +125,10 @@ void CommandQueueTP::refreshPopClosePage(BusPacket **busPacket, bool &
     {
         *busPacket = new BusPacket(REFRESH, 0, 0, 0, refreshRank, 0, 0, 
                 dramsim_log);
+#ifdef DEBUG_TP
+        PRINTN("Refresh at " << currentClockCycle << " for rank " 
+                << refreshRank << endl);
+#endif /*DEBUG_TP*/
         refreshRank = -1;
         refreshWaiting = false;
         sendingREF = true;
@@ -117,27 +142,38 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
     bool foundIssuable = false;
     unsigned startingRank = nextRank;
     unsigned startingBank = nextBank;
-    unsigned currentPID = (currentClockCycle >> tpTurnLength) % (NUM_PIDS);
-    if(lastPID!=currentPID){
+    if(lastPID!=getCurrentPID()){
         //if the turn changes, reset the nextRank, nextBank, and
         //starters. It seems to have no effect on interference.
         nextRank = nextBank =0;
         startingRank = nextRank;
         startingBank = nextBank;
+#ifdef DEBUG_TP
+        cout << endl << "==========================================="<<endl;
+        cout << "Starting turn of length 2**"<<tpTurnLength<<" with PID "<<
+            getCurrentPID() <<" at cycle "<< currentClockCycle << endl;
+        cout << endl;
+        print();
+#endif /*DEBUG_TP*/
     }
-    lastPID = currentPID;
-    unsigned btime = 1<<tpTurnLength;
-    bool isBufferTime = (btime - (currentClockCycle & (btime-1))) -1  <= 151;
+    lastPID = getCurrentPID();
 
     while(true)
     {
         //Only get the queue for the PID with the current turn.
-        vector<BusPacket *> &queue = getCommandQueue(nextRank, currentPID);
+        vector<BusPacket *> &queue = getCommandQueue(nextRank, getCurrentPID());
         //make sure there is something in this queue first
         //	also make sure a rank isn't waiting for a refresh
         //	if a rank is waiting for a refesh, don't issue anything to it until 
         //	the
         //		refresh logic above has sent one out (ie, letting banks close)
+
+#ifdef DEBUG_TP
+        if(hasInteresting()){
+            printf("nextRank %u refreshRank %u currentPID %u\n",nextRank,refreshRank,getCurrentPID());
+        }
+#endif /*DEBUG_TP*/
+
         if (!queue.empty() && !((nextRank == refreshRank) && refreshWaiting))
         {
 
@@ -147,10 +183,20 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
 
                 if (isIssuable(queue[i]))
                 {
+#ifdef DEBUG_TP
+                    if(lastPopTime!=currentClockCycle &&
+                            queue[i]->physicalAddress == interesting){
+                        string bptype = (queue[i]->busPacketType==ACTIVATE) ?
+                            "activate" : "r/w";
+                        cout << "popped interesting "<< bptype << " @ "
+                            << currentClockCycle << endl;
+                        lastPopTime = currentClockCycle;
+                    }
+#endif /*DEBUG_TP*/
                     //If a turn change is about to happen, don't
                     //issue any activates
 
-                    if(isBufferTime && queue[i]->busPacketType==ACTIVATE)
+                    if(isBufferTime() && queue[i]->busPacketType==ACTIVATE)
                         continue;
 
                     //check to make sure we aren't removing a read/write that 
@@ -166,33 +212,41 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
                     foundIssuable = true;
                     break;
                 }
+#ifdef DEBUG_TP
+                else if(queue[i]->physicalAddress==interesting)
+                {
+                    string bptype = (queue[i]->busPacketType==ACTIVATE) ?
+                        "activate" : "r/w";
+                    cout << "interesting couldn't issue @ "<<
+                        currentClockCycle << " as a "<<bptype <<endl;
+                    cout << "nextRank "<<nextRank<< " nextBank "<<nextBank
+                        << endl << "startingRank "<<startingRank
+                        <<" startingBank " << startingBank << endl;
+                    printf("refreshRank %u\n",refreshRank);
+                    bankStates[queue[i]->rank][queue[i]->bank].print();
+                    lastPopTime = currentClockCycle;
+                }
+#endif /*DEBUG_TP*/
             }
-        } 
+        }
+#ifdef DEBUG_TP 
+        else if(hasInteresting() && refreshWaiting && nextRank ==refreshRank){
+            //  PRINTN("Blocked by refreshRank at "<<currentClockCycle<<
+            //         " with turn "<<currentPID<<endl);
+        }
+#endif /*DEBUG_TP*/
 
         //if we found something, break out of do-while
         if (foundIssuable) break;
 
-        //rank round robin
-        if (queuingStructure == PerRank)
+        nextRankAndBank(nextRank, nextBank);
+        if (startingRank == nextRank && startingBank == nextBank)
         {
-            nextRank = (nextRank + 1) % NUM_RANKS;
-            if (startingRank == nextRank)
-            {
-                break;
-            }
-        }
-        else {
-            nextRankAndBank(nextRank, nextBank);
-            if (startingRank == nextRank && startingBank == nextBank)
-            {
-                break;
-            }
+            break;
         }
     }
 
-    //if we couldn't find anything to send, return false
-    if (!foundIssuable) return false;
-    return true;
+    return foundIssuable;
 }
 
 void CommandQueueTP::print()
@@ -214,3 +268,24 @@ void CommandQueueTP::print()
         }
     }
 }
+
+unsigned CommandQueueTP::getCurrentPID(){
+    return (currentClockCycle >> tpTurnLength) % NUM_PIDS;
+}
+
+bool CommandQueueTP::isBufferTime(){
+    unsigned tlength = 1<<tpTurnLength;
+    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= 151;
+}
+
+#ifdef DEBUG_TP
+bool CommandQueueTP::hasInteresting(){
+    vector<BusPacket *> &queue = getCommandQueue(nextRank, 1);
+    for(size_t i=0; i<queue.size(); i++){
+        if (queue[i]->physicalAddress == interesting)
+            return true;
+    }
+    return false;
+}
+#endif /*DEBUG_TP*/
+

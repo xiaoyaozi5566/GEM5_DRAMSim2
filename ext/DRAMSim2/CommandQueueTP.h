@@ -23,7 +23,15 @@ namespace DRAMSim
             virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);
             virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
 
+#ifdef DEBUG_TP
+            virtual bool hasInteresting();
+#endif /*DEBUG_TP*/
+
             unsigned lastPID;
             unsigned tpTurnLength;
+            unsigned lastPopTime;
+
+            unsigned getCurrentPID();
+            bool isBufferTime();
     };
 }
