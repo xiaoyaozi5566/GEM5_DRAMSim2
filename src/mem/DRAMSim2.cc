@@ -57,8 +57,8 @@ DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
     std::cout << "DRAM Clock = " << (1000 / tCK) << "MHz" << std::endl;
     std::cout << "Memory Capacity = " << memoryCapacity << "MB" << std::endl;
 
-    DRAMSim::Callback_t *read_cb = new DRAMSim::Callback<DRAMSim2, void, unsigned, uint64_t, uint64_t>(this, &DRAMSim2::read_complete);
-    DRAMSim::Callback_t *write_cb = new DRAMSim::Callback<DRAMSim2, void, unsigned, uint64_t, uint64_t>(this, &DRAMSim2::write_complete);
+    DRAMSim::Callback_t *read_cb = new DRAMSim::Callback<DRAMSim2, void, unsigned, uint64_t, uint64_t, uint64_t>(this, &DRAMSim2::read_complete);
+    DRAMSim::Callback_t *write_cb = new DRAMSim::Callback<DRAMSim2, void, unsigned, uint64_t, uint64_t, uint64_t>(this, &DRAMSim2::write_complete);
     dramsim2->RegisterCallbacks(read_cb, write_cb, NULL);
 }
 
@@ -147,7 +147,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
     return retVal;
 }
 
-void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle)
+void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle, uint64_t threadID)
 {
 
     uint64_t index = address << 1;
@@ -176,7 +176,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
     }
 }
 
-void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycle)
+void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycle, uint64_t threadID)
 {
     uint64_t index = address << 1;
     index = index | 0x1;

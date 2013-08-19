@@ -72,8 +72,8 @@ class DRAMSim2 : public DRAMSim2Wrapper
   
     // DRAMSim2 Required
     std::multimap<uint64_t, AccessMetaInfo> ongoingAccess;
-    void read_complete(unsigned, uint64_t, uint64_t);
-    void write_complete(unsigned, uint64_t, uint64_t);
+    void read_complete(unsigned, uint64_t, uint64_t, uint64_t);
+    void write_complete(unsigned, uint64_t, uint64_t, uint64_t);
     void report_power(double, double, double, double);
 };
 
