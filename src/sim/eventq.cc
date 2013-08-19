@@ -430,5 +430,5 @@ Event::dump() const
 EventQueue::EventQueue(const string &n)
     : objName(n), head(NULL)
 {
-    maxinst_proc_count=1;
+    exit_count=2;
 }

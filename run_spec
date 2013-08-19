@@ -14,7 +14,7 @@ end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
 $specinvoke = { 
-    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
+#    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
     "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.program 5'",
     "gcc"        => "'#{specint_dir}/gcc #{specint_dir}/cccp.in -o results/cccp.s'",
     "mcf"        => "'#{specint_dir}/mcf #{specint_dir}/inp.in'",
@@ -23,13 +23,13 @@ $specinvoke = {
     "sjeng"      => "'#{specint_dir}/sjeng #{specint_dir}/test.txt'",
     "libquantum" => "'#{specint_dir}/libquantum 33 5'",
     "h264ref"    => "'#{specint_dir}/h264ref -d #{specint_dir}/foreman_test_encoder_baseline.cfg'",
-    "omnetpp"    => "'#{specint_dir}/omnetpp #{specint_dir}/omnetpp.ini'",
+#    "omnetpp"    => "'#{specint_dir}/omnetpp #{specint_dir}/omnetpp.ini'",
     "astar"      => "'#{specint_dir}/astar #{specint_dir}/lake.cfg'",
     "Xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/test.xml #{specint_dir}/xalanc.xsl'"  
 }
 
 $specint = [ 
-    "perlbench",
+#    "perlbench",
     "bzip2",
     "gcc",
     "mcf",
@@ -38,7 +38,7 @@ $specint = [
     "sjeng",
     "libquantum",
     "h264ref",
-    "omnetpp",
+#    "omnetpp",
     "astar",
     "Xalan"  
 ]
@@ -57,6 +57,7 @@ $cpus.each do |cpu|
                 script.puts("    --cpu-type=#{cpu} \\")
                 script.puts("    --caches \\")
                 script.puts("    --maxinsts=$((10**7))\\")
+                script.puts("    --maxtick=$((10**12))\\")
                 script.puts("    --dramsim2 \\")
                 script.puts("    --devicecfg="+
                             "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
@@ -69,7 +70,7 @@ $cpus.each do |cpu|
                 script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
-                system "qsub -wd #{gem5home.path} #{script_abspath}"
+                #system "qsub -wd #{gem5home.path} #{script_abspath}"
             end
         end
     end

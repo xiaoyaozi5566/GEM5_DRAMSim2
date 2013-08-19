@@ -97,7 +97,6 @@ class System : public MemObject
     SystemPort _systemPort;
 
   public:
-
     int num_exits;
 
     /**

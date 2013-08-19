@@ -102,7 +102,6 @@ System::System(Params *p)
             debugSymbolTable = new SymbolTable;
     }
 
-    num_exits=1;
 
     // Get the generic system master IDs
     MasterID tmp_id M5_VAR_USED;

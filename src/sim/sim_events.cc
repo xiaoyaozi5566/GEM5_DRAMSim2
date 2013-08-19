@@ -39,8 +39,8 @@
 
 using namespace std;
 
-SimLoopExitEvent::SimLoopExitEvent(const std::string &_cause, int c, Tick r)
-    : Event(Sim_Exit_Pri, IsExitEvent), cause(_cause), code(c), repeat(r)
+    SimLoopExitEvent::SimLoopExitEvent(const std::string &_cause, int c, Tick r)
+: Event(Sim_Exit_Pri, IsExitEvent), cause(_cause), code(c), repeat(r)
 {
 }
 
@@ -48,16 +48,9 @@ SimLoopExitEvent::SimLoopExitEvent(const std::string &_cause, int c, Tick r)
 //
 // handle termination event
 //
-void
+    void
 SimLoopExitEvent::process()
 {
-    if(cause == "a thread reached the max instruction count"){
-        if(!(--(mainEventQueue.maxinst_proc_count)==0)){
-            cout << "A thread reached the max instruction count at @ tick" <<
-                curTick() << endl;
-            return;
-        }
-    }
     // if this got scheduled on a different queue (e.g. the committed
     // instruction queue) then make a corresponding event on the main
     // queue.
@@ -83,18 +76,33 @@ SimLoopExitEvent::description() const
     return "simulation loop exit";
 }
 
-void
+    void
 exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
 {
+    if(message=="target called exit()"){
+        if(!(--mainEventQueue.exit_count==0)){
+            cout <<"A thread called exit() at" << curTick() << endl;
+            return;
+        }
+    } 
+    else if(message=="a thread reached the max instruction count"){
+        if(!(--mainEventQueue.exit_count==0)){
+            cout << "A thread reached the max instruction count at "
+                << curTick() << endl;
+            return;
+        }
+    }
+
+
     Event *event = new SimLoopExitEvent(message, exit_code, repeat);
     mainEventQueue.schedule(event, when);
 }
 
-CountedDrainEvent::CountedDrainEvent()
-    : count(0)
+    CountedDrainEvent::CountedDrainEvent()
+: count(0)
 { }
 
-void
+    void
 CountedDrainEvent::process()
 {
     if (--count == 0)
@@ -104,8 +112,8 @@ CountedDrainEvent::process()
 //
 // constructor: automatically schedules at specified time
 //
-CountedExitEvent::CountedExitEvent(const std::string &_cause, int &counter)
-    : Event(Sim_Exit_Pri), cause(_cause), downCounter(counter)
+    CountedExitEvent::CountedExitEvent(const std::string &_cause, int &counter)
+: Event(Sim_Exit_Pri), cause(_cause), downCounter(counter)
 {
     // catch stupid mistakes
     assert(downCounter > 0);
@@ -115,7 +123,7 @@ CountedExitEvent::CountedExitEvent(const std::string &_cause, int &counter)
 //
 // handle termination event
 //
-void
+    void
 CountedExitEvent::process()
 {
     if (--downCounter == 0) {

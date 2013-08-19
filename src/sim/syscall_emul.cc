@@ -117,14 +117,8 @@ exitFunc(SyscallDesc *desc, int callnum, LiveProcess *process,
     if (process->system->numRunningContexts() == 1) {
         // Last running context... exit simulator
         int index = 0;
-        if(process->system->num_exits==0){
-            process->system->num_exits++;
-            cout << "First process exited @ Tick " << curTick() << endl;
-        }
-        else {
             exitSimLoop("target called exit()",
                     process->getSyscallArg(tc, index) & 0xff);
-        }
     } else {
         // other running threads... just halt this one
         tc->halt();
@@ -141,14 +135,8 @@ exitGroupFunc(SyscallDesc *desc, int callnum, LiveProcess *process,
     // really should just halt all thread contexts belonging to this
     // process in case there's another process running...
     int index = 0;
-    if(process->system->num_exits==0){
-        process->system->num_exits++;
-        cout << "First process exited @ Tick " << curTick() << endl;
-    }
-    else {
         exitSimLoop("target called exit()",
                 process->getSyscallArg(tc, index) & 0xff);
-    }
     return 1;
 }
 

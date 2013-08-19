@@ -136,6 +136,15 @@ else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
 ######################################################################
 
+
+##### Cache Configuration #####
+options.l1d_size="32kB"
+options.l1d_assoc=2
+options.l1i_size="32kB"
+options.l1i_assoc=2
+options.l2_size="512kB"
+options.l2_assoc=4
+
                   
 multiprocesses = []
 apps = []
