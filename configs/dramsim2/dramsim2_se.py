@@ -82,7 +82,7 @@ if '--dramsim2' in sys.argv:
             help="workload for processor 0, usually the victim."),
     parser.add_option("--p1", type="string",
             help="workload for processor 1, usually the attacker.")
-    parser.add_option("--gentrace", type="bool", default="false",
+    parser.add_option("--gentrace", action="store_true", default=False,
             help="generate the trace for benchmarks.")
 ######################################################################
 
