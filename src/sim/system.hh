@@ -155,8 +155,7 @@ class System : public MemObject
      * system.  These threads could be Active or Suspended. */
     int numRunningContexts();
 
-    Addr pagePtr0;
-    Addr pagePtr1;
+    Addr pagePtr;
 
     uint64_t init_param;
 
@@ -376,7 +375,7 @@ class System : public MemObject
 
     /// Allocate npages contiguous unused physical pages
     /// @return Starting address of first page
-    Addr allocPhysPages(int npages, int pid);
+    Addr allocPhysPages(int npages);
 
     int registerThreadContext(ThreadContext *tc, int assigned=-1);
     void replaceThreadContext(ThreadContext *tc, int context_id);

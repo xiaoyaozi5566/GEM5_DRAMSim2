@@ -46,15 +46,20 @@ $specint = [
     "Xalan"  
 ]
 
+$specedges = [
+    "bzip2",
+    "gobmk"
+]
+
 $cpus = [ "detailed", "timing"]
 $schemes = ["tp","ft", "none"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
     $schemes.each do |scheme|
         $specint.each do |p0file|
-            $specint.each do |p1file|
+            $specedges.each do |p1file|
                 script = File.new(scriptgen_dir.path+
-                                  "/run_#{scheme}_#{cpu}_#{p0file}_#{p1file}","w+")
+                                  "/run_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}","w+")
                 script.puts("#!/bin/bash")
                 script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
@@ -62,16 +67,18 @@ $cpus.each do |cpu|
                 script.puts("    --maxinsts=#{$maxtinsts}\\")
                 script.puts("    --maxtick=#{$maxtick}\\")
                 script.puts("    --dramsim2 \\")
+                script.puts("    --numpids=3 \\")
                 script.puts("    --tpturnlength=12 \\")
                 script.puts("    --devicecfg="+
                             "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
                 script.puts("    --systemcfg="+
                             "./ext/DRAMSim2/system_#{scheme}.ini \\")
                 script.puts("    --outputfile="+
-                            "./results/#{scheme}_#{cpu}_#{p0file}_#{p1file}.out \\")
+                            "./results/#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}.out \\")
                 script.puts("    --p0=#{$specinvoke[p0file]} \\")
                 script.puts("    --p1=#{$specinvoke[p1file]} \\")
-                script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}.out")
+                script.puts("    --p2=#{$specinvoke[p1file]} \\")
+                script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
                 #system "qsub -wd #{gem5home.path} #{script_abspath}"
@@ -79,3 +86,41 @@ $cpus.each do |cpu|
         end
     end
 end
+
+$cpus = [ "detailed", "timing"]
+$schemes = ["tp","ft", "none"]
+Dir.chdir(specint_dir)
+$cpus.each do |cpu|
+    $schemes.each do |scheme|
+        $specint.each do |p0file|
+            $specedges.each do |p1file|
+                script = File.new(scriptgen_dir.path+
+                                  "/run_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}_#{p1file}","w+")
+                script.puts("#!/bin/bash")
+                script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
+                script.puts("    --cpu-type=#{cpu} \\")
+                script.puts("    --caches \\")
+                script.puts("    --maxinsts=#{$maxtinsts}\\")
+                script.puts("    --maxtick=#{$maxtick}\\")
+                script.puts("    --dramsim2 \\")
+                script.puts("    --numpids=4 \\")
+                script.puts("    --tpturnlength=12 \\")
+                script.puts("    --devicecfg="+
+                            "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
+                script.puts("    --systemcfg="+
+                            "./ext/DRAMSim2/system_#{scheme}.ini \\")
+                script.puts("    --outputfile="+
+                            "./results/#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}_#{p1file}.out \\")
+                script.puts("    --p0=#{$specinvoke[p0file]} \\")
+                script.puts("    --p1=#{$specinvoke[p1file]} \\")
+                script.puts("    --p2=#{$specinvoke[p1file]} \\")
+                script.puts("    --p3=#{$specinvoke[p1file]} \\")
+                script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}_#{p1file}.out")
+                script_abspath = File.expand_path(script.path)
+                script.close
+                #system "qsub -wd #{gem5home.path} #{script_abspath}"
+            end
+        end
+    end
+end
+
