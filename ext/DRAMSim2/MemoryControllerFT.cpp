@@ -13,7 +13,7 @@ MemoryControllerFT::MemoryControllerFT(MemorySystem *parent, CSVWriter
     commandQueue = new CommandQueueFT(bankStates,dramsim_log_,num_pids_); 
 
     // reserve for each process
-    for (int i=0;i<NUM_PIDS;i++){
+    for (int i=0;i<num_pids;i++){
         transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
     }
 }
@@ -25,7 +25,7 @@ bool MemoryControllerFT::WillAcceptTransaction(uint64_t pid)
 
 void MemoryControllerFT::updateTransactionQueue()
 {
-    for (size_t i=0;i<NUM_PIDS;i++)
+    for (int i=0;i<num_pids;i++)
         for (size_t j=0;j<transactionQueues[i].size();j++)
         {
             Transaction *transaction = transactionQueues[i][j];

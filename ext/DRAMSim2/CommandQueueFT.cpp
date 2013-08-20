@@ -35,7 +35,7 @@ bool CommandQueueFT::hasRoomFor(unsigned numberToEnqueue, unsigned rank,
 
 bool CommandQueueFT::isEmpty(unsigned rank)
 {
-    for (size_t i=0;i<NUM_PIDS;i++)
+    for (int i=0;i<num_pids;i++)
     {
         if (!queues[rank][i].empty()) return false;
     }
@@ -59,7 +59,7 @@ void CommandQueueFT::refreshPopClosePage(BusPacket **busPacket,
         {
             foundActiveOrTooEarly = true;
             /*
-            for (size_t p=0;p<NUM_PIDS;p++)
+            for (size_t p=0;p<num_pids;p++)
             {
                 vector<BusPacket *> &queue = getCommandQueue(refreshRank, p);
                 BusPacket *packet = queue[0];
@@ -110,7 +110,7 @@ bool CommandQueueFT::normalPopClosePage(BusPacket **busPacket,
         bool &sendingREF)
 {
     bool foundIssuable = false;
-    unsigned worstStartTime = (threadCounters[nextThread]*NUM_PIDS + 
+    unsigned worstStartTime = (threadCounters[nextThread]*num_pids + 
             nextThread)*WORST_CASE_DELAY + tRFC*refreshCounter;
     if (prev_ACTIVATE)
     {
@@ -161,14 +161,14 @@ bool CommandQueueFT::normalPopClosePage(BusPacket **busPacket,
     else if (!foundIssuable && (currentClockCycle == worstStartTime))
     {
         threadCounters[nextThread]++;
-        nextThread = (nextThread+1)%NUM_PIDS;
+        nextThread = (nextThread+1)%num_pids;
         return false;
     }				else if (foundIssuable)
     {
         if((*busPacket)->busPacketType!=ACTIVATE)
         {
             threadCounters[nextThread]++;
-            nextThread = (nextThread+1)%NUM_PIDS;
+            nextThread = (nextThread+1)%num_pids;
         }
     }
     else

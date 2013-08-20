@@ -77,7 +77,7 @@ CommandQueue::CommandQueue(vector< vector<BankState> > &states, ostream &dramsim
     }
     else if (queuingStructure==PerRankPerThread)
     {
-        numBankQueues = NUM_PIDS;
+        numBankQueues = num_pids;
     }
     else
     {
@@ -87,7 +87,7 @@ CommandQueue::CommandQueue(vector< vector<BankState> > &states, ostream &dramsim
 
     //vector of counters used to ensure rows don't stay open too long
     rowAccessCounters = vector< vector<unsigned> >(NUM_RANKS, vector<unsigned>(NUM_BANKS,0));
-    threadCounters = vector<unsigned>(NUM_PIDS, 0);
+    threadCounters = vector<unsigned>(num_pids, 0);
 
     //create queue based on the structure we want
     BusPacket1D actualQueue;

@@ -97,7 +97,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
     currentClockCycle = 0;
 
     // reserve for each process
-    //  for (int i=0;i<NUM_PIDS;i++){
+    //  for (int i=0;i<num_pids;i++){
     //     transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
     // }
 

@@ -15,7 +15,7 @@ MemoryControllerTP::MemoryControllerTP(MemorySystem *parent,
     commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_); 
 
     // reserve for each process
-    for (int i=0;i<NUM_PIDS;i++){
+    for (int i=0;i<num_pids;i++){
         transactionQueues[i].reserve(TRANS_QUEUE_DEPTH);
     }
 }
@@ -41,7 +41,7 @@ void MemoryControllerTP::receiveFromBus(BusPacket *bpacket)
 
 void MemoryControllerTP::updateTransactionQueue()
 {
-    for (int j=0; j<NUM_PIDS; j++){
+    for (int j=0; j<num_pids; j++){
         for (size_t i=0;i<transactionQueues[j].size();i++)
         {
             // pop off top transaction from queue
@@ -157,7 +157,7 @@ bool MemoryControllerTP::WillAcceptTransaction(uint64_t pid)
 
 /*
    void MemoryController::printtransactionQueues(){
-   for (int j=0; j<NUM_PIDS; j++){
+   for (int j=0; j<num_pids; j++){
    PRINT("== Printing transaction queue" << j);
    for (size_t i=0;i<transactionQueues[j].size();i++)
    {

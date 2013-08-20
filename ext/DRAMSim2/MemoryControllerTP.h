@@ -17,7 +17,7 @@ namespace DRAMSim
             virtual void receiveFromBus(BusPacket *bpacket);
 
         private:
-            vector<Transaction *> transactionQueues[NUM_PIDS];
+            vector<Transaction *> transactionQueues[4];
             
             virtual void updateTransactionQueue();
             virtual void updateReturnTransactions();

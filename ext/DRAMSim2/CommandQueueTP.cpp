@@ -45,7 +45,7 @@ bool CommandQueueTP::hasRoomFor(unsigned numberToEnqueue, unsigned rank,
 
 bool CommandQueueTP::isEmpty(unsigned rank)
 {
-    for(size_t i=0; i<NUM_PIDS; i++)
+    for(int i=0; i<num_pids; i++)
         if(!queues[rank][i].empty()) return false;
     return true;
 }
@@ -257,7 +257,7 @@ void CommandQueueTP::print()
     for (size_t i=0;i<NUM_RANKS;i++)
     {
         PRINT(" = Rank " << i );
-        for (size_t j=0;j<NUM_PIDS;j++)
+        for (int j=0;j<num_pids;j++)
         {
             PRINT("    PID "<< j << "   size : " << queues[i][j].size() );
 
@@ -271,7 +271,7 @@ void CommandQueueTP::print()
 }
 
 unsigned CommandQueueTP::getCurrentPID(){
-    return (currentClockCycle >> tpTurnLength) % NUM_PIDS;
+    return (currentClockCycle >> tpTurnLength) % num_pids;
 }
 
 bool CommandQueueTP::isBufferTime(){
