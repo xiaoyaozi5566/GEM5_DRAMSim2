@@ -8,7 +8,7 @@ namespace DRAMSim
     {
         public:
             CommandQueueFT(vector< vector<BankState> > &states,
-                    ostream &dramsim_log_);
+                    ostream &dramsim_log_, int num_pids);
             virtual void enqueue(BusPacket *newBusPacket);
             virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, 
                     unsigned bank, unsigned pid);

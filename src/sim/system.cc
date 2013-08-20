@@ -64,6 +64,7 @@
 #include "sim/debug.hh"
 #include "sim/full_system.hh"
 #include "sim/system.hh"
+#include "sim/eventq.hh"
 
 using namespace std;
 using namespace TheISA;
@@ -90,6 +91,8 @@ System::System(Params *p)
       totalNumInsts(0),
       instEventQueue("system instruction-based event queue")
 {
+    //This is awful and breaks encapsulation:
+    mainEventQueue.exit_count=p->numPids;
     // add self to global system list
     systemList.push_back(this);
     

@@ -10,7 +10,8 @@ namespace DRAMSim
             MemoryControllerTP(MemorySystem* ms, CSVWriter &csvOut_, 
                     ostream &dramsim_log_, 
                     const string &outputFilename_,
-                    unsigned tpTurnLength);
+                    unsigned tpTurnLength_,
+                    int num_pids_);
 
             virtual bool addTransaction(Transaction *trans);
             virtual void receiveFromBus(BusPacket *bpacket);

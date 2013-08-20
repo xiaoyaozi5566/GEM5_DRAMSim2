@@ -69,6 +69,9 @@ class System(MemObject):
         "exit simulation when work items end count value is reached")
     work_cpus_ckpt_count = Param.Counter(0,
         "create checkpoint when active cpu count value is reached")
+    
+    numPids = Param.Int(2,
+        "number of PIDs in simulation")
 
     init_param = Param.UInt64(0, "numerical value to pass into simulator")
     boot_osflags = Param.String("a", "boot flags to pass to the kernel")

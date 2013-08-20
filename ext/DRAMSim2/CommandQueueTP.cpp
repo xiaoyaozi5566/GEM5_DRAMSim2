@@ -8,8 +8,9 @@
 using namespace DRAMSim;
 
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
-        ostream &dramsim_log_, unsigned tpTurnLength_):
-    CommandQueue(states,dramsim_log_)
+        ostream &dramsim_log_, unsigned tpTurnLength_,
+        int num_pids_):
+    CommandQueue(states,dramsim_log_,num_pids_)
 {
     tpTurnLength = tpTurnLength_;
 #ifdef DEBUG_TP

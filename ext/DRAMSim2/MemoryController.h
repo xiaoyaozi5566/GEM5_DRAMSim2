@@ -67,7 +67,8 @@ namespace DRAMSim
         public:
             //functions
             MemoryController(MemorySystem* ms, CSVWriter &csvOut_, ostream 
-                    &dramsim_log_, const string &outputFilename_, bool genTrace_, const string &traceFilename_);
+                    &dramsim_log_, const string &outputFilename_, bool genTrace_,
+                    const string &traceFilename_, int num_pids_);
             virtual ~MemoryController();
 
             virtual bool addTransaction(Transaction *trans);
@@ -157,6 +158,7 @@ namespace DRAMSim
             unsigned refreshRank;
             string outputFilename;
             ofstream outputFile;
+            int num_pids;
 
         public:
             // energy values are per rank -- SST uses these directly, so make 
@@ -165,7 +167,6 @@ namespace DRAMSim
             vector< uint64_t > burstEnergy;
             vector< uint64_t > actpreEnergy;
             vector< uint64_t > refreshEnergy;
-
     };
 }
 

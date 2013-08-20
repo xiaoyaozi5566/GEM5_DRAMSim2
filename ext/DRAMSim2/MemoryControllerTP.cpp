@@ -4,13 +4,15 @@
 #include "AddressMapping.h"
 using namespace DRAMSim;
 
-MemoryControllerTP::MemoryControllerTP(MemorySystem *parent, CSVWriter 
-        &csvOut_, ostream &dramsim_log_, const string &outputFilename_,
-        unsigned tpTurnLength) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "")
+MemoryControllerTP::MemoryControllerTP(MemorySystem *parent, 
+        CSVWriter &csvOut_, ostream &dramsim_log_, 
+        const string &outputFilename_,
+        unsigned tpTurnLength,
+        int num_pids_) :
+    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "",num_pids_)
 {
 
-    commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength); 
+    commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_); 
 
     // reserve for each process
     for (int i=0;i<NUM_PIDS;i++){

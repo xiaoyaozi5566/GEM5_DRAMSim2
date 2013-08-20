@@ -10,7 +10,8 @@ namespace DRAMSim
     {
         public:
             CommandQueueTP(vector< vector<BankState> > &states,
-                    ostream &dramsim_log_,unsigned tpTurnLength);
+                    ostream &dramsim_log_,unsigned tpTurnLength,
+                    int num_pids);
             virtual void enqueue(BusPacket *newBusPacket);
             virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, 
                     unsigned bank, unsigned pid);

@@ -5,8 +5,8 @@
 using namespace DRAMSim;
 
 CommandQueueFT::CommandQueueFT(vector< vector<BankState> > &states, ostream 
-        &dramsim_log_):
-    CommandQueue(states,dramsim_log_)
+        &dramsim_log_, int num_pids_):
+    CommandQueue(states,dramsim_log_, num_pids_)
 {
 }
 

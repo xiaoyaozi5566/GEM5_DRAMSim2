@@ -79,11 +79,17 @@ if '--dramsim2' in sys.argv:
     parser.add_option("--outputfile", type="string", default="",
             help="output file for DRAMSim results."),
     parser.add_option("--p0", type="string", 
-            help="workload for processor 0, usually the victim."),
+            help="workload for processor 0."),
     parser.add_option("--p1", type="string",
-            help="workload for processor 1, usually the attacker.")
+            help="workload for processor 1.")
+    parser.add_option("--p2",type="string", default="echo \"no p2!\"",
+            help="workload for processor 2, default is an echo")
+    parser.add_option("--p3",type="string", default="echo \"no p3!\"",
+            help="workload for processor 3, default is an echo")
     parser.add_option("--gentrace", action="store_true", default=False,
             help="generate the trace for benchmarks.")
+    parser.add_option("--numpids", type="int", default=2,
+            help="determine the number of PIDs")
 ######################################################################
 
 ######################################################################
@@ -101,7 +107,7 @@ if args:
     sys.exit(1)
 
 # Number of CPUs
-options.num_cpus = 2
+options.num_cpus = options.numpids
 
 ######################################################################
 # Add DRAMSim2 into the system
@@ -131,6 +137,8 @@ if options.dramsim2 :
                         tpTurnLength=options.tpturnlength,
                         #Generate trace
                         genTrace=options.gentrace,
+                        #Number of PIDs
+                        numPids=options.numpids
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
@@ -185,6 +193,18 @@ process1.cmd = options.p1.split()
 process1.pid = 1
 multiprocesses.append(process1)
 
+if options.numpids > 2:
+    process2 = LiveProcess()
+    process2.cmd = options.p2.split()
+    process2.pid = 2
+    multiprocesses.append(process2)
+
+if options.numpids > 3:
+    process3 = LiveProcess()
+    process3.cmd = options.p3.split()
+    process3.pid = 3
+    multiprocesses.append(process3)
+
 #if len(multiprocesses) == 0:
 #    print >> sys.stderr, "No workload specified. Exiting!\n"
 #    sys.exit(1)
@@ -238,7 +258,9 @@ CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
-                membus = CoherentBus(), mem_mode = test_mem_mode)
+                membus = CoherentBus(), 
+                mem_mode = test_mem_mode,
+                numPids = options.numpids)
 
 # Sanity check
 if options.fastmem and (options.caches or options.l2cache):

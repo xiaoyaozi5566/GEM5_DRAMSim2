@@ -46,7 +46,7 @@
 
 using namespace DRAMSim;
 
-CommandQueue::CommandQueue(vector< vector<BankState> > &states, ostream &dramsim_log_) :
+CommandQueue::CommandQueue(vector< vector<BankState> > &states, ostream &dramsim_log_, int num_pids_) :
     dramsim_log(dramsim_log_),
     bankStates(states),
     nextBank(0),
@@ -58,7 +58,8 @@ CommandQueue::CommandQueue(vector< vector<BankState> > &states, ostream &dramsim
     refreshWaiting(false),
     prev_ACTIVATE(false),
     sendAct(true),
-    refreshCounter(0)
+    refreshCounter(0),
+    num_pids(num_pids_)
 {
     //set here to avoid compile errors
     currentClockCycle = 0;

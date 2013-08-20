@@ -68,7 +68,8 @@ namespace DRAMSim
         typedef vector<BusPacket2D> BusPacket3D;
 
         //functions
-        CommandQueue(vector< vector<BankState> > &states, ostream &dramsim_log);
+        CommandQueue(vector< vector<BankState> > &states, ostream &dramsim_log,
+                int num_pids);
         virtual ~CommandQueue(); 
 
         virtual void enqueue(BusPacket *newBusPacket);
@@ -96,6 +97,8 @@ namespace DRAMSim
         protected:
         virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);
         virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
+
+        int num_pids;
 
         void nextRankAndBank(unsigned &rank, unsigned &bank);
         //fields

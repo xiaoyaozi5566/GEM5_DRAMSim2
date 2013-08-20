@@ -63,7 +63,9 @@ extern float Vdd;
 
 using namespace DRAMSim;
 
-MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ostream &dramsim_log_, const string &outputFilename_, bool genTrace_, const string &traceFilename_) :
+MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
+        ostream &dramsim_log_, const string &outputFilename_, bool genTrace_,
+        const string &traceFilename_, int num_pids_) :
     dramsim_log(dramsim_log_),
     bankStates(NUM_RANKS, vector<BankState>(NUM_BANKS, dramsim_log)),
     //commandQueue(bankStates, dramsim_log_),
@@ -74,7 +76,8 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     outputFilename(outputFilename_),
     genTrace(genTrace_),
     traceFilename(traceFilename_),
-    lastReturnTime(0)
+    lastReturnTime(0),
+    num_pids(num_pids_)
 {
     if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
@@ -82,7 +85,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_, ost
     //get handle on parent
     parentMemorySystem = parent;
 
-    commandQueue = new CommandQueue(bankStates,dramsim_log_);
+    commandQueue = new CommandQueue(bankStates,dramsim_log_,num_pids_);
 
     //bus related fields
     outgoingCmdPacket = NULL;

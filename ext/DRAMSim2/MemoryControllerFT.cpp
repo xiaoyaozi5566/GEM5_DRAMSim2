@@ -6,11 +6,11 @@
 using namespace DRAMSim;
 
 MemoryControllerFT::MemoryControllerFT(MemorySystem *parent, CSVWriter 
-        &csvOut_, ostream &dramsim_log_, const string &outputFilename_) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "")
+        &csvOut_, ostream &dramsim_log_, const string &outputFilename_, int num_pids_) :
+    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "", num_pids_)
 {
 
-    commandQueue = new CommandQueueFT(bankStates,dramsim_log_); 
+    commandQueue = new CommandQueueFT(bankStates,dramsim_log_,num_pids_); 
 
     // reserve for each process
     for (int i=0;i<NUM_PIDS;i++){

@@ -50,7 +50,8 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
         const string &pwd_, 
         const string &traceFilename_, unsigned megsOfMemory_, 
         const string &outputFilename_, string *visFilename_, 
-        const IniReader::OverrideMap *paramOverrides):
+        const IniReader::OverrideMap *paramOverrides,
+        int num_pids):
     megsOfMemory(megsOfMemory_), 
     deviceIniFilename(deviceIniFilename_),
     systemIniFilename(systemIniFilename_),
@@ -116,7 +117,8 @@ MultiChannelMemorySystem::MultiChannelMemorySystem(const string &deviceIniFilena
     for (size_t i=0; i<NUM_CHANS; i++)
     {
         MemorySystem *channel = new MemorySystem(i, megsOfMemory/NUM_CHANS, 
-                (*csvOut), dramsim_log, outputFilename, tpTurnLength_, genTrace, traceFilename);
+                (*csvOut), dramsim_log, outputFilename, tpTurnLength_, genTrace,
+                traceFilename, num_pids);
         channels.push_back(channel);
     }
 }
