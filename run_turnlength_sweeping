@@ -47,7 +47,7 @@ $specint = [
 ]
 
 
-$cpus = [ "detailed", "timing"]
+$cpus = [ "detailed", "inorder"]
 $schemes = ["tp"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|

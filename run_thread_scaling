@@ -51,7 +51,7 @@ $specedges = [
     "gobmk"
 ]
 
-$cpus = [ "detailed", "timing"]
+$cpus = [ "detailed", "inorder"]
 $schemes = ["tp","ft", "none"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
@@ -87,7 +87,7 @@ $cpus.each do |cpu|
     end
 end
 
-$cpus = [ "detailed", "timing"]
+$cpus = [ "detailed", "inorder"]
 $schemes = ["tp","ft", "none"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
