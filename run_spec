@@ -46,7 +46,7 @@ $specint = [
     "Xalan"  
 ]
 
-$cpus = [ "detailed", "inorder"]
+$cpus = [ "detailed", "timing"]
 $schemes = ["tp","ft", "none"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
