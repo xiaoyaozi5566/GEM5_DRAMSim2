@@ -43,14 +43,13 @@ $specint = [
     "Xalan"  
 ]
 
-$cpus = [ "timing"]
-$schemes = ["none"]
-Dir.chdir(specint_dir)
+$cpus = [ "detailed"]
+$schemes = ["none", "tp", "ft"]
 $cpus.each do |cpu|
     $schemes.each do |scheme|
         $specint.each do |p0file|
                 script = File.new(scriptgen_dir.path+
-                                  "/run_#{cpu}_#{p0file}","w+")
+                                  "/run_#{cpu}_#{scheme}_#{p0file}","w+")
                 script.puts("#!/bin/bash")
                 script.puts("build/ARM/gem5.fast configs/dramsim2/gen_trace.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
@@ -62,15 +61,16 @@ $cpus.each do |cpu|
                 script.puts("    --systemcfg="+
                             "./ext/DRAMSim2/system_#{scheme}.ini \\")
                 script.puts("    --outputfile="+
-                            "./results/#{cpu}_#{p0file}.out \\")
+                            "./results/#{cpu}_#{scheme}_#{p0file}.out \\")
                 script.puts("    --gentrace \\")
                 script.puts("    --tracefile="+
-                            "./results/#{cpu}_#{p0file} \\")
-                script.puts("    --p0=#{$specinvoke[p0file]} \\")
-                script.puts("    > results/stdout_#{cpu}_#{p0file}.out")
+                            "./results/#{cpu}_#{scheme}_#{p0file}_p0 \\")
+                script.puts("    --p0=#{$specinvoke[p0file]}")
+                script.puts("    > results/stdout_#{cpu}_#{scheme}_#{p0file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
-                system "qsub -m e -M yw438@cornell.edu -wd #{gem5home.path} #{script_abspath}"
+                system "bash #{script_abspath}"
+                system "rm #{script_abspath}"
         end
     end
 end
