@@ -55,6 +55,7 @@
 #include <map>
 
 //#define NUM_PIDS 2
+#define NUM_MSHRS 10
 
 using namespace std;
 
@@ -98,7 +99,8 @@ namespace DRAMSim
             bool genTrace;
             string traceFilename;
             ofstream traceFile;
-            unsigned lastReturnTime;
+            unsigned lastReturnTime[NUM_MSHRS];
+            unsigned transactionID;
             // transactionQueues should be a private instance variable of the 
             // subclass.
             // methods that use it should call private virtual "strategy" 

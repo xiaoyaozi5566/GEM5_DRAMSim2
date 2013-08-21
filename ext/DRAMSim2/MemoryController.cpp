@@ -63,6 +63,8 @@ extern float Vdd;
 
 using namespace DRAMSim;
 
+#define O3 0
+
 MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
         ostream &dramsim_log_, const string &outputFilename_, bool genTrace_,
         const string &traceFilename_, int num_pids_) :
@@ -76,14 +78,16 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
     outputFilename(outputFilename_),
     genTrace(genTrace_),
     traceFilename(traceFilename_),
-    lastReturnTime(0),
-    num_pids(num_pids_)
+    num_pids(num_pids_),
+    transactionID(0)
 {
     if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
     //cout << outputFilename << endl;
     //get handle on parent
     parentMemorySystem = parent;
+    
+    for (size_t i = 0; i < NUM_MSHRS; i++) lastReturnTime[i] = 0;
 
     commandQueue = new CommandQueue(bankStates,dramsim_log_,num_pids_);
 
@@ -845,7 +849,11 @@ void MemoryController::updateReturnTransactions()
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 */
-                lastReturnTime = currentClockCycle;
+            #ifdef O3
+                lastReturnTime[totalTransactions%NUM_MSHRS] = currentClockCycle;
+            #else
+            	lastReturnTime[0] = currentClockCycle;
+            #endif
 
                 delete pendingReadTransactions[i];
                 pendingReadTransactions.erase(pendingReadTransactions.begin()+i);
@@ -876,19 +884,29 @@ bool MemoryController::addTransaction(Transaction *trans)
     {
         //trans->timeAdded = currentClockCycle;
         transactionQueue.push_back(trans);
+        transactionID++;
         // Generate trace
         if (genTrace)
         {
-        	cout << "before writing" << endl;
+        #ifdef O3
         	if (trans->transactionType == DATA_READ) {
         		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
         	}
         	else {
         		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime) << '\n';
+        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
         	}
-        	cout << "after writing" << endl;
+        #else
+        	if (trans->transactionType == DATA_READ) {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
+        	}
+        	else {
+        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
+        	}
+        #endif
         }
         return true;
     }
