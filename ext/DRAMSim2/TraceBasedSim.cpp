@@ -47,16 +47,20 @@
 #include "MultiChannelMemorySystem.h"
 #include "Transaction.h"
 #include "IniReader.h"
+#include "MemoryController.h"
 
 
 using namespace DRAMSim;
 using namespace std;
 
 #define RETURN_TRANSACTIONS 1
+#define O3TRACE 1
 
 // Flag to indicate whether previous request has returned
-bool flag = 1;
-bool flag1 = 1;
+bool flag[10];
+bool flag1[10];
+unsigned totalTrans = 0;
+unsigned totalTrans1 = 0;
 
 #ifndef _SIM_
 int SHOW_SIM_OUTPUT = 1;
@@ -110,19 +114,32 @@ class TransactionReceiver
 			uint64_t added_cycle = pendingReadRequests[address].front();
 			uint64_t latency = done_cycle - added_cycle;
 			
+		#ifdef O3TRACE
 			if (threadID == 0)
 			{
-				flag = 1;
+				flag[totalTrans%NUM_MSHRS] = 1;
+				totalTrans++;
 			}
 			else if (threadID == 1)
 			{
-				flag1 = 1;
+				flag1[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans1++;
+			}
+		#else
+			if (threadID == 0)
+			{
+				flag[0] = 1;
+			}
+			else if (threadID == 1)
+			{
+				flag1[0] = 1;
 			}
 			else
 			{
 				ERROR("Wrong threadID found");
 				exit(0);
 			}
+		#endif
 
 			pendingReadRequests[address].pop_front();
 			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
@@ -144,7 +161,18 @@ class TransactionReceiver
 					exit(-1); 
 				}
 			}
-			
+		#ifdef O3TRACE
+			if (threadID == 0)
+			{
+				flag[totalTrans%NUM_MSHRS] = 1;
+				totalTrans++;
+			}
+			else if (threadID == 1)
+			{
+				flag1[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans1++;
+			}
+		#else
 			if (threadID == 0)
 			{
 				flag = 1;
@@ -158,6 +186,7 @@ class TransactionReceiver
 				ERROR("Wrong threadID found");
 				exit(0);
 			}
+		#endif
 
 			uint64_t added_cycle = pendingWriteRequests[address].front();
 			uint64_t latency = done_cycle - added_cycle;
@@ -464,10 +493,18 @@ int main(int argc, char **argv)
 	string outputFilename;
 	unsigned megsOfMemory=2048;
 	bool useClockCycle=true;
+	unsigned transactionID = 0;
+	unsigned transactionID1 = 0;
 	
 	IniReader::OverrideMap *paramOverrides = NULL; 
 
 	unsigned numCycles=1000;
+	
+	for (size_t i = 0; i < NUM_MSHRS; i++)
+	{
+		flag[i] = 1;
+		flag1[i] = 1;
+	}
 	//getopt stuff
 	while (1)
 	{
@@ -742,12 +779,13 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 		
+	#ifdef O3TRACE
 		for (size_t i=0;i<numCycles;i++)
 		{
 			// For thread 0 
 			if (!pendingTrans)
 			{
-				if (!traceFile.eof() && flag == 1)
+				if (!traceFile.eof() && flag[transactionID%NUM_MSHRS] == 1)
 				{
 					getline(traceFile, line);
 
@@ -759,7 +797,8 @@ int main(int argc, char **argv)
 						trans = new Transaction(transType, addr, data, 0, 0);
 						alignTransactionAddress(*trans); 
 						clockCycle = clockCycle + i;
-						flag = 0;
+						flag[transactionID%NUM_MSHRS] = 0;
+						transactionID++;
 
 						if (i>=clockCycle)
 						{
@@ -809,7 +848,7 @@ int main(int argc, char **argv)
 			// For thread 1
 			if (!pendingTrans1)
 			{
-				if (!traceFile1.eof() && flag1 == 1)
+				if (!traceFile1.eof() && flag1[transactionID1%NUM_MSHRS] == 1)
 				{
 					getline(traceFile1, line);
 
@@ -821,7 +860,8 @@ int main(int argc, char **argv)
 						trans1 = new Transaction(transType, addr, data, 1, 0);
 						alignTransactionAddress(*trans1); 
 						clockCycle1 = clockCycle1 + i;
-						flag1 = 0;
+						flag1[transactionID1%NUM_MSHRS] = 0;
+						transactionID1++;
 
 						if (i>=clockCycle1)
 						{
@@ -873,6 +913,139 @@ int main(int argc, char **argv)
 			
 			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
 		}
+	#else
+		for (size_t i=0;i<numCycles;i++)
+		{
+			// For thread 0 
+			if (!pendingTrans)
+			{
+				if (!traceFile.eof() && flag[0] == 1)
+				{
+					getline(traceFile, line);
+
+					if (line.size() > 24)
+					{
+						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
+						// if (pid == 0 && transType == DATA_READ) 
+						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+						trans = new Transaction(transType, addr, data, 0, 0);
+						alignTransactionAddress(*trans); 
+						clockCycle = clockCycle + i;
+						flag[0] = 0;
+
+						if (i>=clockCycle)
+						{
+							if (!(*memorySystem).addTransaction(trans))
+							{
+								pendingTrans = true;
+							}
+							else
+							{
+	#ifdef RETURN_TRANSACTIONS
+								transactionReceiver.add_pending(*trans, i); 
+	#endif
+								// the memory system accepted our request so now it takes ownership of it
+								trans = NULL; 
+							}
+						}
+						else
+						{
+							pendingTrans = true;
+						}
+					}
+					else
+					{
+						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
+					}
+					lineNumber++;
+				}
+				else
+				{
+					//we're out of trace, set pending=false and let the thing spin without adding transactions
+					pendingTrans = false; 
+				}
+			}
+
+			else if (pendingTrans && i >= clockCycle)
+			{
+				pendingTrans = !(*memorySystem).addTransaction(trans);
+				if (!pendingTrans)
+				{
+	#ifdef RETURN_TRANSACTIONS
+					transactionReceiver.add_pending(*trans, i); 
+	#endif
+					trans=NULL;
+				}
+				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+			// For thread 1
+			if (!pendingTrans1)
+			{
+				if (!traceFile1.eof() && flag1[0] == 1)
+				{
+					getline(traceFile1, line);
+
+					if (line.size() > 24)
+					{
+						data = parseTraceFileLine(line, addr, transType,clockCycle1, pid, traceType,useClockCycle);
+						// if (pid == 0 && transType == DATA_READ) 
+						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+						trans1 = new Transaction(transType, addr, data, 1, 0);
+						alignTransactionAddress(*trans1); 
+						clockCycle1 = clockCycle1 + i;
+						flag1[0] = 0;
+
+						if (i>=clockCycle1)
+						{
+							if (!(*memorySystem).addTransaction(trans1))
+							{
+								pendingTrans1 = true;
+							}
+							else
+							{
+	#ifdef RETURN_TRANSACTIONS
+								transactionReceiver.add_pending(*trans1, i); 
+	#endif
+								// the memory system accepted our request so now it takes ownership of it
+								trans1 = NULL; 
+							}
+						}
+						else
+						{
+							pendingTrans1 = true;
+						}
+					}
+					else
+					{
+						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile");
+					}
+					lineNumber1++;
+				}
+				else
+				{
+					//we're out of trace, set pending=false and let the thing spin without adding transactions
+					pendingTrans1 = false; 
+				}
+			}
+
+			else if (pendingTrans1 && i >= clockCycle1)
+			{
+				pendingTrans1 = !(*memorySystem).addTransaction(trans1);
+				if (!pendingTrans1)
+				{
+	#ifdef RETURN_TRANSACTIONS
+					transactionReceiver.add_pending(*trans1, i); 
+	#endif
+					trans1=NULL;
+				}
+				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+
+			(*memorySystem).update();
+			
+			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
+		}
+	#endif
 		traceFile1.close();
 	}
 
