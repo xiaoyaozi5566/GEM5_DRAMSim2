@@ -134,7 +134,9 @@ if options.dramsim2 :
                         #Generate trace
                         genTrace=options.gentrace,
                         #Trace file 
-                        traceFile=options.tracefile
+                        traceFile=options.tracefile,
+			#One CPU
+			numPids=1
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
@@ -170,7 +172,7 @@ process0 = LiveProcess()
 #process0.executable = "./tests/test-progs/test/arm/victim"
 #process0.executable = options.p0
 process0.cmd = options.p0.split()
-process0.pid = 0
+process0.pid = 1
 multiprocesses.append(process0)
 
 #if len(multiprocesses) == 0:
@@ -226,7 +228,7 @@ CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
-                membus = CoherentBus(), mem_mode = test_mem_mode)
+                membus = CoherentBus(), mem_mode = test_mem_mode, numPids = 1)
 
 # Sanity check
 if options.fastmem and (options.caches or options.l2cache):

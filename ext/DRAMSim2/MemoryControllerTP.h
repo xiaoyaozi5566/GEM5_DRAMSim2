@@ -11,6 +11,8 @@ namespace DRAMSim
                     ostream &dramsim_log_, 
                     const string &outputFilename_,
                     unsigned tpTurnLength_,
+		    bool genTrace_,
+                    const string &traceFilename_,
                     int num_pids_);
 
             virtual bool addTransaction(Transaction *trans);

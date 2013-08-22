@@ -6,8 +6,9 @@
 using namespace DRAMSim;
 
 MemoryControllerFT::MemoryControllerFT(MemorySystem *parent, CSVWriter 
-        &csvOut_, ostream &dramsim_log_, const string &outputFilename_, int num_pids_) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "", num_pids_)
+        &csvOut_, ostream &dramsim_log_, const string &outputFilename_, bool genTrace_,
+        const string &traceFilename_, int num_pids_) :
+    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, genTrace_, traceFilename_, num_pids_)
 {
 
     commandQueue = new CommandQueueFT(bankStates,dramsim_log_,num_pids_); 

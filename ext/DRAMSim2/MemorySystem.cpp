@@ -136,11 +136,11 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
     if(timingProtection == FixedTiming){
         memoryController = 
             new MemoryControllerFT(this, csvOut, dramsim_log, 
-                    outputFilename, num_pids);
+                    outputFilename, genTrace, traceFilename, num_pids);
     } else if(timingProtection == TimingPartitioning){
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, 
-                    outputFilename, tpTurnLength, num_pids);
+                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids);
     } else {
         memoryController = 
             new MemoryController(this, csvOut, dramsim_log, 

@@ -61,16 +61,15 @@ $cpus.each do |cpu|
                 script.puts("    --systemcfg="+
                             "./ext/DRAMSim2/system_#{scheme}.ini \\")
                 script.puts("    --outputfile="+
-                            "./results/#{cpu}_#{scheme}_#{p0file}.out \\")
+                            "/mnt/yao/#{cpu}_#{scheme}_#{p0file}.out \\")
                 script.puts("    --gentrace \\")
                 script.puts("    --tracefile="+
-                            "./results/#{cpu}_#{scheme}_#{p0file}_p0 \\")
+                            "/mnt/yao/#{cpu}_#{scheme}_#{p0file}_p1 \\")
                 script.puts("    --p0=#{$specinvoke[p0file]}")
-                script.puts("    > results/stdout_#{cpu}_#{scheme}_#{p0file}.out")
+                #script.puts("    > /mnt/yao/stdout_#{cpu}_#{scheme}_#{p0file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
-                system "bash #{script_abspath}"
-                system "rm #{script_abspath}"
+                system "qsub -wd #{gem5home.path} -o /mnt/yao -e /mnt/yao #{script_abspath}"
         end
     end
 end

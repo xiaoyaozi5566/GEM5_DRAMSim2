@@ -8,8 +8,10 @@ MemoryControllerTP::MemoryControllerTP(MemorySystem *parent,
         CSVWriter &csvOut_, ostream &dramsim_log_, 
         const string &outputFilename_,
         unsigned tpTurnLength,
+        bool genTrace_,
+        const string &traceFilename_,
         int num_pids_) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, false, "",num_pids_)
+    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, genTrace_, traceFilename_, num_pids_)
 {
 
     commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_); 
