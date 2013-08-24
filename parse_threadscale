@@ -1,0 +1,153 @@
+#!/usr/bin/ruby
+require 'fileutils'
+require 'parallel'
+
+$schemes = ['none','tp','ft']
+$models = ['timing','detailed']
+$specint = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+]
+
+$p1plus = ['gobmk']
+
+$time_order = {
+    'libquantum' => 0,
+    'hmmer' => 1,
+    'astar' => 2,
+    'gcc' => 3,
+    'h264ref' => 4,
+    'bzip2' => 5, 
+    'gobmk' => 6,
+    'mcf' => 7,
+    'Xalan' => 8,
+    'sjeng' => 9,
+}
+
+def make_timing_results3(indir,outdir)
+    Dir.chdir(indir)
+    Parallel.each($schemes,:in_threads=>3) do |scheme|
+        $models.each do |model|
+            currOutFile = File.new(outdir+
+                                   "/performance_#{scheme}_#{model}_3.out",'w')
+            currOutFile.printf("%s,%s\n",scheme,model)
+            currOutFile.printf("%-15s , %-15s , %s\n","p0","p1","cycles")
+            $specint.each do |p0|
+                $p1plus.each do |p1|
+                    currInFile = File.open(
+                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}.out",'r')
+                    currInFile.each_line do |line|
+                        timingRegex = $time_order[p0] > $time_order[p1] ?
+                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
+                        unless line.match(timingRegex)== nil
+                            time =(line.match timingRegex)[1]
+                            currOutFile.printf("%-15s , %-15s , %d \n",
+                                               p0,p1,time)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+def make_timing_results4(indir,outdir)
+    Dir.chdir(indir)
+    Parallel.each($schemes,:in_threads=>3) do |scheme|
+        $models.each do |model|
+            currOutFile = File.new(outdir+
+                                   "/performance_#{scheme}_#{model}_4.out",'w')
+            currOutFile.printf("%s,%s\n",scheme,model)
+            currOutFile.printf("%-15s , %-15s , %s\n","p0","p1","cycles")
+            $specint.each do |p0|
+                $p1plus.each do |p1|
+                    currInFile = File.open(
+                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out",'r')
+                    currInFile.each_line do |line|
+                        timingRegex = $time_order[p0] > $time_order[p1] ?
+                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
+                        unless line.match(timingRegex)== nil
+                            time =(line.match timingRegex)[1]
+                            currOutFile.printf("%-15s , %-15s , %d \n",
+                                               p0,p1,time)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+def threadscale_results(indir,outdir)
+    Dir.chdir(indir)
+    Parallel.each($schemes,:in_threads=>3) do |scheme|
+        $models.each do |model|
+            currOutFile = File.new(outdir+
+                                   "/performance_#{scheme}_#{model}.out",'w')
+            currOutFile.printf("%s,%s\n",scheme,model)
+            currOutFile.printf("%-15s , %-15s\n","workload","cycles")
+            $specint.each do |p0|
+                $p1plus.each do |p1|
+                    currInFile = File.open(
+                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}.out",'r')
+                    currInFile.each_line do |line|
+                        timingRegex = $time_order[p0] > $time_order[p1] ?
+                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
+                        unless line.match(timingRegex)== nil
+                            time =(line.match timingRegex)[1]
+                            currOutFile.printf("%-15s , %-15d\n",p0+"2",time)
+                            break
+                        end
+                    end
+                    currInFile = File.open(
+                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}.out",'r')
+                    currInFile.each_line do |line|
+                        timingRegex = $time_order[p0] > $time_order[p1] ?
+                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
+                        unless line.match(timingRegex)== nil
+                            time =(line.match timingRegex)[1]
+                            currOutFile.printf("%-15s , %-15d\n",p0+"3",time)
+                            break
+                        end
+                    end
+                    currInFile = File.open(
+                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out",'r')
+                    currInFile.each_line do |line|
+                        timingRegex = $time_order[p0] > $time_order[p1] ?
+                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
+                        unless line.match(timingRegex)== nil
+                            time =(line.match timingRegex)[1]
+                            currOutFile.printf("%-15s, %-15d \n",p0+"4",time)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    threadscale_results(File.expand_path(result_dir),
+                        File.expand_path(perfrep_dir))
+end
+
