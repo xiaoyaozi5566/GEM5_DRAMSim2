@@ -213,8 +213,8 @@ def scriptCheckpoints(options, cptdir):
 
     return exit_cause
 
-def benchCheckpoints(options, maxtick, cptdir):
-    exit_event = m5.simulate(maxtick)
+def benchCheckpoints(options, maxtick, cptdir, numpids):
+    exit_event = m5.simulate(maxtick,numpids)
     exit_cause = exit_event.getCause()
 
     num_checkpoints = 0
@@ -227,7 +227,7 @@ def benchCheckpoints(options, maxtick, cptdir):
             exit_cause = "maximum %d checkpoints dropped" % max_checkpoints
             break
 
-        exit_event = m5.simulate(maxtick - m5.curTick())
+        exit_event = m5.simulate(maxtick - m5.curTick(),numpids)
         exit_cause = exit_event.getCause()
 
     return exit_cause
@@ -256,6 +256,9 @@ def repeatSwitch(testsys, repeat_switch_cpu_list, maxtick, switch_freq):
             return exit_event.getCause()
 
 def run(options, root, testsys, cpu_class):
+    run(options, root, testsysm, cpu_class, 2)
+
+def run(options, root, testsys, cpu_class, numpids):
     if options.maxtick:
         maxtick = options.maxtick
     elif options.maxtime:
@@ -437,11 +440,11 @@ def run(options, root, testsys, cpu_class):
         if options.standard_switch:
             print "Switch at instruction count:%s" % \
                     str(testsys.cpu[0].max_insts_any_thread)
-            exit_event = m5.simulate()
+            exit_event = m5.simulate(maxtick,numpids)
         elif cpu_class and options.fast_forward:
             print "Switch at instruction count:%s" % \
                     str(testsys.cpu[0].max_insts_any_thread)
-            exit_event = m5.simulate()
+            exit_event = m5.simulate(maxtick,numpids)
         else:
             print "Switch at curTick count:%s" % str(10000)
             exit_event = m5.simulate(10000)
@@ -463,9 +466,9 @@ def run(options, root, testsys, cpu_class):
 
             #warmup instruction count may have already been set
             if options.warmup_insts:
-                exit_event = m5.simulate()
+                exit_event = m5.simulate(maxtick,numpids)
             else:
-                exit_event = m5.simulate(options.standard_switch)
+                exit_event = m5.simulate(options.standard_switch,numpids)
             print "Switching CPUS @ tick %s" % (m5.curTick())
             print "Simulation ends instruction count:%d" % \
                     (testsys.switch_cpus_1[0].max_insts_any_thread)
@@ -500,7 +503,7 @@ def run(options, root, testsys, cpu_class):
             exit_cause = repeatSwitch(testsys, repeat_switch_cpu_list,
                                       maxtick, options.repeat_switch)
         else:
-            exit_cause = benchCheckpoints(options, maxtick, cptdir)
+            exit_cause = benchCheckpoints(options, maxtick, cptdir, numpids)
 
     print 'Exiting @ tick %i because %s' % (m5.curTick(), exit_cause)
     if options.checkpoint_at_end:

@@ -80,13 +80,13 @@ SimLoopExitEvent::description() const
 exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
 {
     if(message=="target called exit()"){
-        if(!(--mainEventQueue.exit_count==0)){
+        if(--mainEventQueue.exit_count>0){
             cout <<"A thread called exit() @ Tick " << curTick() << endl;
             return;
         }
     } 
     else if(message=="a thread reached the max instruction count"){
-        if(!(--mainEventQueue.exit_count==0)){
+        if(--mainEventQueue.exit_count>0){
             cout << "A thread reached the max instruction count @ Tick "
                 << curTick() << endl;
             return;

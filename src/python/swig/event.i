@@ -101,5 +101,5 @@ class SimLoopExitEvent : public Event
         return NULL;
     }
 }
-SimLoopExitEvent *simulate(Tick num_cycles = MaxTick);
+SimLoopExitEvent *simulate(Tick num_cycles = MaxTick, int numPids = 2);
 void exitSimLoop(const std::string &message, int exit_code);

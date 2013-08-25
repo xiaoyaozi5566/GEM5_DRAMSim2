@@ -91,8 +91,6 @@ System::System(Params *p)
       totalNumInsts(0),
       instEventQueue("system instruction-based event queue")
 {
-    //This is awful and breaks encapsulation:
-    mainEventQueue.exit_count=p->numPids;
     // add self to global system list
     systemList.push_back(this);
 

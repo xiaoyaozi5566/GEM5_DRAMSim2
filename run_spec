@@ -13,8 +13,9 @@ unless File.directory? File.expand_path(Dir.pwd+"/results")
 end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
-$maxtinsts = 10**7
-$maxtick = 2*10**12
+$fastforward = 10**9
+$maxtinsts = 10**8
+$maxtick = 2*10**15 
 
 $specinvoke = { 
 #    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
@@ -59,8 +60,9 @@ $cpus.each do |cpu|
                 script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
                 script.puts("    --caches \\")
-                script.puts("    --maxinsts=#{$maxtinsts}\\")
-                script.puts("    --maxtick=#{$maxtick}\\")
+                script.puts("    --fast-forward=#{$fastforward} \\")
+                script.puts("    --maxinsts=#{$maxtinsts} \\")
+                script.puts("    --maxtick=#{$maxtick} \\")
                 script.puts("    --dramsim2 \\")
                 script.puts("    --tpturnlength=12 \\")
                 script.puts("    --devicecfg="+

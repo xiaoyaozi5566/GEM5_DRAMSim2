@@ -47,10 +47,11 @@ extern DRAMSim::MultiChannelMemorySystem *dramsim2;
  * terminate the loop.  Exported to Python via SWIG.
  * @return The SimLoopExitEvent that caused the loop to exit.
  */
-SimLoopExitEvent *
-simulate(Tick num_cycles)
+    SimLoopExitEvent *
+simulate(Tick num_cycles, int numPids)
 {
     inform("Entering event queue @ %d.  Starting simulation...\n", curTick());
+    mainEventQueue.exit_count=numPids;
 
     if (num_cycles < MaxTick - curTick())
         num_cycles = curTick() + num_cycles;
@@ -73,7 +74,7 @@ simulate(Tick num_cycles)
         // we just scheduled) in the queue
         assert(!mainEventQueue.empty());
         assert(curTick() <= mainEventQueue.nextTick() &&
-               "event scheduled in the past");
+                "event scheduled in the past");
 
         // forward current cycle to the time of the first event on the
         // queue
