@@ -39,7 +39,14 @@ class L1Cache(BaseCache):
 class L2Cache(BaseCache):
     assoc = 8
     block_size = 64
-    latency = '10ns'
+    latency = '3.33ns'
+    mshrs = 20
+    tgts_per_mshr = 12
+
+class L3Cache(BaseCache):
+    assoc = 16
+    block_size = 64
+    latency = '8.48ns'
     mshrs = 20
     tgts_per_mshr = 12
 

@@ -41,6 +41,7 @@ def addCommonOptions(parser):
     parser.add_option("-n", "--num-cpus", type="int", default=1)
     parser.add_option("--caches", action="store_true")
     parser.add_option("--l2cache", action="store_true")
+    parser.add_option("--l3cache", action="store_true")
     parser.add_option("--fastmem", action="store_true")
     parser.add_option("--clock", action="store", type="string", default='2GHz')
     parser.add_option("--num-dirs", type="int", default=1)

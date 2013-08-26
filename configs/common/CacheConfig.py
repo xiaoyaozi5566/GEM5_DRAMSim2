@@ -35,17 +35,35 @@ from Caches import *
 from O3_ARM_v7a import *
 
 def config_cache(options, system):
-    if options.l2cache:
+    if options.l3cache:
         if options.cpu_type == "arm_detailed":
-            system.l2 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
+            system.l3 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
                                 block_size=options.cacheline_size)
         else:
-            system.l2 = L2Cache(size = options.l2_size, assoc = options.l2_assoc,
+            system.l3 = L3Cache(size = options.l2_size, assoc = options.l2_assoc,
                                 block_size=options.cacheline_size)
 
-        system.tol2bus = CoherentBus()
-        system.l2.cpu_side = system.tol2bus.master
-        system.l2.mem_side = system.membus.slave
+        system.tol3bus = CoherentBus()
+        system.l3.cpu_side = system.tol3bus.master
+        system.l3.mem_side = system.membus.slave
+        	
+    if options.l2cache:
+        if options.cpu_type == "arm_detailed":
+            system.l2_0 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
+                                block_size=options.cacheline_size)
+            system.l2_1 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
+                                block_size=options.cacheline_size)
+        else:
+            system.l2_0 = L2Cache(size = options.l2_size, assoc = options.l2_assoc,
+                                block_size=options.cacheline_size)
+            system.l2_1 = L2Cache(size = options.l2_size, assoc = options.l2_assoc,
+                                block_size=options.cacheline_size)
+
+        system.tol2_0bus = CoherentBus()
+        system.l2_0.cpu_side = system.tol2_0bus.master
+        
+        system.tol2_1bus = CoherentBus()
+        system.l2_1.cpu_side = system.tol2_1bus.master
 
     for i in xrange(options.num_cpus):
         if options.caches:
@@ -71,9 +89,14 @@ def config_cache(options, system):
             else:
                 system.cpu[i].addPrivateSplitL1Caches(icache, dcache)
         system.cpu[i].createInterruptController()
-        if options.l2cache:
-            system.cpu[i].connectAllPorts(system.tol2bus, system.membus)
-        else:
-            system.cpu[i].connectAllPorts(system.membus)
+    
+    if options.l2cache:
+        system.cpu[0].connectAllPorts(system.tol2_0bus)
+        system.cpu[1].connectAllPorts(system.tol2_1bus)
+        system.l2_0.mem_side = system.tol3bus.slave
+        system.l2_1.mem_side = system.tol3bus.slave
+    else:
+        system.cpu[0].connectAllPorts(system.membus)
+        system.cpu[1].connectAllPorts(system.membus)
 
     return system
