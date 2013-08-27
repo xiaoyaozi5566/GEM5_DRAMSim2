@@ -621,7 +621,7 @@ Cache<TagStore>::getBusPacket(PacketPtr cpu_pkt, BlkType *blk,
         // block is invalid
         cmd = needsExclusive ? MemCmd::ReadExReq : MemCmd::ReadReq;
     }
-    PacketPtr pkt = new Packet(cpu_pkt->req, cmd, blkSize);
+    PacketPtr pkt = new Packet(cpu_pkt->req, cmd, blkSize, cpu_pkt->threadID);
 
     pkt->allocate();
     return pkt;

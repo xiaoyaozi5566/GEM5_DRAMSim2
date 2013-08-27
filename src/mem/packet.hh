@@ -423,6 +423,8 @@ class Packet : public Printable
      * is created).
      */
     SenderState *senderState;
+    
+    uint64_t threadID;
 
     /// Return the string name of the cmd field (for debugging and
     /// tracing).
@@ -527,7 +529,28 @@ class Packet : public Printable
         :  cmd(_cmd), req(_req), data(NULL),
            src(InvalidPortID), dest(InvalidPortID),
            bytesValidStart(0), bytesValidEnd(0),
-           time(curTick()), senderState(NULL)
+           time(curTick()), senderState(NULL), threadID(0)
+    {
+        if (req->hasPaddr()) {
+            addr = req->getPaddr();
+            flags.set(VALID_ADDR);
+        }
+        if (req->hasSize()) {
+            size = req->getSize();
+            flags.set(VALID_SIZE);
+        }
+    }
+    
+    /**
+     * Constructor.  Note that a Request object must be constructed
+     * first, but the Requests's physical address and size fields need
+     * not be valid. The command must be supplied.
+     */
+    Packet(Request *_req, MemCmd _cmd, uint64_t _threadID, uint64_t _threadID1, uint64_t _threadID2)
+        :  cmd(_cmd), req(_req), data(NULL),
+           src(InvalidPortID), dest(InvalidPortID),
+           bytesValidStart(0), bytesValidEnd(0),
+           time(curTick()), senderState(NULL), threadID(_threadID)
     {
         if (req->hasPaddr()) {
             addr = req->getPaddr();
@@ -548,7 +571,26 @@ class Packet : public Printable
         :  cmd(_cmd), req(_req), data(NULL),
            src(InvalidPortID), dest(InvalidPortID),
            bytesValidStart(0), bytesValidEnd(0),
-           time(curTick()), senderState(NULL)
+           time(curTick()), senderState(NULL), threadID(0)
+    {
+        if (req->hasPaddr()) {
+            addr = req->getPaddr() & ~(_blkSize - 1);
+            flags.set(VALID_ADDR);
+        }
+        size = _blkSize;
+        flags.set(VALID_SIZE);
+    }
+    
+    /**
+     * Alternate constructor if you are trying to create a packet with
+     * a request that is for a whole block, not the address from the
+     * req.  this allows for overriding the size/addr of the req.
+     */
+    Packet(Request *_req, MemCmd _cmd, int _blkSize, uint64_t _threadID)
+        :  cmd(_cmd), req(_req), data(NULL),
+           src(InvalidPortID), dest(InvalidPortID),
+           bytesValidStart(0), bytesValidEnd(0),
+           time(curTick()), senderState(NULL), threadID(_threadID)
     {
         if (req->hasPaddr()) {
             addr = req->getPaddr() & ~(_blkSize - 1);
@@ -570,7 +612,7 @@ class Packet : public Printable
            data(pkt->flags.isSet(STATIC_DATA) ? pkt->data : NULL),
            addr(pkt->addr), size(pkt->size), src(pkt->src), dest(pkt->dest),
            bytesValidStart(pkt->bytesValidStart), bytesValidEnd(pkt->bytesValidEnd),
-           time(curTick()), senderState(pkt->senderState)
+           time(curTick()), senderState(pkt->senderState), threadID(pkt->threadID)
     {
         if (!clearFlags)
             flags.set(pkt->flags & COPY_FLAGS);

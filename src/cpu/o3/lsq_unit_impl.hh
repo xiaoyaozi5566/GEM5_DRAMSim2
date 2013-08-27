@@ -817,17 +817,18 @@ LSQUnit<Impl>::writebackStores()
         state->isLoad = false;
         state->idx = storeWBIdx;
         state->inst = inst;
-
+        
+        uint64_t pid = cpu->thread[0]->getProcessPtr()->__pid;
         if (!TheISA::HasUnalignedMemAcc || !storeQueue[storeWBIdx].isSplit) {
 
             // Build a single data packet if the store isn't split.
-            data_pkt = new Packet(req, command);
+            data_pkt = new Packet(req, command, pid, pid, pid);
             data_pkt->dataStatic(inst->memData);
             data_pkt->senderState = state;
         } else {
             // Create two packets if the store is split in two.
-            data_pkt = new Packet(sreqLow, command);
-            snd_data_pkt = new Packet(sreqHigh, command);
+            data_pkt = new Packet(sreqLow, command, pid, pid, pid);
+            snd_data_pkt = new Packet(sreqHigh, command, pid, pid, pid);
 
             data_pkt->dataStatic(inst->memData);
             snd_data_pkt->dataStatic(inst->memData + sreqLow->getSize());
