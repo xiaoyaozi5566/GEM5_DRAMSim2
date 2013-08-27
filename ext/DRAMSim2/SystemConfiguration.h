@@ -118,6 +118,7 @@ extern unsigned NUM_DEVICES;
 #define WRITE_TO_READ_DELAY_B (WL+BL/2+tWTR) //interbank
 #define WRITE_TO_READ_DELAY_R (WL+BL/2+tRTRS-RL) //interrank
 #define WORST_CASE_DELAY (WL+BL/2+tWR+tRP+tRCD)
+#define TP_BUFFER_TIME (WL+BL/2+tWR+tRP+tRCD+tRFC)
 
 extern unsigned JEDEC_DATA_BUS_BITS;
 

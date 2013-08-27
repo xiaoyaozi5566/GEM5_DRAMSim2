@@ -1,0 +1,748 @@
+<?xml version="1.0"?>
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.schemaTest.org/100mb"
+        xmlns:big="http://www.schemaTest.org/100mb"
+        elementFormDefault="qualified">
+
+
+<simpleType name="itemID">
+  <restriction base="Name">
+    <pattern value="item\d+"/>
+  </restriction>
+</simpleType>
+
+<simpleType name="categoryID">
+  <restriction base="Name">
+    <pattern value="category\d+"/>
+  </restriction>
+</simpleType>
+
+<simpleType name="personID">
+  <restriction base="Name">
+    <pattern value="person\d+"/>
+  </restriction>
+</simpleType>
+
+<simpleType name="open_auctionID">
+  <restriction base="Name">
+    <pattern value="open_auction\d+"/>
+  </restriction>
+</simpleType>
+
+<simpleType name="closed_auctionID">
+  <restriction base="Name">
+    <pattern value="closed_auction\d+"/>
+  </restriction>
+ </simpleType>
+
+<element name="site">
+<complexType>
+  <sequence>
+    <element name="regions" type="big:regionsType"/>
+    <element name="categories" type="big:categoriesType"/>
+    <element name="catgraph" type="big:catgraphType"/>
+    <element name="people" type="big:peopleType"/>
+    <element name="open_auctions" type="big:open_auctionsType"/>
+    <element name="closed_auctions" type="big:closed_auctionsType"/>
+  </sequence>
+</complexType>
+  <key name="itemKey">
+    <selector xpath="big:regions/*/big:item"/>
+    <field xpath="@id"/>
+  </key>
+  <key name="categoryKey">
+    <selector xpath="big:categories/big:category"/>
+    <field xpath="@id"/>
+  </key>
+  <key name="personKey">
+    <selector xpath="big:people/big:person"/>
+    <field xpath="@id"/>
+  </key>
+  <key name="open_auctionKey">
+    <selector xpath="big:open_auctions/big:open_auction"/>
+    <field xpath="@id"/>
+  </key>
+      <keyref name="dummy1" refer="big:categoryKey">
+        <selector xpath="big:regions/*/big:item/big:incategory"/>
+        <field xpath="@category"/>
+      </keyref>
+      <keyref name="dummy2" refer="big:categoryKey">
+        <selector xpath="big:catgraph/big:edge"/>
+        <field xpath="@from"/>
+      </keyref>
+      <keyref name="dummy3" refer="big:categoryKey">
+        <selector xpath="big:catgraph/big:edge"/>
+        <field xpath="@to"/>
+      </keyref>
+      <keyref name="dummy4" refer="big:open_auctionKey">
+        <selector xpath="big:people/big:person/big:watches/big:watch"/>
+        <field xpath="@open_auction"/>
+      </keyref>
+      <keyref name="dummy5" refer="big:personKey">
+        <selector xpath="big:open_auctions/big:open_auction/big:bidder/big:personref"/>
+        <field xpath="@person"/>
+      </keyref>
+      <keyref name="dummy6" refer="big:personKey">
+        <selector xpath="big:open_auctions/big:open_auction/big:selller"/>
+        <field xpath="@person"/>
+      </keyref>
+      <keyref name="dummy7" refer="big:personKey">
+        <selector xpath="big:open_auctions/big:open_auction/big:annotation/big:author"/>
+        <field xpath="@person"/>
+      </keyref>
+      <keyref name="dummy8" refer="big:itemKey">
+        <selector xpath="big:open_auctions/big:open_auction/big:itemref"/>
+        <field xpath="@item"/>
+      </keyref>
+      <keyref name="dummy9" refer="big:personKey">
+        <selector xpath="big:closed_auctions/big:closed_auction/big:seller"/>
+        <field xpath="@person"/>
+      </keyref>
+      <keyref name="dummy10" refer="big:personKey">
+        <selector xpath="big:closed_auctions/big:closed_auction/big:buyer"/>
+        <field xpath="@person"/>
+      </keyref>
+      <keyref name="dummy11" refer="big:itemKey">
+         <selector xpath="big:closed_auctions/big:closed_auction/big:itemref"/>
+         <field xpath="@item"/>
+      </keyref>
+      <keyref name="dummy12" refer="big:personKey">
+        <selector xpath="big:closed_auctions/big:closed_auction/big:annotation/big:author"/>
+        <field xpath="@person"/>
+      </keyref>
+</element>
+
+<complexType name="regionsType">
+  <all>
+    <element ref="big:africa"/>
+    <element ref="big:asia"/>
+    <element ref="big:australia"/>
+    <element ref="big:europe"/>
+    <element ref="big:namerica"/>
+    <element ref="big:samerica"/>
+  </all>
+</complexType>
+
+<element name="africa" type="big:continentType"/>
+<element name="asia" type="big:continentType"/>
+<element name="australia" type="big:continentType"/>
+<element name="europe" type="big:continentType"/>
+<element name="namerica" type="big:continentType"/>
+<element name="samerica" type="big:continentType"/>
+
+<complexType name="continentType">
+  <sequence>
+    <element ref="big:item" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="item" type="big:itemType"/>
+
+<complexType name="itemType">
+  <sequence>
+    <element ref="big:location"/>
+    <element ref="big:quantity"/>
+    <element ref="big:name"/>
+    <element ref="big:payment"/>
+    <element ref="big:description"/>
+    <element ref="big:shipping"/>
+    <element ref="big:incategory" maxOccurs="unbounded"/>
+    <element ref="big:mailbox"/>
+  </sequence>
+  <attribute name="id" type="big:itemID" use="required"/>
+  <attribute name="featured" default="no">
+    <simpleType>
+      <restriction base="string">
+        <enumeration value="yes"/>
+        <enumeration value="no"/>
+      </restriction>
+    </simpleType>
+  </attribute>
+</complexType>
+
+<element name="location" type="big:locationType"/>
+
+<simpleType name="locationType">
+  <restriction base="string">
+    <enumeration value="United States"/>
+    <enumeration value="Moldova, Republic Of"/>
+    <enumeration value="Zimbabwe"/>
+    <enumeration value="Futuna Islands"/>
+    <enumeration value="Chad"/>
+    <enumeration value="Georgia"/>
+    <enumeration value="Czech Republic"/>
+    <enumeration value="Dominica"/>
+    <enumeration value="Venezuela"/>
+    <enumeration value="Martinique"/>
+    <enumeration value="Ivory Coast"/>
+    <enumeration value="Norfolk Island"/>
+    <enumeration value="Faroe Islands"/>
+    <enumeration value="Nauru"/>
+    <enumeration value="Uganda"/>
+    <enumeration value="Mauritania"/>
+    <enumeration value="East Timor"/>
+    <enumeration value="Angola"/>
+    <enumeration value="Croatia"/>
+    <enumeration value="Reunion"/>
+    <enumeration value="Belarus"/>
+    <enumeration value="Netherlands"/>
+    <enumeration value="Iraq"/>
+    <enumeration value="Myanmar"/>
+    <enumeration value="Thailand"/>
+    <enumeration value="Grenada"/>
+    <enumeration value="Cambodia"/>
+    <enumeration value="Vanuatu"/>
+    <enumeration value="Lebanon"/>
+    <enumeration value="Svalbard and Jan Mayen Island"/>
+    <enumeration value="Sri Lanka"/>
+    <enumeration value="Micronesia"/>
+    <enumeration value="Gambia"/>
+    <enumeration value="Malaysia"/>
+    <enumeration value="British Indian Ocean Territory"/>
+    <enumeration value="China"/>
+    <enumeration value="Bangladesh"/>
+    <enumeration value="Paraguay"/>
+    <enumeration value="Barbados"/>
+    <enumeration value="Norway"/>
+    <enumeration value="Swaziland"/>
+    <enumeration value="Egypt"/>
+    <enumeration value="Turkey"/>
+    <enumeration value="Albania"/>
+    <enumeration value="Palau"/>
+    <enumeration value="Sudan"/>
+    <enumeration value="Libyan Arab Jamahiriya"/>
+    <enumeration value="New Zealand"/>
+    <enumeration value="Suriname"/>
+    <enumeration value="Vatican City State"/>
+    <enumeration value="Tokelau"/>
+    <enumeration value="Turks Islands"/>
+    <enumeration value="Brunei Darussalam"/>
+    <enumeration value="Montserrat"/>
+    <enumeration value="St. Vincent and Grenadines"/>
+    <enumeration value="Belgium"/>
+    <enumeration value="Estonia"/>
+    <enumeration value="Morocco"/>
+    <enumeration value="India"/>
+    <enumeration value="Azerbaijan"/>
+    <enumeration value="Taiwan"/>
+    <enumeration value="Oman"/>
+    <enumeration value="Colombia"/>
+    <enumeration value="St. Pierre"/>
+    <enumeration value="Lao People's Democratic Republ"/>
+    <enumeration value="Japan"/>
+    <enumeration value="Costa Rica"/>
+    <enumeration value="Cyprus"/>
+    <enumeration value="Tuvalu"/>
+    <enumeration value="Ethiopia"/>
+    <enumeration value="Ukraine"/>
+    <enumeration value="San Marino"/>
+    <enumeration value="Mexico"/>
+    <enumeration value="Korea, Democratic People's Rep"/>
+    <enumeration value="Algeria"/>
+    <enumeration value="Togo"/>
+    <enumeration value="Tunisia"/>
+    <enumeration value="Eritrea"/>
+    <enumeration value="Cayman Islands"/>
+    <enumeration value="Haiti"/>
+    <enumeration value="Guyana"/>
+    <enumeration value="Samoa"/>
+    <enumeration value="Antarctica"/>
+    <enumeration value="Malta"/>
+    <enumeration value="Bahamas"/>
+    <enumeration value="Turkmenistan"/>
+    <enumeration value="Paraguay"/>
+    <enumeration value="Brazil"/>
+    <enumeration value="South Africa"/>
+    <enumeration value="El Salvador"/>
+    <enumeration value="Singapore"/>
+    <enumeration value="Trinidad"/>
+    <enumeration value="Bulgaria"/>
+    <enumeration value="Aruba"/>
+    <enumeration value="Cameroon"/>
+    <enumeration value="Denmark"/>
+    <enumeration value="Lesotho"/>
+    <enumeration value="Jordan"/>
+    <enumeration value="Russian Federation"/>
+    <enumeration value="Philippines"/>
+    <enumeration value="Djibouti"/>
+    <enumeration value="Burundi"/>
+    <enumeration value="Antigua"/>
+    <enumeration value="United Arab Emirates"/>
+    <enumeration value="Solomon Islands"/>
+    <enumeration value="Pakistan"/>
+    <enumeration value="American Samoa"/>
+    <enumeration value="Venezuela"/>
+    <enumeration value="Cacos Islands"/>
+    <enumeration value="Us Virgin Islands"/>
+    <enumeration value="Namibia"/>
+    <enumeration value="Bermuda"/>
+    <enumeration value="Saint Kitts"/>
+    <enumeration value="Gambia"/>
+    <enumeration value="Marshall Islands"/>
+    <enumeration value="Sweden"/>
+    <enumeration value="Peru"/>
+    <enumeration value="South Georgia"/>
+    <enumeration value="Cape Verde"/>
+    <enumeration value="Bahrain"/>
+    <enumeration value="Mali"/>
+    <enumeration value="Germany"/>
+    <enumeration value="Austria"/>
+    <enumeration value="Botswana"/>
+    <enumeration value="Sao Tome"/>
+    <enumeration value="Kenya"/>
+    <enumeration value="Israel"/>
+    <enumeration value="Greece"/>
+    <enumeration value="Chile"/>
+    <enumeration value="Cook Islands"/>
+    <enumeration value="Romania"/>
+    <enumeration value="Maldives"/>
+    <enumeration value="Equatorial Guinea"/>
+    <enumeration value="Gambia"/>
+    <enumeration value="Gibraltar"/>
+    <enumeration value="St. Helena"/>
+    <enumeration value="Switzerland"/>
+    <enumeration value="Namibia"/>
+    <enumeration value="Canada"/>
+    <enumeration value="Syrian Arab Republic"/>
+    <enumeration value="Nicaragua"/>
+    <enumeration value="Rwanda"/>
+    <enumeration value="Romania"/>
+    <enumeration value="Falkland Islands"/>
+    <enumeration value="Us Minor Islands"/>
+    <enumeration value="Korea, Republic Of"/>
+    <enumeration value="Papua New Guinea"/>
+    <enumeration value="Tunisia"/>
+    <enumeration value="Dominican Republic"/>
+    <enumeration value="Kiribati"/>
+    <enumeration value="Latvia"/>
+    <enumeration value="Poland"/>
+    <enumeration value="Senegal"/>
+    <enumeration value="Zambia"/>
+    <enumeration value="Afghanistan"/>
+    <enumeration value="Liberia"/>
+    <enumeration value="St. Lucia"/>
+    <enumeration value="Guam"/>
+    <enumeration value="France"/>
+    <enumeration value="Guadeloupe"/>
+    <enumeration value="Slovakia"/>
+    <enumeration value="Uruguay"/>
+    <enumeration value="Gabon"/>
+    <enumeration value="Hong Kong"/>
+    <enumeration value="Sierra Leone"/>
+    <enumeration value="Hungary"/>
+    <enumeration value="Finland"/>
+    <enumeration value="Sudan"/>
+    <enumeration value="Anguilla"/>
+    <enumeration value="United Kingdom"/>
+    <enumeration value="Sao Tome"/>
+    <enumeration value="New Caledonia"/>
+    <enumeration value="Macedonia"/>
+    <enumeration value="Macau"/>
+    <enumeration value="Western Sahara"/>
+    <enumeration value="British Virgin Islands"/>
+    <enumeration value="Benin"/>
+    <enumeration value="Burkina Faso"/>
+    <enumeration value="Kuwait"/>
+    <enumeration value="Northern Mariana Islands"/>
+    <enumeration value="Bhutan"/>
+    <enumeration value="Ivory Coast"/>
+    <enumeration value="Ghana"/>
+    <enumeration value="Belize"/>
+    <enumeration value="Bolivia"/>
+    <enumeration value="Zambia"/>
+    <enumeration value="Viet Nam"/>
+    <enumeration value="Montserrat"/>
+    <enumeration value="Nigeria"/>
+    <enumeration value="Uzbekistan"/>
+    <enumeration value="Lithuania"/>
+    <enumeration value="Malta"/>
+    <enumeration value="Australia"/>
+    <enumeration value="Jamaica"/>
+    <enumeration value="Tonga"/>
+    <enumeration value="Nepal"/>
+    <enumeration value="Luxembourg"/>
+    <enumeration value="French Southern Territory"/>
+    <enumeration value="Estonia"/>
+    <enumeration value="Seychelles"/>
+    <enumeration value="Central African Republic"/>
+    <enumeration value="Iran"/>
+    <enumeration value="Malawi"/>
+    <enumeration value="Christmas Island"/>
+    <enumeration value="Spain"/>
+    <enumeration value="Niue"/>
+    <enumeration value="Ecuador"/>
+    <enumeration value="Kazakhstan"/>
+    <enumeration value="Andorra"/>
+    <enumeration value="Greenland"/>
+    <enumeration value="Nauru"/>
+    <enumeration value="Mauritius"/>
+    <enumeration value="Zaire"/>
+    <enumeration value="Heard and Mcdonald Island"/>
+    <enumeration value="Indonesia"/>
+    <enumeration value="Fiji"/>
+    <enumeration value="Comoros"/>
+    <enumeration value="Mongolia"/>
+    <enumeration value="Iceland"/>
+    <enumeration value="Mozambique"/>
+    <enumeration value="French Guiana"/>
+    <enumeration value="Tanzania"/>
+    <enumeration value="Cuba"/>
+    <enumeration value="Puerto Rico"/>
+    <enumeration value="Italy"/>
+    <enumeration value="Ireland"/>
+    <enumeration value="Mayotte"/>
+    <enumeration value="Madagascar"/>
+    <enumeration value="Guinea"/>
+    <enumeration value="Kyrgyzstan"/>
+    <enumeration value="Yemen"/>
+    <enumeration value="Armenia"/>
+    <enumeration value="Saudi Arabia"/>
+    <enumeration value="French Polynesia"/>
+    <enumeration value="Portugal"/>
+    <enumeration value="Netherlands Antilles"/>
+    <enumeration value="Guatemala"/>
+    <enumeration value="Honduras"/>
+    <enumeration value="Monaco"/>
+    <enumeration value="Congo"/>
+    <enumeration value="Somalia"/>
+    <enumeration value="Qatar"/>
+    <enumeration value="Tajikistan"/>
+    <enumeration value="Panama"/>
+    <enumeration value="Niger"/>
+    <enumeration value="Argentina"/>
+    <enumeration value="Slovenia"/>
+
+  </restriction>
+</simpleType>
+
+<element name="quantity" type="positiveInteger"/>
+
+<element name="name" type="string"/>
+
+<element name="payment">
+  <simpleType>
+    <restriction base="string">
+      <maxLength value="100"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<element name="description" type="big:descriptionType"/>
+
+<complexType name="descriptionType">
+  <choice>
+    <element ref="big:text"/>
+    <element ref="big:parlist"/>
+  </choice>
+</complexType>
+
+<element name="text" type="big:textType"/>
+
+<complexType name="textType" mixed="true">
+  <choice minOccurs="0" maxOccurs="unbounded">
+    <element ref="big:bold"/>
+    <element ref="big:emph"/>
+    <element ref="big:keyword"/>
+  </choice>
+</complexType>
+
+<element name="bold" type="big:textType"/>
+<element name="emph" type="big:textType"/>
+<element name="keyword" type="big:textType"/>
+
+<element name="parlist" type="big:parlistType"/>
+
+<complexType name="parlistType">
+  <sequence>
+    <element ref="big:listitem" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="listitem" type="big:descriptionType"/>
+
+<element name="shipping" type="string"/>
+
+<element name="incategory">
+  <complexType>
+    <attribute name="category" type="big:categoryID" use="required"/>
+  </complexType>
+</element>
+
+<element name="mailbox" type="big:mailboxType"/>
+
+<complexType name="mailboxType">
+  <sequence>
+    <element ref="big:mail" minOccurs="0" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="mail" type="big:mailType"/>
+
+<complexType name="mailType">
+  <sequence>
+    <element name="from" type="big:emailType"/>
+    <element name="to" type="big:emailType"/>
+    <element name="date" type="big:dateType"/>
+    <element ref="big:text"/>
+  </sequence>
+</complexType>
+
+<simpleType name="dateType">
+  <restriction base="string">
+    <pattern value="(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/\d{4}"/>
+  </restriction>
+</simpleType>
+
+<simpleType name="emailType">
+  <restriction base="string">
+    <pattern value=".+ .+ mailto:.+@.+"/>
+  </restriction>
+</simpleType>
+
+<complexType name="categoriesType">
+  <sequence>
+    <element ref="big:category" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="category" type="big:categoryType"/>
+
+<complexType name="categoryType">
+  <sequence>
+    <element ref="big:name"/>
+    <element ref="big:description"/>
+  </sequence>
+  <attribute name="id" type="big:categoryID" use="required"/>
+</complexType>
+
+<complexType name="catgraphType">
+  <sequence>
+    <element ref="big:edge" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="edge">
+  <complexType>
+    <attribute name="from" type="big:categoryID" use="required"/>
+    <attribute name="to" type="big:categoryID" use="required"/>
+  </complexType>
+</element>
+
+<complexType name="peopleType">
+  <sequence>
+    <element ref="big:person" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="person" type="big:personType"/>
+
+<complexType name="personType">
+  <sequence>
+    <element name="name" type="string"/>
+    <element ref="big:emailaddress"/>
+    <element ref="big:phone" minOccurs="0"/>
+    <element ref="big:address" minOccurs="0"/>
+    <element name="homepage" type="anyURI" minOccurs="0"/>
+    <element ref="big:creditcard" minOccurs="0"/>
+    <element ref="big:profile" minOccurs="0"/>
+    <element ref="big:watches" minOccurs="0"/>
+  </sequence>
+  <attribute name="id" type="big:personID" use="required"/>
+</complexType>
+
+<element name="emailaddress">
+  <simpleType>
+    <restriction base="string">
+      <pattern value="mailto:.+@.+"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<element name="phone">
+  <simpleType>
+    <restriction base="string">
+      <pattern value="\+\d{1,3} \(\d{2,3}\) \d{6,8}"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<element name="address" type="big:addressType"/>
+
+<complexType name="addressType">
+  <sequence>
+    <element name="street" type="string"/>
+    <element name="city" type="string"/>
+    <element name="country" type="big:locationType"/>
+    <element name="province" type="string" minOccurs="0"/>
+    <element name="zipcode" type="string"/>
+  </sequence>
+</complexType>
+
+<element name="creditcard">
+  <simpleType>
+    <restriction base="string">
+      <pattern value="\d{4} \d{4} \d{4} \d{4}"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<element name="profile" type="big:profileType"/>
+
+<complexType name="profileType">
+  <sequence>
+    <element ref="big:interest" minOccurs="0" maxOccurs="unbounded"/>
+    <element name="education" type="string" minOccurs="0"/>
+    <element ref="big:gender" minOccurs="0"/>
+    <element name="business" type="big:YesOrNo"/>
+    <element name="age" type="positiveInteger" minOccurs="0"/>
+  </sequence>
+  <attribute name="income" use="required" type="big:moneyType"/>
+</complexType>
+
+<element name="interest">
+  <complexType>
+    <attribute name="category" type="big:categoryID" use="required"/>
+  </complexType>
+</element>
+
+<element name="gender">
+  <simpleType>
+    <restriction base="string">
+      <enumeration value="male"/>
+      <enumeration value="female"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<simpleType name="YesOrNo">
+  <restriction base="string">
+    <enumeration value="Yes"/>
+    <enumeration value="No"/>
+  </restriction>
+</simpleType>
+
+<element name="watches">
+  <complexType>
+    <sequence>
+      <element ref="big:watch" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+</element>
+
+<element name="watch">
+  <complexType>
+    <attribute name="open_auction" type="big:open_auctionID" use="required"/>
+  </complexType>
+</element>
+
+<complexType name="open_auctionsType">
+  <sequence>
+    <element ref="big:open_auction" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="open_auction" type="big:open_auctionType"/>
+
+<simpleType name="moneyType">
+  <restriction base="decimal">
+    <fractionDigits value="2"/>
+  </restriction>
+</simpleType>
+
+<complexType name="open_auctionType">
+  <sequence>
+    <element name="initial" type="big:moneyType"/>
+    <element name="reserve" type="big:moneyType" minOccurs="0"/>
+    <element ref="big:bidder" minOccurs="0" maxOccurs="unbounded"/>
+    <element name="current" type="big:moneyType"/>
+    <element name="privacy" type="big:YesOrNo" minOccurs="0"/>
+    <element ref="big:itemref"/>
+    <element ref="big:seller"/>
+    <element ref="big:annotation"/>
+    <element name="quantity" type="positiveInteger"/>
+    <element ref="big:type"/>
+    <element ref="big:interval"/>
+  </sequence>
+  <attribute name="id" type="big:open_auctionID"/>
+</complexType>
+
+<element name="bidder" type="big:bidderType"/>
+
+<complexType name="bidderType">
+  <sequence>
+    <element name="date" type="big:dateType"/>
+    <element name="time" type="time"/>
+    <element ref="big:personref"/>
+    <element name="increase" type="big:moneyType"/>
+  </sequence>
+</complexType>
+
+<element name="personref" type="big:personrefType"/>
+
+<complexType name="personrefType">
+  <attribute name="person" type="big:personID" use="required"/>
+</complexType>
+
+<element name="itemref" type="big:itemrefType"/>
+
+<complexType name="itemrefType">
+  <attribute name="item" type="big:itemID" use="required"/>
+</complexType>
+
+<element name="seller" type="big:personrefType"/>
+
+<element name="annotation" type="big:annotationType"/>
+
+<complexType name="annotationType">
+  <sequence>
+    <element name="author" type="big:personrefType"/>
+    <element ref="big:description"/>
+    <element name="happiness" type="integer"/>
+  </sequence>
+</complexType>
+
+<element name="type">
+  <simpleType>
+    <restriction base="string">
+      <enumeration value="Regular"/>
+      <enumeration value="Featured"/>
+      <enumeration value="Regular, Dutch"/>
+      <enumeration value="Featured, Dutch"/>
+    </restriction>
+  </simpleType>
+</element>
+
+<element name="interval" type="big:intervalType"/>
+
+<complexType name="intervalType">
+  <sequence>
+    <element name="start" type="big:dateType"/>
+    <element name="end" type="big:dateType"/>
+  </sequence>
+</complexType>
+
+<complexType name="closed_auctionsType">
+  <sequence>
+    <element ref="big:closed_auction" maxOccurs="unbounded"/>
+  </sequence>
+</complexType>
+
+<element name="closed_auction" type="big:closed_auctionType"/>
+
+<complexType name="closed_auctionType">
+  <sequence>
+    <element ref="big:seller"/>
+    <element ref="big:buyer"/>
+    <element ref="big:itemref"/>
+    <element name="price" type="big:moneyType"/>
+    <element name="date" type="big:dateType"/>
+    <element name="quantity" type="positiveInteger"/>
+    <element ref="big:type"/>
+    <element ref="big:annotation"/>
+  </sequence>
+</complexType>
+
+<element name="buyer" type="big:personrefType"/>
+
+</schema>

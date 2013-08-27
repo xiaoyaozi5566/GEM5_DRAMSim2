@@ -276,7 +276,7 @@ unsigned CommandQueueTP::getCurrentPID(){
 
 bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
-    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= 151;
+    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= TP_BUFFER_TIME;
 }
 
 #ifdef DEBUG_TP

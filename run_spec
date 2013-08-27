@@ -17,7 +17,7 @@ $fastforward = 10**9
 $maxtinsts = 10**8
 $maxtick = 2*10**15 
 
-$specinvoke = { 
+$specinvoke_test = { 
 #    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
     "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.program 5'",
     "gcc"        => "'#{specint_dir}/gcc #{specint_dir}/cccp.in -o results/cccp.s'",
@@ -26,10 +26,25 @@ $specinvoke = {
     "hmmer"      => "'#{specint_dir}/hmmer --fixed 0 --mean 325 --num 45000 --sd 200 --seed 0 #{specint_dir}/bombesin.hmm'",
     "sjeng"      => "'#{specint_dir}/sjeng #{specint_dir}/test.txt'",
     "libquantum" => "'#{specint_dir}/libquantum 33 5'",
-    "h264ref"    => "'#{specint_dir}/h264ref -d #{specint_dir}/foreman_test_encoder_baseline.cfg'",
+    "h264ref"    => "#{specint_dir}/h264ref -d #{specint_dir}/foreman_test_encoder_baseline.cfg'",
 #    "omnetpp"    => "'#{specint_dir}/omnetpp #{specint_dir}/omnetpp.ini'",
     "astar"      => "'#{specint_dir}/astar #{specint_dir}/lake.cfg'",
     "Xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/test.xml #{specint_dir}/xalanc.xsl'"  
+}
+
+$specinvoke = { 
+#    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
+    "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.source 280'",
+    "gcc"        => "'#{specint_dir}/gcc #{specint_dir}/200.in -o results/200.s'",
+    "mcf"        => "'#{specint_dir}/mcf #{specint_dir}/inp.in'",
+    "gobmk"      => "'#{specint_dir}/gobmk --quiet --mode gtp < #{specint_dir}/13x13.tst'",
+    "hmmer"      => "'#{specint_dir}/hmmer #{specint_dir}/nph3.hmm #{specint_dir}/swiss41'",
+    "sjeng"      => "'#{specint_dir}/sjeng #{specint_dir}/ref.txt'",
+    "libquantum" => "'#{specint_dir}/libquantum 1397 8'",
+    "h264ref"    => "'#{specint_dir}/h264ref -d #{specint_dir}/foreman_ref_encoder_baseline.cfg'",
+#    "omnetpp"    => "'#{specint_dir}/omnetpp #{specint_dir}/omnetpp.ini'",
+    "astar"      => "'#{specint_dir}/astar #{specint_dir}/BigLakes2048.cfg'",
+    "Xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/t5.xml #{specint_dir}/xalanc.xsl'"  
 }
 
 $specint = [ 
