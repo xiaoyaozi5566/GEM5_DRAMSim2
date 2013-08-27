@@ -150,8 +150,10 @@ options.l1d_size="32kB"
 options.l1d_assoc=2
 options.l1i_size="32kB"
 options.l1i_assoc=2
-options.l2_size="512kB"
-options.l2_assoc=4
+options.l2_size="256kB"
+options.l2_assoc=8
+options.l3_size="4MB"
+options.l3_assoc=16
 
                   
 multiprocesses = []
@@ -257,6 +259,9 @@ CPUClass.clock = options.clock
 CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
+                l2 = [L2Cache(size = options.l2_size, assoc = options.l2_assoc,
+                                block_size=options.cacheline_size) for i in xrange(np)],
+                tol2bus = [CoherentBus() for i in xrange(np)],
                 physmem = DRAM,
                 membus = CoherentBus(), 
                 mem_mode = test_mem_mode,
