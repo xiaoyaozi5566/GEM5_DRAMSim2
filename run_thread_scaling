@@ -37,7 +37,7 @@ $specinvoke = {
     "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.source 280'",
     "gcc"        => "'#{specint_dir}/gcc #{specint_dir}/200.in -o results/200.s'",
     "mcf"        => "'#{specint_dir}/mcf #{specint_dir}/inp.in'",
-    "gobmk"      => "'#{specint_dir}/gobmk --quiet --mode gtp < #{specint_dir}/13x13.tst'",
+    "gobmk"      => "'#{specint_dir}/gobmk --quiet --mode gtp --gtp-input #{specint_dir}/13x13.tst'",
     "hmmer"      => "'#{specint_dir}/hmmer #{specint_dir}/nph3.hmm #{specint_dir}/swiss41'",
     "sjeng"      => "'#{specint_dir}/sjeng #{specint_dir}/ref.txt'",
     "libquantum" => "'#{specint_dir}/libquantum 1397 8'",
@@ -103,7 +103,7 @@ $cpus.each do |cpu|
                 script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
-                #system "qsub -wd #{gem5home.path} #{script_abspath}"
+                system "qsub -wd #{gem5home.path} #{script_abspath}"
             end
         end
     end
@@ -146,7 +146,7 @@ $cpus.each do |cpu|
                 script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}_#{p1file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
-                #system "qsub -wd #{gem5home.path} #{script_abspath}"
+                system "qsub -wd #{gem5home.path} #{script_abspath}"
             end
         end
     end
