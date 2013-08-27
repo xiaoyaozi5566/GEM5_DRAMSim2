@@ -81,7 +81,10 @@ def config_cache(options, system):
         if options.l2cache:
             system.cpu[i].connectAllPorts(system.tol2bus[i])
             system.l2[i].cpu_side = system.tol2bus[i].master
-            system.l2[i].mem_side = system.tol3bus.slave
+            if options.l3cache:
+                system.l2[i].mem_side = system.tol3bus.slave
+            else:
+                system.l2[i].mem_side = system.membus.slave
         else:
             system.cpu[i].connectAllPorts(system.membus)
 
