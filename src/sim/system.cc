@@ -96,7 +96,7 @@ System::System(Params *p)
     pagePtr[0] = 0;
     pagePtr[2] = (physmem.totalSize() >> (LogVMPageSize + 1));
     pagePtr[1] = pagePtr[2] >> 1;
-    pagePtr[3] = pagePtr[1] + pagePtr[3];
+    pagePtr[3] = pagePtr[1] + pagePtr[2];
 
     if (FullSystem) {
         kernelSymtab = new SymbolTable;

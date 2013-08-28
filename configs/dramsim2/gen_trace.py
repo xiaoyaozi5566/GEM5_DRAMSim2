@@ -110,12 +110,7 @@ options.num_cpus = 1
 ### set memory capacity
 np = options.num_cpus
 
-if np == 4 :
-    memorysize = '4096MB'
-elif np == 8 or np == 16:
-    memorysize = '8192MB'
-else:
-    memorysize = '2048MB'
+memorysize = '4096MB'
 
 ### instantiate the DRAMSim2 model if we enable it
 if options.dramsim2 :
@@ -273,4 +268,4 @@ else:
     CacheConfig.config_cache(options, system)
 
 root = Root(full_system = False, system = system)
-Simulation.run(options, root, system, FutureClass)
+Simulation.run(options, root, system, FutureClass, 1)

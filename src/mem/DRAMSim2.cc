@@ -52,6 +52,7 @@ DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
             memoryCapacity, p->outputFile, NULL, NULL, p->numPids);
     // intentionally set CPU:Memory clock ratio as 1, we do the synchronization later
     dramsim2->setCPUClockSpeed(0);
+    num_pids = p->numPids;
     
     std::cout << "CPU Clock = " << (int)(1000000 / p->cpu_clock) << "MHz" << std::endl;
     std::cout << "DRAM Clock = " << (1000 / tCK) << "MHz" << std::endl;
@@ -121,12 +122,16 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 index = index | 0x1;
             dram->ongoingAccess.insert(make_pair(index, meta));
             uint64_t threadID = pkt->threadID;
+            // For trace generation
+            if (threadID >= dram->num_pids) threadID = 0;
             Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
             retVal = dramsim2->addTransaction(tr);
         } else {
             if (pkt->isWrite()) {	// write-back does not need a response, but DRAMsim2 needs to track it
                 transType = DATA_WRITE;
                 uint64_t threadID = pkt->threadID;
+                // For trace generation
+            	if (threadID >= dram->num_pids) threadID = 0;
                 Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
                 retVal = dramsim2->addTransaction(tr);
                 assert(retVal == true);
