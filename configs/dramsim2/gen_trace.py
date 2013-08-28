@@ -86,6 +86,8 @@ if '--dramsim2' in sys.argv:
             help="generate the trace for benchmarks.")
     parser.add_option("--tracefile", type="string", default="",
             help="trace file to be generated.")
+    parser.add_option("--processid", type="int", default=0,
+            help="the process pid")
 ######################################################################
 
 ######################################################################
@@ -167,7 +169,7 @@ process0 = LiveProcess()
 #process0.executable = "./tests/test-progs/test/arm/victim"
 #process0.executable = options.p0
 process0.cmd = options.p0.split()
-process0.pid = 1
+process0.pid = options.processid
 multiprocesses.append(process0)
 
 #if len(multiprocesses) == 0:

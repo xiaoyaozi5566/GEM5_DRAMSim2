@@ -43,13 +43,15 @@ $specint = [
     "Xalan"  
 ]
 
-$cpus = [ "detailed"]
+$cpus = [ "timing", "detailed"]
 $schemes = ["none", "tp", "ft"]
+$processids = ["0", "1", "2", "3"]
 $cpus.each do |cpu|
     $schemes.each do |scheme|
         $specint.each do |p0file|
+            $processids.each do |processid|
                 script = File.new(scriptgen_dir.path+
-                                  "/run_#{cpu}_#{scheme}_#{p0file}","w+")
+                                  "/run_#{cpu}_#{scheme}_#{p0file}_#{processid}","w+")
                 script.puts("#!/bin/bash")
                 script.puts("build/ARM/gem5.fast configs/dramsim2/gen_trace.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
@@ -64,12 +66,14 @@ $cpus.each do |cpu|
                             "/mnt/yao/#{cpu}_#{scheme}_#{p0file}.out \\")
                 script.puts("    --gentrace \\")
                 script.puts("    --tracefile="+
-                            "/mnt/yao/#{cpu}_#{scheme}_#{p0file}_p1 \\")
+                            "./ext/DRAMSim2/traces/#{cpu}_#{scheme}_#{p0file}_p#{processid} \\")
+                script.puts("    --processid=#{processid} \\")
                 script.puts("    --p0=#{$specinvoke[p0file]}")
                 #script.puts("    > /mnt/yao/stdout_#{cpu}_#{scheme}_#{p0file}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
                 system "qsub -wd #{gem5home.path} -o /mnt/yao -e /mnt/yao #{script_abspath}"
+            end
         end
     end
 end
