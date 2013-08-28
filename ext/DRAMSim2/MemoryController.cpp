@@ -63,8 +63,6 @@ extern float Vdd;
 
 using namespace DRAMSim;
 
-#define O3 0
-
 MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
         ostream &dramsim_log_, const string &outputFilename_, bool genTrace_,
         const string &traceFilename_, int num_pids_) :

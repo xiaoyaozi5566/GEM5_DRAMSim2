@@ -328,7 +328,7 @@ void
 Process::allocateMem(Addr vaddr, int64_t size, bool clobber)
 {
     int npages = divCeil(size, (int64_t)VMPageSize);
-    Addr paddr = system->allocPhysPages(npages);
+    Addr paddr = system->allocPhysPages(npages, __pid);
     pTable->map(vaddr, paddr, size, clobber);
 }
 

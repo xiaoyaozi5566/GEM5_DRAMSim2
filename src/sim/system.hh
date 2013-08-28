@@ -47,6 +47,8 @@
 #ifndef __SYSTEM_HH__
 #define __SYSTEM_HH__
 
+//#define FIXADDR 0
+
 #include <string>
 #include <vector>
 
@@ -155,7 +157,7 @@ class System : public MemObject
      * system.  These threads could be Active or Suspended. */
     int numRunningContexts();
 
-    Addr pagePtr;
+    Addr pagePtr[4];
 
     uint64_t init_param;
 
@@ -375,7 +377,7 @@ class System : public MemObject
 
     /// Allocate npages contiguous unused physical pages
     /// @return Starting address of first page
-    Addr allocPhysPages(int npages);
+    Addr allocPhysPages(int npages, int pid);
 
     int registerThreadContext(ThreadContext *tc, int assigned=-1);
     void replaceThreadContext(ThreadContext *tc, int context_id);

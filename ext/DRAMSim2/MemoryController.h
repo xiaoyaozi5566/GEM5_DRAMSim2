@@ -56,6 +56,7 @@
 
 //#define NUM_PIDS 2
 #define NUM_MSHRS 10
+#define O3 0
 
 using namespace std;
 

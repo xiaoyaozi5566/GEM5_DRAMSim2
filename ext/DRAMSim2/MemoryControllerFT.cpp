@@ -164,6 +164,11 @@ void MemoryControllerFT::updateReturnTransactions()
                             " Return time: " << dec << currentClockCycle << 
                             " Thread: " << returnTransaction[j]->threadID <<'\n';
                         */
+                #ifdef O3
+                        lastReturnTime[totalTransactions%NUM_MSHRS] = currentClockCycle;
+                #else
+                        lastReturnTime[0] = currentClockCycle;
+                #endif                        
 
                         delete pendingReadTransactions[i];
                         pendingReadTransactions.erase(pendingReadTransactions.begin()+i);

@@ -911,7 +911,7 @@ int main(int argc, char **argv)
 
 			(*memorySystem).update();
 			
-			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
+			//if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
 		}
 	#else
 		for (size_t i=0;i<numCycles;i++)

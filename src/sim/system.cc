@@ -76,7 +76,6 @@ int System::numSystemsRunning = 0;
 System::System(Params *p)
     : MemObject(p), _systemPort("system_port", this),
       _numContexts(0),
-      pagePtr(0),
       init_param(p->init_param),
       physProxy(_systemPort),
       virtProxy(_systemPort),
@@ -93,6 +92,11 @@ System::System(Params *p)
 {
     // add self to global system list
     systemList.push_back(this);
+    
+    pagePtr[0] = 0;
+    pagePtr[2] = (physmem.totalSize() >> (LogVMPageSize + 1));
+    pagePtr[1] = pagePtr[2] >> 1;
+    pagePtr[3] = pagePtr[1] + pagePtr[3];
 
     if (FullSystem) {
         kernelSymtab = new SymbolTable;
@@ -302,13 +306,21 @@ System::replaceThreadContext(ThreadContext *tc, int context_id)
 }
 
 Addr
-System::allocPhysPages(int npages)
+System::allocPhysPages(int npages, int pid)
 {
-    Addr return_addr = pagePtr << LogVMPageSize;
-    pagePtr += npages;
-    if ((pagePtr << LogVMPageSize) > physmem.totalSize())
+#ifdef FIXADDR
+	Addr return_addr = pagePtr[pid] << LogVMPageSize;
+    pagePtr[pid] += npages;
+    if ((pagePtr[pid] << LogVMPageSize) > (physmem.totalSize()*(pid+1)/4))
         fatal("Out of memory, please increase size of physical memory.");
     return return_addr;
+#else    
+    Addr return_addr = pagePtr[0] << LogVMPageSize;
+    pagePtr[0] += npages;
+    if ((pagePtr[0] << LogVMPageSize) > physmem.totalSize())
+        fatal("Out of memory, please increase size of physical memory.");
+    return return_addr;
+#endif
 }
 
 Addr
@@ -320,7 +332,11 @@ System::memSize() const
 Addr
 System::freeMemSize() const
 {
-   return physmem.totalSize() - (pagePtr << LogVMPageSize);
+#ifdef FIXADDR
+   return physmem.totalSize()*3 - ((pagePtr[0] + pagePtr[1] + pagePtr[2] + pagePtr[3]) << LogVMPageSize);
+#else
+   return physmem.totalSize() - (pagePtr[0] << LogVMPageSize);
+#endif
 }
 
 bool
@@ -341,7 +357,8 @@ System::serialize(ostream &os)
 {
     if (FullSystem)
         kernelSymtab->serialize("kernel_symtab", os);
-    SERIALIZE_SCALAR(pagePtr);
+    for (uint32_t i = 0; i < 4; i++)
+    	SERIALIZE_SCALAR(pagePtr[i]);
     SERIALIZE_SCALAR(nextPID);
 }
 
@@ -351,7 +368,8 @@ System::unserialize(Checkpoint *cp, const string &section)
 {
     if (FullSystem)
         kernelSymtab->unserialize("kernel_symtab", cp, section);
-    UNSERIALIZE_SCALAR(pagePtr);
+    for (uint32_t i = 0; i < 4; i++)
+    	UNSERIALIZE_SCALAR(pagePtr[i]);
     UNSERIALIZE_SCALAR(nextPID);
 }
 
