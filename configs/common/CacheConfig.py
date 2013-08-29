@@ -39,9 +39,18 @@ def config_cache(options, system):
         if options.cpu_type == "arm_detailed":
             system.l3 = O3_ARM_v7aL2(size = options.l3_size, assoc = options.l3_assoc,
                                 block_size=options.cacheline_size)
-        else:
-            system.l3 = L3Cache(size = options.l3_size, assoc = options.l3_assoc,
+        else: 
+            latencies = {
+                    '4MB' : '8.48ns',
+                    '3MB' : '7.5',
+                    '2MB' : '6.5ns',
+                    '1MB' : '5ns'
+            }
+            system.l3 = L3Cache(size = options.l3_size, 
+                                latency=latencies[options.l3_size],
+                                assoc = options.l3_assoc,
                                 block_size=options.cacheline_size)
+
 
         system.tol3bus = CoherentBus()
         system.l3.cpu_side = system.tol3bus.master
