@@ -63,12 +63,12 @@ $specint = [
 ]
 
 $specedges = [
-    "astar",
-    "sjeng"
+    "h264ref",
+    "mcf"
 ]
 
 $cpus = [ "detailed", "timing"]
-$schemes = ["tp","ft", "none"]
+$schemes = ["tp","ft", "none", "open"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
     $schemes.each do |scheme|
@@ -110,7 +110,7 @@ $cpus.each do |cpu|
 end
 
 $cpus = [ "detailed", "timing"]
-$schemes = ["tp","ft", "none"]
+$schemes = ["tp","ft", "none", "open"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
     $schemes.each do |scheme|
