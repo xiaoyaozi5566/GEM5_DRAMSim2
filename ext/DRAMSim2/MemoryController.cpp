@@ -81,6 +81,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
 {
     if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
+    latencyFile.open((outputFilename+".lat").c_str());
     //cout << outputFilename << endl;
     //get handle on parent
     parentMemorySystem = parent;
@@ -147,7 +148,7 @@ void MemoryController::receiveFromBus(BusPacket *bpacket)
     }
 
     //add to return read data queue
-    returnTransaction.push_back(new Transaction(RETURN_DATA, bpacket->physicalAddress, bpacket->data, bpacket->threadID, bpacket->returnTime));
+    returnTransaction.push_back(new Transaction(RETURN_DATA, bpacket->physicalAddress, bpacket->data, bpacket->threadID, 0, bpacket->returnTime));
     totalReadsPerBank[SEQUENTIAL(bpacket->rank,bpacket->bank)]++;
 
     // this delete statement saves a mindboggling amount of memory
@@ -847,6 +848,11 @@ void MemoryController::updateReturnTransactions()
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 */
+                latencyFile << "Address: " << hex << setw(8) << 
+                    setfill('0') << returnTransaction[0]->address << 
+                    " Latency: " << dec << currentClockCycle - pendingReadTransactions[i]->timeAdded << 
+                    " Thread: " << returnTransaction[0]->threadID <<'\n';
+                    
             #ifdef O3
                 lastReturnTime[totalTransactions%NUM_MSHRS] = currentClockCycle;
             #else

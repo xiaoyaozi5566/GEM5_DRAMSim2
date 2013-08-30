@@ -161,6 +161,7 @@ namespace DRAMSim
             unsigned refreshRank;
             string outputFilename;
             ofstream outputFile;
+            ofstream latencyFile;
             int num_pids;
 
         public:

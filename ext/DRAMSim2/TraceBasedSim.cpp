@@ -794,7 +794,7 @@ int main(int argc, char **argv)
 						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
 						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
-						trans = new Transaction(transType, addr, data, 0, 0);
+						trans = new Transaction(transType, addr, data, 0, 0, 0);
 						alignTransactionAddress(*trans); 
 						clockCycle = clockCycle + i;
 						flag[transactionID%NUM_MSHRS] = 0;
@@ -857,7 +857,7 @@ int main(int argc, char **argv)
 						data = parseTraceFileLine(line, addr, transType,clockCycle1, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
 						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
-						trans1 = new Transaction(transType, addr, data, 1, 0);
+						trans1 = new Transaction(transType, addr, data, 1, 0, 0);
 						alignTransactionAddress(*trans1); 
 						clockCycle1 = clockCycle1 + i;
 						flag1[transactionID1%NUM_MSHRS] = 0;
@@ -928,7 +928,7 @@ int main(int argc, char **argv)
 						data = parseTraceFileLine(line, addr, transType,clockCycle, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
 						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
-						trans = new Transaction(transType, addr, data, 0, 0);
+						trans = new Transaction(transType, addr, data, 0, 0, 0);
 						alignTransactionAddress(*trans); 
 						clockCycle = clockCycle + i;
 						flag[0] = 0;
@@ -990,7 +990,7 @@ int main(int argc, char **argv)
 						data = parseTraceFileLine(line, addr, transType,clockCycle1, pid, traceType,useClockCycle);
 						// if (pid == 0 && transType == DATA_READ) 
 						//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
-						trans1 = new Transaction(transType, addr, data, 1, 0);
+						trans1 = new Transaction(transType, addr, data, 1, 0, 0);
 						alignTransactionAddress(*trans1); 
 						clockCycle1 = clockCycle1 + i;
 						flag1[0] = 0;

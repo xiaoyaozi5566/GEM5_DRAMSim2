@@ -58,7 +58,7 @@ public:
 	uint64_t address;
 	void *data;
     //Do this in a script.
-	//uint64_t timeAdded;
+	uint64_t timeAdded;
 	//uint64_t timeReturned;
 	uint64_t threadID;
 	uint64_t index;
@@ -67,7 +67,7 @@ public:
 
 	friend ostream &operator<<(ostream &os, const Transaction &t);
 	//functions
-	Transaction(TransactionType transType, uint64_t addr, void *data, uint64_t pid, uint64_t rTime);
+	Transaction(TransactionType transType, uint64_t addr, void *data, uint64_t pid, uint64_t _timeAdded, uint64_t rTime);
 	Transaction(const Transaction &t);
     
     // Use something like below to make subclasses easier.

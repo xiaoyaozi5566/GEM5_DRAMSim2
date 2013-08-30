@@ -124,7 +124,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             uint64_t threadID = pkt->threadID;
             // For trace generation
             if (threadID >= dram->num_pids) threadID = 0;
-            Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
+            Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
             retVal = dramsim2->addTransaction(tr);
         } else {
             if (pkt->isWrite()) {	// write-back does not need a response, but DRAMsim2 needs to track it
@@ -132,7 +132,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 uint64_t threadID = pkt->threadID;
                 // For trace generation
             	if (threadID >= dram->num_pids) threadID = 0;
-                Transaction tr = Transaction(transType, addr, NULL, threadID, 0);
+                Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
                 retVal = dramsim2->addTransaction(tr);
                 assert(retVal == true);
             }

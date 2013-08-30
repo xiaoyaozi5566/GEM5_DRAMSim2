@@ -164,6 +164,11 @@ void MemoryControllerFT::updateReturnTransactions()
                             " Return time: " << dec << currentClockCycle << 
                             " Thread: " << returnTransaction[j]->threadID <<'\n';
                         */
+                        latencyFile << "Address: " << hex << setw(8) << 
+							setfill('0') << returnTransaction[0]->address << 
+							" Latency: " << dec << currentClockCycle - pendingReadTransactions[i]->timeAdded << 
+							" Thread: " << returnTransaction[0]->threadID <<'\n';
+                    
                 #ifdef O3
                         lastReturnTime[totalTransactions%NUM_MSHRS] = currentClockCycle;
                 #else
