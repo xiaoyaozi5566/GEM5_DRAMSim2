@@ -81,7 +81,7 @@ MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
 {
     if (genTrace) traceFile.open((traceFilename+".trc").c_str()); 
     outputFile.open(outputFilename.c_str());
-    latencyFile.open((outputFilename+".lat").c_str());
+    //latencyFile.open((outputFilename+".lat").c_str());
     //cout << outputFilename << endl;
     //get handle on parent
     parentMemorySystem = parent;
@@ -838,17 +838,19 @@ void MemoryController::updateReturnTransactions()
                 //return latency
                 returnReadData(pendingReadTransactions[i]);
                 //Formerly outputs just if transaction->threadID==0
+                /*
                 outputFile << "Address: " << hex << setw(8) << 
                     setfill('0') << returnTransaction[0]->address << 
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
+                    */
                 /*
                 cout       << "Address: " << hex << setw(8) << 
                     setfill('0') << returnTransaction[0]->address << 
                     " Return time: " << dec << currentClockCycle << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
                 */
-                latencyFile << "Address: " << hex << setw(8) << 
+                outputFile << "Address: " << hex << setw(8) << 
                     setfill('0') << returnTransaction[0]->address << 
                     " Latency: " << dec << currentClockCycle - pendingReadTransactions[i]->timeAdded << 
                     " Thread: " << returnTransaction[0]->threadID <<'\n';
@@ -1109,6 +1111,7 @@ MemoryController::~MemoryController()
         delete returnTransaction[i];
     }
     outputFile.close();
+    //latencyFile.close();
     if (genTrace) traceFile.close();
 
 }

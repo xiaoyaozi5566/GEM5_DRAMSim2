@@ -92,8 +92,8 @@ $cpus.each do |cpu|
                 script.puts("    --outputfile=/dev/null \\")
                 #script.puts("    --outputfile="+
                 #            "./results/#{scheme}_#{cpu}_#{p0file}_tl_#{turnlength}.out \\")
-                script.puts("    --p0=#{$specinvoke[p0file]} \\")
-                script.puts("    --p1=#{$specinvoke["mcf"]} \\")
+                script.puts("    --p0=#{$specinvoke["mcf"]} \\")
+                script.puts("    --p1=#{$specinvoke[p0file]} \\")
                 script.puts("    > results/stdout_#{scheme}_#{cpu}_#{p0file}_tl_#{turnlength}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
