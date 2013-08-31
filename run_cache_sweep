@@ -70,9 +70,9 @@ $cpus.each do |cpu|
         $specint.each do |p0file|
             (0..4).each do |cacheSize|
                 script = File.new(scriptgen_dir.path+
-                                  "/run_#{scheme}_#{cpu}_#{p0file}_#{p0file}","w+")
+                                  "/run_#{scheme}_#{cpu}_#{p0file}_#{p0file}_c#{cacheSize}MB","w+")
                 script.puts("#!/bin/bash")
-                script.puts("/usr/bin/time -o #{scheme}_#{cpu}_#{p0file}_#{p0file}.time \\")
+                script.puts("/usr/bin/time -o #{scheme}_#{cpu}_#{p0file}_#{p0file}_c#{cacheSize}MB.time \\")
                 script.puts("build/ARM/gem5.fast configs/dramsim2/dramsim2_se.py \\")
                 script.puts("    --cpu-type=#{cpu} \\")
                 script.puts("    --caches \\")

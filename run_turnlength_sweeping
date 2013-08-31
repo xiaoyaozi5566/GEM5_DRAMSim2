@@ -80,7 +80,7 @@ $cpus.each do |cpu|
                 script.puts("    --caches \\")
                 script.puts("    --l2cache \\")
                 script.puts("    --l3cache \\")
-                script.puts("    --fas-forward=#{$fastforward} \\")
+                script.puts("    --fast-forward=#{$fastforward} \\")
                 script.puts("    --maxinsts=#{$maxtinsts} \\")
                 script.puts("    --maxtick=#{$maxtick} \\")
                 script.puts("    --dramsim2 \\")
