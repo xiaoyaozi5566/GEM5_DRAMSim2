@@ -138,11 +138,11 @@ void MemoryControllerFT::updateReturnTransactions()
         //find the pending read transaction to calculate latency
         for (j=0;j<returnTransaction.size();j++)
         {
-            unsigned returnTime = returnTransaction[j]->returnTime;
+            //unsigned returnTime = returnTransaction[j]->returnTime;
             // Spin until the proper return time has been reached.
-            if (returnTime > currentClockCycle) continue;
-            else
-            {
+            //if (returnTime > currentClockCycle) continue;
+            //else
+            //{
                 for (size_t i=0;i<pendingReadTransactions.size();i++)
                 {
                     if (pendingReadTransactions[i]->address == 
@@ -190,7 +190,7 @@ void MemoryControllerFT::updateReturnTransactions()
                             "  0x"<<hex<<returnTransaction[j]->address<<dec);
                     abort(); }
                 break;
-            }
+            //}
         }
     }
 }
