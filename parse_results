@@ -13,8 +13,8 @@ $specint = [
     'hmmer',
     'libquantum',
     'mcf',
-    'omnetpp',
-    'perlbench',
+#    'omnetpp',
+#    'perlbench',
     'sjeng',
     'Xalan',
 ]
@@ -87,12 +87,17 @@ def make_timing_results(indir,outdir)
             $specint.each do |b|
                 currInFile = File.open(indir+
                                        "/stdout_#{scheme}_#{model}_#{b}_#{b}.out",'r')
+                foundTime=false
                 currInFile.each_line do |line|
-                    timingRegex = /Exiting @ tick (\d*)\w*/
+                    timingRegex = /Exiting @ tick (\d*)\w* because a \w*/
                     unless line.match(timingRegex)== nil
                         time =(line.match timingRegex)[1]
                         currOutFile.printf("%-15s %e cycles\n",b,time)
+                        foundTime=true
                     end
+                end
+                unless foundTime
+                    currOutFile.printf("%-15s ---------------\n",b)
                 end
             end
         end

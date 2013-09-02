@@ -79,7 +79,7 @@ $cpus.each do |cpu|
                 script.puts("    --l2cache \\")
                 unless cacheSize == 0
                     script.puts("    --l3cache \\")
-                    script.puts("    --l3_size =#{cacheSize}MB\\")
+                    script.puts("    --l3_size=#{cacheSize}MB\\")
                 end
                 script.puts("    --fast-forward=#{$fastforward} \\")
                 script.puts("    --maxinsts=#{$maxtinsts} \\")
