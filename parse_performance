@@ -1,8 +1,7 @@
 #!/usr/bin/ruby
 require 'fileutils'
-require 'parallel'
 
-$schemes = ['none','tp','ft']
+$schemes = ['none','open','tp','ft']
 $models = ['timing','detailed']
 $specint = [
     'astar',
@@ -19,7 +18,7 @@ $specint = [
     'Xalan',
 ]
 
-$time_order = {
+$time_order_old = {
     'libquantum' => 0,
     'hmmer' => 1,
     'astar' => 2,
@@ -32,9 +31,42 @@ $time_order = {
     'sjeng' => 9,
 }
 
+$time_order = {
+    'libquantum' => 0,
+    'sjeng' => 1,
+    'hmmer' => 2,
+    'astar' => 3,
+    'h264ref' => 4,
+    'bzip2' => 5,
+    'Xalan' => 6,
+    'gcc' => 7, 
+    'mcf' => 8,
+    'gobmk' => 9,
+}
+
+def findTime(inFile,p0,p1)
+    switchregex = /Switched CPUS/
+    timingregex = $time_order[p0] > $time_order[p1] ?
+        /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
+    foundtime = false
+    foundcpuswitch = false
+    time = nil
+    inFile.each_line do |line|
+        if !foundcpuswitch && line.match(switchregex)!=nil
+            foundcpuswitch = true
+        end
+        unless line.match(timingregex)== nil || !foundcpuswitch
+            time =(line.match timingregex)[1]
+            foundtime=true
+            break
+        end
+    end
+    [time,foundtime]
+end
+
 def make_timing_results(indir,outdir)
     Dir.chdir(indir)
-    Parallel.each($schemes,:in_threads=>3) do |scheme|
+    $schemes.each do |scheme|
         $models.each do |model|
             currOutFile = File.new(outdir+
                                    "/performance_#{scheme}_#{model}.out",'w')
@@ -44,20 +76,23 @@ def make_timing_results(indir,outdir)
                 $specint.each do |p1|
                     currInFile = File.open(
                         indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}.out",'r')
-                    currInFile.each_line do |line|
-                        timingRegex = $time_order[p0] > $time_order[p1] ?
-                            /Exiting @ tick (\d*)\w*/ : /count @ Tick (\d*)/ 
-                        unless line.match(timingRegex)== nil
-                            time =(line.match timingRegex)[1]
-                            currOutFile.printf("%-15s , %-15s , %d \n",
-                                               p0,p1,time)
-                        end
+                    time,foundtime = findTime(currInFile,p0,p1)
+                    if foundtime
+                        currOutFile.printf("%-15s , %-15s , %d \n",
+                                       p0,p1,time)
+                    else
+                        alternateFile = File.open(
+                            indir+"/stdout_#{scheme}_#{model}_#{p1}_#{p0}.out",'r')
+                        time,foundtime = findTime(alternateFile,p0,p1)
+                        currOutFile.printf("%-15s , %-15s , %d \n",
+                                       p0,p1,time) if foundtime
+                        currOutFile.printf("%-15s , %-15s , %s \n",p0, p1,
+                                           "---------------") unless foundtime
                     end
                 end
             end
         end
     end
-
 end
 
 
@@ -72,4 +107,3 @@ if __FILE__ == $0
     make_timing_results(File.expand_path(result_dir),
                         File.expand_path(perfrep_dir))
 end
-
