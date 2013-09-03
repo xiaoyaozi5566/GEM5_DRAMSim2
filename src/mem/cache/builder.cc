@@ -101,7 +101,7 @@ using namespace std;
             if (numSets == 1) {                         \
                 BUILD_FALRU_CACHE;                      \
             } else {                                    \
-               BUILD_FALRU_CACHE;                    \
+               BUILD_LRU_CACHE;                    \
             }                                           \
         } else {                                        \
             BUILD_IIC_CACHE;                            \
