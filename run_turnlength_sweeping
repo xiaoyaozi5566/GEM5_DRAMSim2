@@ -8,8 +8,8 @@ specint_dir = (Dir.pwd+"/benchmarks/spec2k6bin/specint")
 unless File.directory? File.expand_path(Dir.pwd+"/scriptgen")
     FileUtils.mkdir_p File.expand_path(Dir.pwd+"/scriptgen")
 end
-unless File.directory? File.expand_path(Dir.pwd+"/results")
-    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/results")
+unless File.directory? File.expand_path(Dir.pwd+"/tl_results")
+    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/tl_results")
 end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
@@ -70,7 +70,7 @@ $cpus.each do |cpu|
     $schemes.each do |scheme|
         $specint.each do |p0file|
             $specint.each do |p1file|
-                (8..20).each do |turnlength|
+                (8..16).each do |turnlength|
                     filename = "#{scheme}_#{cpu}_#{p0file}_#{p1file}_tl_#{turnlength}"
                     script = File.new(scriptgen_dir.path+
                                       "/run_#{filename}","w+")
@@ -95,7 +95,7 @@ $cpus.each do |cpu|
                     script.puts("    --outputfile=/dev/null \\")
                     script.puts("    --p0=#{$specinvoke[p0file]} \\")
                     script.puts("    --p1=#{$specinvoke[p1file]} \\")
-                    script.puts("    > results/stdout_#{filename}.out")
+                    script.puts("    > tl_results/stdout_#{filename}.out")
                     script_abspath = File.expand_path(script.path)
                     script.close
                     system "qsub -wd #{gem5home.path} #{script_abspath}"

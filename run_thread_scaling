@@ -8,8 +8,8 @@ specint_dir = (Dir.pwd+"/benchmarks/spec2k6bin/specint")
 unless File.directory? File.expand_path(Dir.pwd+"/scriptgen")
     FileUtils.mkdir_p File.expand_path(Dir.pwd+"/scriptgen")
 end
-unless File.directory? File.expand_path(Dir.pwd+"/results")
-    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/results")
+unless File.directory? File.expand_path(Dir.pwd+"/ts_results")
+    FileUtils.mkdir_p File.expand_path(Dir.pwd+"/ts_results")
 end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
@@ -100,12 +100,10 @@ $cpus.each do |cpu|
                 script.puts("    --systemcfg="+
                             "./ext/DRAMSim2/system_#{scheme}.ini \\")
                 script.puts("     --outputfile=/dev/null \\")
-                #script.puts("    --outputfile="+
-                #            "./results/#{scheme}_#{cpu}_#{p0file}_#{p1file}_#{p1file}.out \\")
                 script.puts("    --p0=#{$specinvoke[p0file]} \\")
                 script.puts("    --p1=#{$specinvoke[p1file]} \\")
                 script.puts("    --p2=#{$specinvoke[p1file]} \\")
-                script.puts("    > results/stdout_#{filename}.out")
+                script.puts("    > ts_results/stdout_#{filename}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
                 system "qsub -wd #{gem5home.path} #{script_abspath}"
@@ -145,7 +143,7 @@ $cpus.each do |cpu|
                 script.puts("    --p1=#{$specinvoke[p1file]} \\")
                 script.puts("    --p2=#{$specinvoke[p1file]} \\")
                 script.puts("    --p3=#{$specinvoke[p1file]} \\")
-                script.puts("    > results/stdout_#{filename}.out")
+                script.puts("    > ts_results/stdout_#{filename}.out")
                 script_abspath = File.expand_path(script.path)
                 script.close
                 system "qsub -wd #{gem5home.path} #{script_abspath}"
