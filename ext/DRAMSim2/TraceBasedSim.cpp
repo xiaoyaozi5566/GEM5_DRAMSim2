@@ -54,13 +54,17 @@ using namespace DRAMSim;
 using namespace std;
 
 #define RETURN_TRANSACTIONS 1
-#define O3TRACE 1
+//#define O3TRACE 1
 
 // Flag to indicate whether previous request has returned
 bool flag[10];
 bool flag1[10];
+bool flag2[10];
+bool flag3[10];
 unsigned totalTrans = 0;
 unsigned totalTrans1 = 0;
+unsigned totalTrans2 = 0;
+unsigned totalTrans3 = 0;
 
 #ifndef _SIM_
 int SHOW_SIM_OUTPUT = 1;
@@ -125,6 +129,17 @@ class TransactionReceiver
 				flag1[totalTrans1%NUM_MSHRS] = 1;
 				totalTrans1++;
 			}
+			else if (threadID == 2)
+			{
+				flag2[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans2++;
+			}
+			else if (threadID == 3)
+			{
+				flag3[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans3++;
+			}
+			
 		#else
 			if (threadID == 0)
 			{
@@ -133,6 +148,14 @@ class TransactionReceiver
 			else if (threadID == 1)
 			{
 				flag1[0] = 1;
+			}
+			else if (threadID == 2)
+			{
+				flag2[0] = 1;
+			}
+			else if (threadID == 3)
+			{
+				flag3[0] = 1;
 			}
 			else
 			{
@@ -172,14 +195,32 @@ class TransactionReceiver
 				flag1[totalTrans1%NUM_MSHRS] = 1;
 				totalTrans1++;
 			}
+			else if (threadID == 2)
+			{
+				flag2[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans2++;
+			}
+			else if (threadID == 3)
+			{
+				flag3[totalTrans1%NUM_MSHRS] = 1;
+				totalTrans3++;
+			}
 		#else
 			if (threadID == 0)
 			{
-				flag = 1;
+				flag[0] = 1;
 			}
 			else if (threadID == 1)
 			{
-				flag1 = 1;
+				flag1[0] = 1;
+			}
+			else if (threadID == 2)
+			{
+				flag2[0] = 1;
+			}
+			else if (threadID == 3)
+			{
+				flag3[0] = 1;
 			}
 			else
 			{
@@ -484,6 +525,8 @@ int main(int argc, char **argv)
 	TraceType traceType;
 	string traceFileName;
 	string traceFileName1;
+	string traceFileName2;
+	string traceFileName3;
 	string systemIniFilename("system.ini");
     unsigned tpTurnLength=12;
     int num_pids=2;
@@ -495,6 +538,8 @@ int main(int argc, char **argv)
 	bool useClockCycle=true;
 	unsigned transactionID = 0;
 	unsigned transactionID1 = 0;
+	unsigned transactionID2 = 0;
+	unsigned transactionID3 = 0;
 	
 	IniReader::OverrideMap *paramOverrides = NULL; 
 
@@ -504,6 +549,8 @@ int main(int argc, char **argv)
 	{
 		flag[i] = 1;
 		flag1[i] = 1;
+		flag2[i] = 1;
+		flag3[i] = 1;
 	}
 	//getopt stuff
 	while (1)
@@ -513,6 +560,8 @@ int main(int argc, char **argv)
 			{"deviceini", required_argument, 0, 'd'},
 			{"tracefile", required_argument, 0, 't'},
 			{"tracefile1", required_argument, 0, 'T'},
+			{"tracefile2", required_argument, 0, 'u'},
+			{"tracefile3", required_argument, 0, 'U'},
 			{"systemini", required_argument, 0, 's'},
             {"tpturnlength", required_argument, 0, 'l'},
             {"numpids", required_argument, 0, 'P'},
@@ -528,7 +577,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0; //for getopt
-		c = getopt_long (argc, argv, "t:T:s:l:P:r:c:d:o:p:S:v:qn", long_options, &option_index);
+		c = getopt_long (argc, argv, "t:T:u:U:s:l:P:r:c:d:o:p:S:v:qn", long_options, &option_index);
 		if (c == -1)
 		{
 			break;
@@ -557,6 +606,12 @@ int main(int argc, char **argv)
 			break;
 		case 'T':
 			traceFileName1 = string(optarg);
+			break;
+		case 'u':
+			traceFileName2 = string(optarg);
+			break;
+		case 'U':
+			traceFileName3 = string(optarg);
 			break;
 		case 's':
 			systemIniFilename = string(optarg);
@@ -649,6 +704,8 @@ int main(int argc, char **argv)
 
 	ifstream traceFile;
 	ifstream traceFile1;
+	ifstream traceFile2;
+	ifstream traceFile3;
 	string line;
 
 
@@ -677,16 +734,24 @@ int main(int argc, char **argv)
 	uint64_t addr;
 	uint64_t clockCycle=0;
 	uint64_t clockCycle1=0;
+	uint64_t clockCycle2=0;
+	uint64_t clockCycle3=0;
 	uint64_t pid;
 	enum TransactionType transType;
 
 	void *data = NULL;
 	int lineNumber = 0;
 	int lineNumber1 = 0;
+	int lineNumber2 = 0;
+	int lineNumber3 = 0;
 	Transaction *trans=NULL;
 	Transaction *trans1=NULL;
+	Transaction *trans2=NULL;
+	Transaction *trans3=NULL;
 	bool pendingTrans = false;
 	bool pendingTrans1 = false;
+	bool pendingTrans2 = false;
+	bool pendingTrans3 = false;
 
 	traceFile.open(traceFileName.c_str());
 
@@ -778,6 +843,24 @@ int main(int argc, char **argv)
 			cout << "== Error - Could not open trace file 1"<<endl;
 			exit(0);
 		}
+		if (num_pids == 4)
+		{
+			traceFile2.open(traceFileName2.c_str());
+
+			if (!traceFile2.is_open())
+			{
+				cout << "== Error - Could not open trace file 2"<<endl;
+				exit(0);
+			}
+			
+			traceFile3.open(traceFileName3.c_str());
+
+			if (!traceFile3.is_open())
+			{
+				cout << "== Error - Could not open trace file 3"<<endl;
+				exit(0);
+			}
+		}
 		
 	#ifdef O3TRACE
 		for (size_t i=0;i<numCycles;i++)
@@ -822,7 +905,7 @@ int main(int argc, char **argv)
 					}
 					else
 					{
-						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
+						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile0");
 					}
 					lineNumber++;
 				}
@@ -885,7 +968,7 @@ int main(int argc, char **argv)
 					}
 					else
 					{
-						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile");
+						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile1");
 					}
 					lineNumber1++;
 				}
@@ -907,6 +990,137 @@ int main(int argc, char **argv)
 					trans1=NULL;
 				}
 				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+			}
+			
+			if (num_pids == 4)
+			{
+				// For thread 2
+				if (!pendingTrans2)
+				{
+					if (!traceFile2.eof() && flag2[transactionID2%NUM_MSHRS] == 1)
+					{
+						getline(traceFile2, line);
+
+						if (line.size() > 24)
+						{
+							data = parseTraceFileLine(line, addr, transType,clockCycle2, pid, traceType,useClockCycle);
+							// if (pid == 0 && transType == DATA_READ) 
+							//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+							trans2 = new Transaction(transType, addr, data, 2, 0, 0);
+							alignTransactionAddress(*trans2); 
+							clockCycle2 = clockCycle2 + i;
+							flag2[transactionID2%NUM_MSHRS] = 0;
+							transactionID2++;
+
+							if (i>=clockCycle2)
+							{
+								if (!(*memorySystem).addTransaction(trans2))
+								{
+									pendingTrans2 = true;
+								}
+								else
+								{
+		#ifdef RETURN_TRANSACTIONS
+									transactionReceiver.add_pending(*trans2, i); 
+		#endif
+									// the memory system accepted our request so now it takes ownership of it
+									trans2 = NULL; 
+								}
+							}
+							else
+							{
+								pendingTrans2 = true;
+							}
+						}
+						else
+						{
+							DEBUG("WARNING: Skipping line "<<lineNumber2<< " ('" << line << "') in tracefile2");
+						}
+						lineNumber2++;
+					}
+					else
+					{
+						//we're out of trace, set pending=false and let the thing spin without adding transactions
+						pendingTrans2 = false; 
+					}
+				}
+
+				else if (pendingTrans2 && i >= clockCycle2)
+				{
+					pendingTrans2 = !(*memorySystem).addTransaction(trans2);
+					if (!pendingTrans2)
+					{
+		#ifdef RETURN_TRANSACTIONS
+						transactionReceiver.add_pending(*trans2, i); 
+		#endif
+						trans2=NULL;
+					}
+					//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+				}
+				
+				// For thread 3
+				if (!pendingTrans3)
+				{
+					if (!traceFile3.eof() && flag3[transactionID3%NUM_MSHRS] == 1)
+					{
+						getline(traceFile3, line);
+
+						if (line.size() > 34)
+						{
+							data = parseTraceFileLine(line, addr, transType,clockCycle3, pid, traceType,useClockCycle);
+							// if (pid == 0 && transType == DATA_READ) 
+							//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+							trans3 = new Transaction(transType, addr, data, 3, 0, 0);
+							alignTransactionAddress(*trans3); 
+							clockCycle3 = clockCycle3 + i;
+							flag3[transactionID3%NUM_MSHRS] = 0;
+							transactionID3++;
+
+							if (i>=clockCycle3)
+							{
+								if (!(*memorySystem).addTransaction(trans3))
+								{
+									pendingTrans3 = true;
+								}
+								else
+								{
+		#ifdef RETURN_TRANSACTIONS
+									transactionReceiver.add_pending(*trans3, i); 
+		#endif
+									// the memory system accepted our request so now it takes ownership of it
+									trans3 = NULL; 
+								}
+							}
+							else
+							{
+								pendingTrans3 = true;
+							}
+						}
+						else
+						{
+							DEBUG("WARNING: Skipping line "<<lineNumber3<< " ('" << line << "') in tracefile3");
+						}
+						lineNumber3++;
+					}
+					else
+					{
+						//we're out of trace, set pending=false and let the thing spin without adding transactions
+						pendingTrans3 = false; 
+					}
+				}
+
+				else if (pendingTrans3 && i >= clockCycle3)
+				{
+					pendingTrans3 = !(*memorySystem).addTransaction(trans3);
+					if (!pendingTrans3)
+					{
+		#ifdef RETURN_TRANSACTIONS
+						transactionReceiver.add_pending(*trans3, i); 
+		#endif
+						trans3=NULL;
+					}
+					//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+				}
 			}
 
 			(*memorySystem).update();
@@ -955,7 +1169,7 @@ int main(int argc, char **argv)
 					}
 					else
 					{
-						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile");
+						DEBUG("WARNING: Skipping line "<<lineNumber<< " ('" << line << "') in tracefile0");
 					}
 					lineNumber++;
 				}
@@ -1017,7 +1231,7 @@ int main(int argc, char **argv)
 					}
 					else
 					{
-						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile");
+						DEBUG("WARNING: Skipping line "<<lineNumber1<< " ('" << line << "') in tracefile1");
 					}
 					lineNumber1++;
 				}
@@ -1040,13 +1254,143 @@ int main(int argc, char **argv)
 				}
 				//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
 			}
+			
+			if (num_pids == 4)
+			{
+				// For thread 2
+				if (!pendingTrans2)
+				{
+					if (!traceFile2.eof() && flag2[0] == 1)
+					{
+						getline(traceFile2, line);
+
+						if (line.size() > 24)
+						{
+							data = parseTraceFileLine(line, addr, transType,clockCycle2, pid, traceType,useClockCycle);
+							// if (pid == 0 && transType == DATA_READ) 
+							//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+							trans2 = new Transaction(transType, addr, data, 2, 0, 0);
+							alignTransactionAddress(*trans2); 
+							clockCycle2 = clockCycle2 + i;
+							flag2[0] = 0;
+
+							if (i>=clockCycle2)
+							{
+								if (!(*memorySystem).addTransaction(trans2))
+								{
+									pendingTrans2 = true;
+								}
+								else
+								{
+		#ifdef RETURN_TRANSACTIONS
+									transactionReceiver.add_pending(*trans2, i); 
+		#endif
+									// the memory system accepted our request so now it takes ownership of it
+									trans2 = NULL; 
+								}
+							}
+							else
+							{
+								pendingTrans2 = true;
+							}
+						}
+						else
+						{
+							DEBUG("WARNING: Skipping line "<<lineNumber2<< " ('" << line << "') in tracefile2");
+						}
+						lineNumber2++;
+					}
+					else
+					{
+						//we're out of trace, set pending=false and let the thing spin without adding transactions
+						pendingTrans2 = false; 
+					}
+				}
+
+				else if (pendingTrans2 && i >= clockCycle2)
+				{
+					pendingTrans2 = !(*memorySystem).addTransaction(trans2);
+					if (!pendingTrans2)
+					{
+		#ifdef RETURN_TRANSACTIONS
+						transactionReceiver.add_pending(*trans2, i); 
+		#endif
+						trans2=NULL;
+					}
+					//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+				}
+				
+				// For thread 3
+				if (!pendingTrans3)
+				{
+					if (!traceFile3.eof() && flag3[0] == 1)
+					{
+						getline(traceFile3, line);
+
+						if (line.size() > 24)
+						{
+							data = parseTraceFileLine(line, addr, transType,clockCycle3, pid, traceType,useClockCycle);
+							// if (pid == 0 && transType == DATA_READ) 
+							//    inputFile << "Address: " << hex << addr << " Arrive time: " << dec << clockCycle << '\n';
+							trans3 = new Transaction(transType, addr, data, 3, 0, 0);
+							alignTransactionAddress(*trans3); 
+							clockCycle3 = clockCycle3 + i;
+							flag3[0] = 0;
+
+							if (i>=clockCycle3)
+							{
+								if (!(*memorySystem).addTransaction(trans3))
+								{
+									pendingTrans3 = true;
+								}
+								else
+								{
+		#ifdef RETURN_TRANSACTIONS
+									transactionReceiver.add_pending(*trans3, i); 
+		#endif
+									// the memory system accepted our request so now it takes ownership of it
+									trans3 = NULL; 
+								}
+							}
+							else
+							{
+								pendingTrans3 = true;
+							}
+						}
+						else
+						{
+							DEBUG("WARNING: Skipping line "<<lineNumber3<< " ('" << line << "') in tracefile3");
+						}
+						lineNumber3++;
+					}
+					else
+					{
+						//we're out of trace, set pending=false and let the thing spin without adding transactions
+						pendingTrans3 = false; 
+					}
+				}
+
+				else if (pendingTrans3 && i >= clockCycle3)
+				{
+					pendingTrans3 = !(*memorySystem).addTransaction(trans3);
+					if (!pendingTrans3)
+					{
+		#ifdef RETURN_TRANSACTIONS
+						transactionReceiver.add_pending(*trans3, i); 
+		#endif
+						trans3=NULL;
+					}
+					//PRINTN("Stall transaction " << hex << addr << " enqueue at " << dec << i << endl);
+				}
+			}
 
 			(*memorySystem).update();
 			
-			if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
+			//if (traceFile.eof() && traceFile1.eof()) {cout<< "finish traces"<<endl; break;}
 		}
 	#endif
 		traceFile1.close();
+		if (num_pids == 4) { traceFile2.close(); traceFile3.close();}
 	}
 
 	traceFile.close();

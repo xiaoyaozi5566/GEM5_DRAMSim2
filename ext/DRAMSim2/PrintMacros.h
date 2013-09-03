@@ -45,7 +45,9 @@ using std::ostream;
 	#define DEBUG(str)  std::cerr<< str <<std::endl;
 	#define DEBUGN(str) std::cerr<< str;
 #else
+	#ifndef DEBUG
 	#define DEBUG(str) ;
+	#endif
 	#define DEBUGN(str) ;
 #endif
 
