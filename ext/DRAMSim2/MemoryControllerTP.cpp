@@ -32,27 +32,7 @@ bool MemoryControllerTP::addTransaction(Transaction *trans)
         transactionID++;
         // Generate trace
         if (genTrace)
-        {
-        #ifdef O3
-        	if (trans->transactionType == DATA_READ) {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
-        	}
-        	else {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
-        	}
-        #else
-        	if (trans->transactionType == DATA_READ) {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
-        	}
-        	else {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
-        	}
-        #endif
-        }
+            printGenTrace(trans);
         return true;
     }
     else {
@@ -96,8 +76,8 @@ void MemoryControllerTP::updateTransactionQueue()
             {
 
                 if (DEBUG_ADDR_MAP) {
-                    PRINTN("== New Transaction - Mapping Address [0x" << hex << 
-                            transaction->address << dec << "]");
+                    PRINTN("== New Transaction - Mapping Address [0x" << hex 
+                            << transaction->address << dec << "]");
                     if (transaction->transactionType == DATA_READ) {
                         PRINT(" (Read)");
                     }
@@ -181,15 +161,3 @@ bool MemoryControllerTP::WillAcceptTransaction(uint64_t pid)
     return transactionQueues[pid].size() < TRANS_QUEUE_DEPTH;
 }
 
-
-/*
-   void MemoryController::printtransactionQueues(){
-   for (int j=0; j<num_pids; j++){
-   PRINT("== Printing transaction queue" << j);
-   for (size_t i=0;i<transactionQueues[j].size();i++)
-   {
-   PRINTN("  " << i << "] "<< *transactionQueues[j][i]);
-   }
-   }
-   }
-   */

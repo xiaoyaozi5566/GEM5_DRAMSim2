@@ -90,6 +90,7 @@ namespace DRAMSim
         protected:
             virtual void updateTransactionQueue();
             virtual void updateReturnTransactions();
+            void printGenTrace(Transaction *trans);
 
         public:
 

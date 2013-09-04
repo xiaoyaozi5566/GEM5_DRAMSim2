@@ -882,6 +882,43 @@ bool MemoryController::WillAcceptTransaction()
     return transactionQueue.size() < TRANS_QUEUE_DEPTH;
 }
 
+void MemoryController::printGenTrace(Transaction *trans)
+{
+        #ifdef O3
+        	if (trans->transactionType == DATA_READ) {
+        		traceFile << "0x" << hex << setw(8) 
+                    << setfill('0') << trans->address 
+                    << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_READ" << "  " << dec 
+                    << (currentClockCycle 
+                            - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
+        	}
+        	else {
+        		traceFile << "0x" << hex << setw(8) 
+                    << setfill('0') << trans->address << "  " << dec 
+                    << setw(10) << setfill(' ')
+        			<< "DATA_WRITE" << "  " << dec 
+                    << (currentClockCycle 
+                            - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
+        	}
+        #else
+        	if (trans->transactionType == DATA_READ) {
+        		traceFile << "0x" << hex << setw(8) 
+                    << setfill('0') << trans->address 
+                    << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_READ" << "  " << dec 
+                    << (currentClockCycle - lastReturnTime[0]) << '\n';
+        	}
+        	else {
+        		traceFile << "0x" << hex << setw(8) 
+                    << setfill('0') << trans->address 
+                    << "  " << dec << setw(10) << setfill(' ')
+        			<< "DATA_WRITE" << "  " << dec 
+                    << (currentClockCycle - lastReturnTime[0]) << '\n';
+        	}
+        #endif
+}
+
 
 bool MemoryController::addTransaction(Transaction *trans)
 {
@@ -893,27 +930,7 @@ bool MemoryController::addTransaction(Transaction *trans)
         transactionID++;
         // Generate trace
         if (genTrace)
-        {
-        #ifdef O3
-        	if (trans->transactionType == DATA_READ) {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
-        	}
-        	else {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[transactionID%NUM_MSHRS]) << '\n';
-        	}
-        #else
-        	if (trans->transactionType == DATA_READ) {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_READ" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
-        	}
-        	else {
-        		traceFile << "0x" << hex << setw(8) << setfill('0') << trans->address << "  " << dec << setw(10) << setfill(' ')
-        			<< "DATA_WRITE" << "  " << dec << (currentClockCycle - lastReturnTime[0]) << '\n';
-        	}
-        #endif
-        }
+            printGenTrace(trans);
         return true;
     }
     else
