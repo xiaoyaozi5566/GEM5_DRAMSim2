@@ -276,7 +276,10 @@ unsigned CommandQueueTP::getCurrentPID(){
 
 bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
-    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= TP_BUFFER_TIME;
+    int turnBegin = currentClockCycle & (1<<tpTurnLength);
+    int dead_time = (((turnBegin -1) % REFRESH_PERIOD) > 
+            ((turnBegin+tpTurnLength-1) % REFRESH_PERIOD)) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
+    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= dead_time;
 }
 
 #ifdef DEBUG_TP
