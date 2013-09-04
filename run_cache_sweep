@@ -99,14 +99,13 @@ $cpus.each do |cpu|
                                 "/mnt/#{filename}.out \\")
                     script.puts("    --p0=#{$specinvoke[p0file]} \\")
                     script.puts("    --p1=#{$specinvoke[p1file]} \\")
-                    script.puts("    > results/stdout_#{scheme}_#{cpu}_"+
-                                "#{p0file}_#{p1file}_c#{cacheSize}MB.out")
+                    script.puts("    > results/stdout_#{filename}.out")
                     script.puts("./parse_latencies.rb /mnt/#{filename}.out "+
                                 "results/latency_t0_#{filename}.csv results/latency_t1_#{filename}.csv")
                     script.puts("rm /mnt/#{filename}.out")
                     script_abspath = File.expand_path(script.path)
                     script.close
-                    #system "qsub -wd #{gem5home.path} #{script_abspath}"
+                    system "qsub -wd #{gem5home.path} #{script_abspath}"
                 end
             end
         end
