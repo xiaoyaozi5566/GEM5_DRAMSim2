@@ -62,7 +62,6 @@ $specint = [
     "Xalan"  
 ]
 
-
 $cpus = [ "detailed", "timing"]
 $schemes = ["tp"]
 Dir.chdir(specint_dir)
@@ -70,7 +69,7 @@ $cpus.each do |cpu|
     $schemes.each do |scheme|
         $specint.each do |p0file|
             $specint.each do |p1file|
-                (8..16).each do |turnlength|
+                (6..16).each do |turnlength|
                     filename = "#{scheme}_#{cpu}_#{p0file}_#{p1file}_tl_#{turnlength}"
                     script = File.new(scriptgen_dir.path+
                                       "/run_#{filename}","w+")
@@ -92,10 +91,14 @@ $cpus.each do |cpu|
                                 "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
                     script.puts("    --systemcfg="+
                                 "./ext/DRAMSim2/system_#{scheme}.ini \\")
-                    script.puts("    --outputfile=/dev/null \\")
+                    script.puts("    --outputfile="+
+                                "/mnt/#{filename}.out \\")
                     script.puts("    --p0=#{$specinvoke[p0file]} \\")
                     script.puts("    --p1=#{$specinvoke[p1file]} \\")
                     script.puts("    > tl_results/stdout_#{filename}.out")
+                    script.puts("./parse_latencies.rb /mnt/#{filename}.out "+
+                                "results/latency_t0_#{filename}.csv results/latency_t1_#{filename}.csv")
+                    script.puts("rm /mnt/#{filename}.out")
                     script_abspath = File.expand_path(script.path)
                     script.close
                     system "qsub -wd #{gem5home.path} #{script_abspath}"
