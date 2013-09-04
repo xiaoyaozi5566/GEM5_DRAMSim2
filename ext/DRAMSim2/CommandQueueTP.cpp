@@ -276,10 +276,10 @@ unsigned CommandQueueTP::getCurrentPID(){
 
 bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
-    int turnBegin = currentClockCycle & tlength;
-    int dead_time = ((turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-            ((turnBegin+tpTurnLength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
-    return (tlength - (currentClockCycle & (tlength - 1))) -1 <= dead_time;
+    uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
+    uint64_t dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
+            int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
+    return (tlength - (currentClockCycle & (tlength - 1))) <= dead_time;
 }
 
 #ifdef DEBUG_TP
