@@ -94,7 +94,7 @@ $cpus.each do |cpu|
                 script.puts("    --maxtick=#{$maxtick} \\")
                 script.puts("    --dramsim2 \\")
                 script.puts("    --numpids=3 \\")
-                script.puts("    --tpturnlength=12 \\")
+                script.puts("    --tpturnlength=6 \\")
                 script.puts("    --devicecfg="+
                             "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
                 script.puts("    --systemcfg="+
@@ -133,7 +133,7 @@ $cpus.each do |cpu|
                 script.puts("    --maxtick=#{$maxtick}\\")
                 script.puts("    --dramsim2 \\")
                 script.puts("    --numpids=4 \\")
-                script.puts("    --tpturnlength=12 \\")
+                script.puts("    --tpturnlength=6 \\")
                 script.puts("    --devicecfg="+
                             "./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini \\")
                 script.puts("    --systemcfg="+
