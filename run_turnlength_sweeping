@@ -95,7 +95,7 @@ $cpus.each do |cpu|
                                 "/mnt/#{filename}.out \\")
                     script.puts("    --p0=#{$specinvoke[p0file]} \\")
                     script.puts("    --p1=#{$specinvoke[p1file]} \\")
-                    script.puts("    > tl_results/stdout_#{filename}.out")
+                    script.puts("    > results/stdout_#{filename}.out")
                     script.puts("./parse_latencies.rb /mnt/#{filename}.out "+
                                 "results/latency_t0_#{filename}.csv results/latency_t1_#{filename}.csv")
                     script.puts("rm /mnt/#{filename}.out")
