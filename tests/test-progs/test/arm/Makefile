@@ -1,5 +1,9 @@
-all: victim attacker_L attacker_M attacker_H
+all: nothing victim attacker_L attacker_M attacker_H
 	CCFLAGS=
+
+nothing: nothing.c
+	arm-none-linux-gnueabi-gcc ${CCFLAGS} nothing.c -o nothing --static
+	arm-none-linux-gnueabi-objdump -dS nothing > nothing.obj
 
 victim: victim.c
 	arm-none-linux-gnueabi-gcc ${CCFLAGS} victim.c -o victim --static
@@ -19,5 +23,5 @@ attacker_H: attacker_H.c
 
 
 clean:
-	rm -f attacker_L attacker_M attacker_H victim *.obj
+	rm -f attacker_L attacker_M attacker_H victim nothing *.obj
 
