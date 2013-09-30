@@ -1,0 +1,130 @@
+#!/usr/bin/ruby
+require 'fileutils'
+
+$models = ['timing','detailed']
+$specint = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+]
+
+$l1hit = 2  #cycles
+$l2hit = 7  #cycles
+$l3hit = 17 #cycles
+
+def getStatVal(filename,regex)
+    file=File.open(filename,'r')
+    file.each_line do |line|
+        if line.match(regex)!=nil
+            file.close()
+            return [line.match(regex)[1].to_f,true]
+        end
+    end
+    file.close()
+    [nil,false]
+end
+
+$schemes = ['tp','none']
+def makeCacheStats(indir,outdir)
+    Dir.chdir(indir)
+
+    stats = [
+        'imiss','dmiss','l2miss','l3miss',
+        'ilat','dlat','l2lat','l3lat'
+    ]
+
+    regexes = {
+        'imiss' => /system\.cpu0\.icache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+        'dmiss' => /system\.cpu0\.dcache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+        'l2miss' => /system\.l20\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+        'l3miss' => /system\.l3\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+        'ilat' => /system\.cpu0\.icache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+        'dlat' => /system\.cpu0\.dcache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+        'l2lat' => /system\.l20\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+        'l3lat' => /system\.l3\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/
+    }
+
+    $schemes.each do |scheme|
+        $models.each do |model|
+            outFiles = {
+                'rate' => File.open(outdir+"/missrates_#{scheme}_#{model}.out",'w'),
+                'latency' => File.open(outdir+"/misslatencies_#{scheme}_#{model}.out",'w'),
+                'amat' => File.open(outdir+"/amat_#{scheme}_#{model}.out",'w')
+            }
+            outFiles.values.each{|f| f.printf("%s,%s\n",scheme,model)}
+            outFiles.values.each{|f| f.printf("%-15s","p0")}
+            [0,1,2,4].each {|cacheSize| outFiles.values.each{|f|f.printf("%-15s,",cacheSize)}}
+            outFiles.values.each{|f| f.printf("\n")}
+
+            $specint.each do |p0|
+                outFiles.values.each {|f| f.printf("%-15s,",p0)}
+                [0,1,2,4].each do |cacheSize|
+                    statStacks = Hash.new()
+                    stats.each {|stat| statStacks[stat]=[]}
+                    $specint.each do |p1|
+                        statVals = Hash.new()
+                        statsFound = Hash.new()
+
+                        inFileName=indir+
+                            "/#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB_stats.txt"
+                        stats.each {|stat| statVals[stat],statsFound[stat]=getStatVal(inFileName,regexes[stat])}
+                        stats.each {|stat| statStacks[stat] << statVals[stat] if statsFound[stat]}
+                    end
+
+                    #l3 miss rates
+                    l3missArr=statStacks['l3miss']
+                    if l3missArr.length>0
+                        outFiles['rate'].printf("%-15.6f,",
+                                                l3missArr.reduce(:+)/l3missArr.length)
+                    else
+                        outFiles['rate'].printf("------------- ,")
+                    end
+
+                    #l3 latencies
+                    l3latArr=statStacks['l3lat']
+                    if l3missArr.length>0
+                        outFiles['latency'].printf("%-15.6f,",
+                                                l3latArr.reduce(:+)/l3latArr.length)
+                    else
+                        outFiles['latency'].printf("------------- ,")
+                    end
+
+                    #AMAT
+                    if statStacks.values.inject(true){|inhabited,i| inhabited & (i.length>0)}
+                        #entered if each stat array is nonempty
+                        avg=statStacks.keys.inject({}){|hash,k| hash[k]=statStacks[k].reduce(:+)/statStacks[k].length; hash}
+                        #should actually be l1 miss rate calculated separately 
+                        #instead of just dmiss
+                        amat=$l1hit+avg['dmiss']*($l2hit+avg['l2miss']*($l3hit+avg['l3miss']*avg['l3lat']/500.0))
+                        outFiles['amat'].printf("%-15.6f,",amat)
+                    else
+                        outFiles['amat'].printf("------------- ,")
+                    end
+
+                end
+                outFiles.values.each{|f| f.printf("\n")}
+            end
+        end
+    end
+end  
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    makeCacheStats(File.expand_path(result_dir),
+                   File.expand_path(perfrep_dir))
+end

@@ -32,14 +32,15 @@ $time_order = {
     'sjeng' => 9,
 }
 
-def findTime(inFile,p0,p1)
+def findTime(filename,p0,p1)
+    currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
     timingregex = $time_order[p0] > $time_order[p1] ?
         /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
     foundtime = false
     foundcpuswitch = false
     time = nil
-    inFile.each_line do |line|
+    currFile.each_line do |line|
         if !foundcpuswitch && line.match(switchregex)!=nil
             foundcpuswitch = true
         end
@@ -49,10 +50,11 @@ def findTime(inFile,p0,p1)
             break
         end
     end
+    currFile.close()
     [time,foundtime]
 end
 
-def make_timing_results(indir,outdir)
+def make_timing_results(indir,baselinedir,outdir)
     Dir.chdir(indir)
     $models.each do |model|
         currOutFile = File.new(outdir+"/performance_tp_#{model}.out",'w')
@@ -61,21 +63,36 @@ def make_timing_results(indir,outdir)
         $specint.each {|b| currOutFile.printf("%-15s,",b)}
         currOutFile.printf("\n")
 
-        (8..20).each do |tl|
+        [0].push(*(6..16)).each do |tl|
             currOutFile.printf("%-15d,",tl)
             $specint.each do |p0|
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_tl_#{tl}.out"
-                currInFile = File.open(inFileName,'r')
-                time, foundtime = findTime(currInFile,p0,"mcf")
-                currInFile.close()
-                if foundtime
-                    currOutFile.printf("%-15d,",time)
+                overheads=[]
+                $specint.each do |p1|
+                    inFileName = indir+
+                        "/stdout_tp_#{model}_#{p0}_#{p1}_tl_#{tl}.out"
+                    baseFileName = baselinedir+
+                        "/stdout_none_#{model}_#{p0}_#{p1}_c4MB.out"
+                    time, foundtime = findTime(inFileName,p0,p1)
+                    basetime, foundbase  = findTime(baseFileName,p0,p1)
+                    unless foundtime   
+                        alternateFileName = indir+
+                            "/stdout_tp_#{model}_#{p1}_#{p0}_tl_#{tl}.out"
+                        time, foundtime = findTime(alternateFileName,p0,p1)
+                    end
+                    unless foundbase
+                        alternateBaseName =  baselinedir+
+                            "/stdout_none_#{model}_#{p1}_#{p0}_c4MB.out"
+                        basetime,foundbase = findTime(alternateBaseName,p0,p1)
+                    end
+                    if foundbase && foundtime
+                        overheads<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                    end
+                end
+                if(overheads.length>0)
+                    currOutFile.printf("%-15.9f,",
+                                       overheads.reduce(:+)/overheads.length)
                 else
-                    alternateFile = File.open(
-                        indir+"/stdout_tp_#{model}_#{p0}_tl_swap_#{tl}.out")
-                    time, foundtime = findTime(alternateFile,p0,"mcf")
-                    currOutFile.printf("%-15d,",time) if foundtime
-                    currOutFile.printf("-------------- ,") unless foundtime
+                    currOutFile.printf("----------,")
                 end
             end
             currOutFile.printf("\n")
@@ -85,13 +102,15 @@ end
 
 if __FILE__ == $0
     result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+    baseline_dir = Dir.new(File.expand_path ARGV[1].to_s)
 
-    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    perfrep_dir = Dir.new(File.expand_path ARGV[2].to_s)
     unless File.directory? perfrep_dir.path
         FileUtils.mkdir_p perfrep_dir.path
     end
 
     make_timing_results(File.expand_path(result_dir),
+                        File.expand_path(baseline_dir),
                         File.expand_path(perfrep_dir))
 end
 

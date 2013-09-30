@@ -1,7 +1,6 @@
 #!/usr/bin/ruby
 require 'fileutils'
 
-$schemes = ['none','ft','tp','open']
 $models = ['timing','detailed']
 $specint = [
     'astar',
@@ -44,45 +43,77 @@ $time_order = {
     'gobmk' => 9,
 }
 
+def findTime(filename,p0,p1)
+    currFile = File.open(filename,'r')
+    switchregex = /Switched CPUS/
+    timingregex = $time_order[p0] > $time_order[p1] ?
+        /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
+    foundtime = false
+    foundcpuswitch = false
+    time = nil
+    currFile.each_line do |line|
+        if !foundcpuswitch && line.match(switchregex)!=nil
+            foundcpuswitch = true
+        end
+        unless line.match(timingregex)== nil || !foundcpuswitch
+            time =(line.match timingregex)[1]
+            foundtime=true
+            break
+        end
+    end
+    currFile.close()
+    [time,foundtime]
+end
+
+$schemes = ['tp','open']
 def make_timing_results(indir,outdir)
     Dir.chdir(indir)
     $schemes.each do |scheme|
         $models.each do |model|
             currOutFile = File.new(outdir+
                                    "/cachesweep_#{scheme}_#{model}.out",'w')
+
             currOutFile.printf("%s,%s\n",scheme,model)
-            currOutFile.printf("%-15s , %-15s, %s\n","p0","L3 Size","cycles")
+            currOutFile.printf("%-15s","p0")
+            [0,1,2,4].each {|cacheSize| currOutFile.printf("%-15s,",cacheSize)}
+            currOutFile.printf("\n")
+
             $specint.each do |p0|
-                (0..4).each do |cacheSize|
-                    currInFile = File.open(
-                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p0}_c#{cacheSize}MB.out",'r')
-                    foundTime = false
-                    foundCPUSwitch = false
-                    currInFile.each_line do |line|
-
-                        switchRegex = /Switched CPUS/
-                        if !foundCPUSwitch && line.match(switchRegex)!=nil
-                            foundCPUSwitch = true
+                currOutFile.printf("%-15s,",p0)
+                [0,1,2,4].each do |cacheSize|
+                    overheads=[]
+                    $specint.each do |p1|
+                        inFileName=indir+
+                            "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
+                        baseFileName=indir+
+                            "/stdout_none_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
+                        time, foundtime = findTime(inFileName,p0,p1)
+                        basetime, foundbase  = findTime(baseFileName,p0,p1)
+                        unless foundtime   
+                            alternateFileName = indir+
+                                "/stdout_#{scheme}_#{model}_#{p1}_#{p0}_c#{cacheSize}MB.out"
+                            time, foundtime = findTime(alternateFileName,p0,p1)
                         end
-
-                        timingRegex = /Exiting @ tick (\d*)\w* because a\w*/
-                        unless line.match(timingRegex)==nil || !foundCPUSwitch
-                            time =(line.match timingRegex)[1]
-                            currOutFile.printf("%-15s , %-15s , %d \n",
-                                               p0,cacheSize,time)
-                            foundTime = true
+                        unless foundbase
+                            alternateBaseName =  indir+
+                                "/stdout_none_#{model}_#{p1}_#{p0}_c#{cacheSize}MB.out"
+                            basetime,foundbase = findTime(alternateBaseName,p0,p1)
                         end
-
+                        if foundbase && foundtime
+                            overheads<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                        end
                     end
-                    unless foundTime
-                        currOutFile.printf("%-15s , %-15s , %s \n",
-                                      p0, cacheSize, "---------------")
+                    if(overheads.length>0)
+                        currOutFile.printf("%-15.9f,",
+                                           overheads.reduce(:+)/overheads.length)
+                    else
+                        currOutFile.printf("----------,")
                     end
                 end
+                currOutFile.printf("\n")
             end
         end
     end
-
 end
 
 

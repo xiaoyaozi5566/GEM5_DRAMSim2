@@ -47,14 +47,15 @@ $time_order = {
     'gobmk' => 9,
 }
 
-def findTime(inFile,p0,p1)
+def findTime(filename,p0,p1)
+    currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
     timingregex = $time_order[p0] > $time_order[p1] ?
         /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
     foundtime = false
     foundcpuswitch = false
     time = nil
-    inFile.each_line do |line|
+    currFile.each_line do |line|
         if !foundcpuswitch && line.match(switchregex)!=nil
             foundcpuswitch = true
         end
@@ -64,67 +65,59 @@ def findTime(inFile,p0,p1)
             break
         end
     end
+    currFile.close()
     [time,foundtime]
 end
 
+$specedges = ["astar","gobmk","mcf","sjeng"]
+
 def threadscale_results(indir,outdir)
     Dir.chdir(indir)
-    Parallel.each($schemes,:in_threads=>3) do |scheme|
-        $models.each do |model|
-            currOutFile = File.new(outdir+
-                                   "/performance_#{scheme}_#{model}.out",'w')
-            currOutFile.printf("%s,%s\n",scheme,model)
-            currOutFile.printf("%-15s , %-15s\n","workload","cycles")
-            $specint.each do |p0|
-                $p1plus.each do |p1|
-
-                    currInFile = File.open(
-                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}.out",'r')
-                    (time,foundTime) = findTime(currInFile,p0,p1)
-                    if foundTime
-                        currOutFile.printf("%-15s , %-15d\n",p0+"2",time)
-                    else
-                        currInFile = File.open(
-                            indir+"/stdout_#{scheme}_#{model}_#{p1}_#{p0}.out",'r')
-                        (time,foundTime) = findTime(currInFile,p0,p1)
-                        currOutFile.printf("%-15s , %-15d\n",p0+"2",
-                                           time) if foundTime
-                        currOutFile.printf("%-15s , ---------------\n",
-                                           p0+'2') unless foundTime
-                    end
-
-                    currInFile = File.open(
-                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}.out",'r')
-                    (time,foundTime) = findTime(currInFile,p0,p1)
-                    if foundTime
-                        currOutFile.printf("%-15s , %-15d\n",p0+"3",time)
-                    else
-                        currInFile = File.open(
-                            indir+"/stdout_#{scheme}_#{model}_#{p1}_#{p0}_#{p1}.out",'r')
-                        (time,foundTime) = findTime(currInFile,p0,p1)
-                        currOutFile.printf("%-15s , %-15d\n",p0+"3",
-                                           time) if foundTime
-                        currOutFile.printf("%-15s , ---------------\n",
-                                           p0+'3') unless foundTime
-                    end
-
-                    currInFile = File.open(
-                        indir+"/stdout_#{scheme}_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out",'r')
-                    (time,foundTime) = findTime(currInFile,p0,p1)
-                    if foundTime
-                        currOutFile.printf("%-15s , %-15d\n",p0+"4",time)
-                    else
-                        currInFile = File.open(
-                            indir+"/stdout_#{scheme}_#{model}_#{p1}_#{p0}_#{p1}_#{p1}.out",'r')
-                        (time,foundTime) = findTime(currInFile,p0,p1)
-                        currOutFile.printf("%-15s , %-15d\n",p0+"4",
-                                           time) if foundTime
-                        currOutFile.printf("%-15s , ---------------\n",
-                                           p0+'4') unless foundTime
-                    end
-
+    $models.each do |model|
+        currOutFile = File.new(outdir+
+                               "/threadscale_tp_#{model}.out",'w')
+        currOutFile.printf("%s,%s\n","model",model)
+        currOutFile.printf("%-15s , %-15s, %-15s, %-15s\n",
+                           "workload","2 Threads","3 Threads", "4 Threads")
+        $specint.each do |p0|
+            overheads2=[]
+            overheads3=[]
+            overheads4=[]
+            $specint.each do |p1|
+                #2 Threads
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}.out"
+                time, foundtime = findTime(inFileName,p0,p1)
+                basetime, foundbase  = findTime(baseFileName,p0,p1)
+                if foundbase && foundtime
+                    overheads2<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
                 end
+
+                #3 Threads
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}.out"
+                time, foundtime = findTime(inFileName,p0,p1)
+                basetime, foundbase  = findTime(baseFileName,p0,p1)
+                if foundbase && foundtime
+                    overheads3<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                end
+
+                #4 Threads
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out"
+                time, foundtime = findTime(inFileName,p0,p1)
+                basetime, foundbase  = findTime(baseFileName,p0,p1)
+                if foundbase && foundtime
+                    overheads4<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                end
+
             end
+            avg2 = overheads2.reduce(:+)/overheads2.length 
+            avg3 = overheads3.reduce(:+)/overheads3.length
+            avg4 = overheads4.reduce(:+)/overheads4.length 
+            currOutFile.printf("%-15s, %-15.9f, %-15.9f, %-15.9f\n",
+                               p0,avg2,avg3,avg4)
+
         end
     end
 end
