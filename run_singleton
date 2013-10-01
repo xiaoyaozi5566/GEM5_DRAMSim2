@@ -63,7 +63,7 @@ $specint = [
 ]
 
 $cpus = [ "detailed", "timing"]
-$schemes = ["tp","none", "open"]
+$schemes = ["tp","none"]
 Dir.chdir(specint_dir)
 $cpus.each do |cpu|
     $schemes.each do |scheme|
