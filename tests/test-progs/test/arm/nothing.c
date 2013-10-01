@@ -2,5 +2,5 @@
 #include <stdlib.h>
 
 int main() {
-	return 0;
+    while(1){}
 }
