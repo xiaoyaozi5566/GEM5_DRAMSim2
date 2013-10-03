@@ -1,0 +1,358 @@
+#!/usr/bin/ruby
+require 'fileutils'
+require 'rubyvis'
+require 'csv'
+
+$schemes = ['tp','none']
+$models = ['timing','detailed']
+$specint = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+]
+$caches = [1,2,4]
+
+$l1hit = 2  #cycles
+$l2hit = 7  #cycles
+$l3hit = 17 #cycles
+
+
+#$stats = [
+#    'imiss','dmiss','l2miss','l3miss',
+#    'ilat','dlat','l2lat','l3lat'
+#]
+
+$regexes = {
+    'imiss' => /system\.cpu0\.icache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'dmiss' => /system\.cpu0\.dcache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'l2miss' => /system\.l20\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'l3miss' => /system\.l3\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'ilat' => /system\.cpu0\.icache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'dlat' => /system\.cpu0\.dcache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'l2lat' => /system\.l20\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'l3lat' => /system\.l3\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/
+}
+
+def getStatVal(filename,regex)
+    file=File.open(filename,'r')
+    file.each_line do |line|
+        if line.match(regex)!=nil
+            file.close()
+            return [line.match(regex)[1].to_f,true]
+        end
+    end
+    file.close()
+    [nil,false]
+end
+
+def makeCachestats(indir)
+    Dir.chdir(indir)
+    stats = $regexes.keys
+
+    data = $schemes.inject({}){|i,sc|
+        i[sc]=$models.inject({}){|j,m|
+            j[m]=[1,2,4].inject({}){|k,c|
+                k[c]= stats.inject({}){|l,st|
+                    l[st]=[]
+                    l }
+                k } 
+            j } 
+        i }
+
+    $schemes.product($models,$specint,$caches).each do |scheme,model,p0,cache|
+        statVals = Hash.new()
+        statsFound = Hash.new()
+
+        inFileName=indir+
+            "/#{scheme}_#{model}_#{p0}_c#{cache}MB_stats.txt"
+        stats.each do |stat| 
+            statVals[stat], statsFound[stat]=
+                getStatVal(inFileName,$regexes[stat])
+            if statsFound[stat]
+                data[scheme][model][cache][stat] << statVals[stat]
+            else
+                data[scheme][model][cache][stat] << 0
+            end
+        end
+
+    end
+    data
+end
+
+def graphMiss4Combined(data,outdir)
+    m = $schemes.length
+    n = $specint.length
+    h=800
+    w=1000
+    x = pv.Scale.ordinal(pv.range(n)).split_banded(0, w, 4/5.0)
+    y = pv.Scale.linear(0, 1).range(0,h)
+
+    colors = pv.Colors.category20()
+
+    $models.each do|model|
+        missdata = $schemes.inject([]){|a,s|a << data[s][model][4]["l3miss"]; a }
+        missdata = missdata.transpose
+
+        vis = pv.Panel.new().
+            width(w).
+            bottom(20).
+            height(h).
+            left(20).
+            right(10).
+            top(5);
+
+        panel=vis.add(pv.Panel).
+            data(missdata).
+            left(lambda {x.scale(self.index)}).
+            width(x.range_band)
+        bar=panel.add(pv.Bar).
+            data(lambda {|d| d}).
+            left(lambda {self.index * x.range_band / m.to_f}).
+            width(x.range_band / m.to_f).
+            bottom(0).
+            height(y).
+            fillStyle(lambda { colors.scale(self.index)})
+
+        vis.render()
+        File.open(outdir+"/l3miss_#{model}.svg",'w'){|f| f.write vis.to_svg}
+    end
+end
+
+def graphMissRateDiff(data,outdir)
+    m = $caches.length
+    n = $specint.length
+    w = 400
+    h = 250
+    x = pv.Scale.linear(0,0.55).range(0, w)
+    y = pv.Scale.ordinal(pv.range(n)).split_banded(0, h, 4/5.0);
+
+    $models.each do|model|
+        missdata = $caches.inject([]){|arr,cache|
+            arr << data["none"][model][cache]["l3miss"]-
+                data["tp"][model][cache]["l3miss"]
+            arr
+        }
+        missdata = missdata.transpose
+
+        #/* The root panel. */
+        vis = pv.Panel.new()
+        .width(w)
+        .height(h)
+        .bottom(20)
+        .left(60)
+        .right(10)
+        .top(5);
+
+        #/* The bars. */
+
+        colors=pv.Colors.category20()
+
+        bar = vis.add(pv.Panel)
+        .data(missdata)
+        .top(lambda {y.scale(self.index)})
+        .height(y.range_band)
+        .add(pv.Bar)
+        .data(lambda {|d| d})
+        .top(lambda {self.index * y.range_band / m.to_f})
+        .height(y.range_band / m.to_f)
+        .left(0)
+        .width(x)
+        .fillStyle(lambda { colors.scale(self.index)})
+
+        #/* The value label. */
+        bar.anchor("right").add(pv.Label)
+        .textStyle("white")
+        .text(lambda {|d| "%0.2f" % d});
+
+        #/* The variable label. */
+        bar.parent.anchor("left").add(pv.Label)
+        .textAlign("right")
+        .textMargin(5)
+        .text(lambda {$specint[self.parent.index]});
+
+        #/* X-axis ticks. */
+        vis.add(pv.Rule)
+        .data(x.ticks(5))
+        .left(x)
+        .strokeStyle(lambda {|d| d!=0 ? "rgba(255,255,255,.3)" : "#000"})
+        .add(pv.Rule)
+        .bottom(0)
+        .height(5)
+        .strokeStyle("#000")
+        .anchor("bottom").add(pv.Label)
+        .text(x.tick_format);
+
+        vis.render()
+        File.open(outdir+"/l3missdiff_#{model}.svg",'w'){|f| f.write vis.to_svg}
+    end
+end
+
+def graphStat(data,outdir,stat)
+    m = $caches.length
+    n = $specint.length
+    w = 400
+    h = 250
+    x = pv.Scale.linear(0, 1.1).range(0, w)
+    y = pv.Scale.ordinal(pv.range(n)).split_banded(0, h, 4/5.0);
+
+    $schemes.product($models).each do|scheme,model|
+        missdata = $caches.inject([]){|arr,cache|
+            arr << data[scheme][model][cache][stat]
+            arr
+        }
+        missdata = missdata.transpose
+
+        #/* The root panel. */
+        vis = pv.Panel.new()
+        .width(w)
+        .height(h)
+        .bottom(20)
+        .left(60)
+        .right(10)
+        .top(5);
+
+        #/* The bars. */
+
+        colors=pv.Colors.category20()
+
+        bar = vis.add(pv.Panel)
+        .data(missdata)
+        .top(lambda {y.scale(self.index)})
+        .height(y.range_band)
+        .add(pv.Bar)
+        .data(lambda {|d| d})
+        .top(lambda {self.index * y.range_band / m.to_f})
+        .height(y.range_band / m.to_f)
+        .left(0)
+        .width(x)
+        .fillStyle(lambda { colors.scale(self.index)})
+
+        #/* The value label. */
+        bar.anchor("right").add(pv.Label)
+        .textStyle("white")
+        .text(lambda {|d| "%0.2f" % d});
+
+        #/* The variable label. */
+        bar.parent.anchor("left").add(pv.Label)
+        .textAlign("right")
+        .textMargin(5)
+        .text(lambda {$specint[self.parent.index]});
+
+        #/* X-axis ticks. */
+        vis.add(pv.Rule)
+        .data(x.ticks(5))
+        .left(x)
+        .strokeStyle(lambda {|d| d!=0 ? "rgba(255,255,255,.3)" : "#000"})
+        .add(pv.Rule)
+        .bottom(0)
+        .height(5)
+        .strokeStyle("#000")
+        .anchor("bottom").add(pv.Label)
+        .text(x.tick_format);
+
+        vis.render()
+        File.open(outdir+"/#{stat}_#{scheme}_#{model}.svg",'w'){|f| f.write vis.to_svg}
+    end
+end
+
+def graphMiss(data,outdir)
+    graphStat(data,outdir,"l3miss")
+end
+
+def graphLat(data,outdir)
+    graphStat(data,outdir,"l3lat")
+end
+
+def graphMissVertical(data,outdir)
+    m = $caches.length
+    n = $specint.length
+    h=400
+    w=500
+    x = pv.Scale.ordinal(pv.range(n)).split_banded(0, w, 4/5.0)
+    y = pv.Scale.linear(0, 1).range(0,h)
+
+    colors = pv.Colors.category20()
+
+    $schemes.product($models).each do|scheme,model|
+        missdata = $caches.inject([]){|arr,cache|
+            arr << data[scheme][model][cache]["l3miss"]
+            arr
+        }
+        missdata = missdata.transpose
+
+        vis = pv.Panel.new().
+            width(w).
+            bottom(20).
+            height(h).
+            left(20).
+            right(10).
+            top(5);
+
+        panel=vis.add(pv.Panel).
+            data(missdata).
+            left(lambda {x.scale(self.index)}).
+            width(x.range_band)
+        bar=panel.add(pv.Bar).
+            data(lambda {|d| d}).
+            left(lambda {self.index * x.range_band / m.to_f}).
+            width(x.range_band / m.to_f).
+            bottom(0).
+            height(y).
+            fillStyle(lambda { colors.scale(self.index)})
+
+        ##/* The value label. */
+        bar.anchor("top").add(pv.Label).
+            text_style("white").
+            text(lambda {|d| "%0.1f" % d})
+
+        #/* The variable label. */
+        bar.parent.anchor("bottom").add(pv.Label).
+            text_align("center").
+            text_margin(5).
+            text(lambda { $specint.flatten[self.parent.index]});
+
+        #panel.parent.anchor("bottom").add(pv.Label).
+        #textAlign("right").
+        #textMargin(5).
+        #text(lambda {"ABCDEFGHIJK"[self.parent.index,1]});
+
+
+        #/* Y-axis ticks. */
+        vis.add(pv.Rule).
+            data(y.ticks(5)).
+            bottom(y).
+            strokeStyle(lambda {|d| d!=0 ? "rgba(255,255,255,.3)" : "#000"}).
+            add(pv.Rule).
+            left(0).
+            width(5).
+            anchor("left").add(pv.Label).
+            text(y.tick_format);
+
+        vis.render()
+        File.open(outdir+"/l3miss_#{scheme}_#{model}.svg",'w'){|f| f.write vis.to_svg}
+    end
+end
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    stats=makeCachestats(File.expand_path(result_dir))
+    graphMiss(stats,File.expand_path(perfrep_dir))
+    graphLat(stats,File.expand_path(perfrep_dir))
+    graphMissRateDiff(stats,File.expand_path(perfrep_dir))
+
+end
