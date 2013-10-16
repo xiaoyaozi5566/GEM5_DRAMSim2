@@ -78,34 +78,6 @@ class TimeArr < Array
 
 end
 
-def make_timing_results(indir,outdir)
-    Dir.chdir(indir)
-    Parallel.each($schemes,:in_threads=>3) do |scheme|
-        $models.each do |model|
-            currOutFile = File.new(outdir+
-                                   "/performance_#{scheme}_#{model}.out",'w')
-            $specint.each do |b|
-                currInFile = File.open(indir+
-                                       "/stdout_#{scheme}_#{model}_#{b}_#{b}.out",'r')
-                foundTime=false
-                currInFile.each_line do |line|
-                    timingRegex = /Exiting @ tick (\d*)\w* because a \w*/
-                    unless line.match(timingRegex)== nil
-                        time =(line.match timingRegex)[1]
-                        currOutFile.printf("%-15s %e cycles\n",b,time)
-                        foundTime=true
-                    end
-                end
-                unless foundTime
-                    currOutFile.printf("%-15s ---------------\n",b)
-                end
-            end
-        end
-    end
-
-end
-
-
 if __FILE__ == $0
     result_dir = Dir.new(File.expand_path ARGV[0].to_s)
 
@@ -119,9 +91,7 @@ if __FILE__ == $0
         FileUtils.mkdir_p perfrep_dir.path
     end
 
-    #make_t0_files(result_dir)
-    #make_security_reports(result_dir,secrep_dir)
-    make_timing_results(File.expand_path(result_dir),
-                        File.expand_path(perfrep_dir))
+    make_t0_files(result_dir)
+    make_security_reports(result_dir,secrep_dir)
 end
 
