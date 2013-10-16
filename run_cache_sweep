@@ -74,7 +74,6 @@ $cpus.each do |cpu|
                     script = File.new(scriptgen_dir.path+
                                       "/run_#{filename}","w+")
                     script.puts("#!/bin/bash")
-                    script.puts("/usr/bin/time -o #{filename}.time \\")
                     script.puts("build/ARM/gem5.fast \\")
                     script.puts("    --stats-file=#{filename}_stats.txt \\")
                     script.puts("    configs/dramsim2/dramsim2_se.py \\")
@@ -105,7 +104,7 @@ $cpus.each do |cpu|
                     script.puts("rm /mnt/#{filename}.out")
                     script_abspath = File.expand_path(script.path)
                     script.close
-                    #system "qsub -wd #{gem5home.path} #{script_abspath}"
+                    system "qsub -wd #{gem5home.path} #{script_abspath}"
                 end
             end
         end
