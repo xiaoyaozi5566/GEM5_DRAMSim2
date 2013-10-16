@@ -62,6 +62,7 @@ $specint = [
     "Xalan"  
 ]
 
+
 $cpus = [ "detailed", "timing"]
 $schemes = ["tp","none"]
 Dir.chdir(specint_dir)
@@ -97,7 +98,7 @@ $cpus.each do |cpu|
                 script.puts("    --outputfile="+
                             "/mnt/#{filename}.out \\")
                 script.puts("    --p0=#{$specinvoke[p0file]} \\")
-                script.puts("    --p1=#{$specinvoke[p1file]} \\")
+                script.puts("    --p1=/root/GEM5_DRAMSim2/tests/test-progs/test/arm/nothing\\")
                 script.puts("    > results/stdout_#{filename}.out")
                 script.puts("./parse_latencies.rb /mnt/#{filename}.out "+
                             "results/latency_t0_#{filename}.csv results/latency_t1_#{filename}.csv")
