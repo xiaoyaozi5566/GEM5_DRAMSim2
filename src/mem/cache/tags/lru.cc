@@ -209,14 +209,16 @@ LRU::invalidateBlk(BlkType *blk)
             assert(blk->srcMasterId < cache->system->maxMasters());
             occupancies[blk->srcMasterId]--;
             blk->srcMasterId = Request::invldMasterId;
+            unsigned set = blk->set;
+            sets[set].moveToTail(blk);
         }
         blk->status = 0;
         blk->isTouched = false;
         blk->clearLoadLocks();
 
         // should be evicted before valid blocks
-        unsigned set = blk->set;
-        sets[set].moveToTail(blk);
+        //unsigned set = blk->set;
+        //sets[set].moveToTail(blk);
     }
 }
 
