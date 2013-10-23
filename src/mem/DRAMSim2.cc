@@ -110,6 +110,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             } else {
                 // only leverage the atomic access to move data, don't use the
                 // latency
+                //std::cout << "case 1" << std::endl;
                 dram->doAtomicAccess(pkt);
                 assert(pkt->isResponse());
                 schedTimingResp(pkt, curTick() + 1);
@@ -126,6 +127,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             if (threadID >= dram->num_pids) threadID = 0;
             Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
             retVal = dramsim2->addTransaction(tr);
+            //std::cout << "case 2" << std::endl;
         } else {
             if (pkt->isWrite()) {	// write-back does not need a response, but DRAMsim2 needs to track it
                 transType = DATA_WRITE;
@@ -134,15 +136,23 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             	if (threadID >= dram->num_pids) threadID = 0;
                 Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
                 retVal = dramsim2->addTransaction(tr);
-                assert(retVal == true);
+                if (retVal == true) {
+                	dram->doAtomicAccess(pkt);
+                	this->addPendingDelete(pkt);
+                }
+                //std::cout << "case 3" << std::endl;
+                // assert(retVal == true);
             }
-            retVal = dram->doAtomicAccess(pkt);
+            else {
+            	//std::cout << "case 4" << std::endl;
+				retVal = dram->doAtomicAccess(pkt);
 
-            // Again, I don't know....
-            /// @todo nominally we should just delete the packet here.
-            /// Until 4-phase stuff we can't because the sending
-            /// cache is still relying on it
-            this->addPendingDelete(pkt);
+				// Again, I don't know....
+				/// @todo nominally we should just delete the packet here.
+				/// Until 4-phase stuff we can't because the sending
+				/// cache is still relying on it
+				this->addPendingDelete(pkt);
+			}
         }
     }
     return retVal;
