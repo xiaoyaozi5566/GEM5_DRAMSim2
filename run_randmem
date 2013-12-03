@@ -30,7 +30,7 @@ $device = "DDR3_micron_16M_8B_x8_sg15.ini"
 
 $cpus.each do |cpu|
     $schemes.each do |scheme|
-        [1,2,4].each do |cacheSize|
+        [0,1,2,4].each do |cacheSize|
             $periods.each do |period|
                 filename = "#{scheme}_#{cpu}_randmem#{period}_c#{cacheSize}MB"
                 script = File.new(scriptgen_dir.path+
