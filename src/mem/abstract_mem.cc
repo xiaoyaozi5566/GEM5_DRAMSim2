@@ -160,7 +160,7 @@ AbstractMemory::regStats()
         .init(system()->maxMasters())
         .name(name() + ".num_writes")
         .desc("Number of write requests responded to by this memory")
-        .flags(total | nozero | nonan)
+        .flags(total | nonan)
         ;
     for (int i = 0; i < system()->maxMasters(); i++) {
         numWrites.subname(i, system()->getMasterName(i));
