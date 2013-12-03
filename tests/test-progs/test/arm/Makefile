@@ -1,5 +1,9 @@
-all: nothing victim attacker_L attacker_M attacker_H
+all: randmem nothing victim attacker_L attacker_M attacker_H
 	CCFLAGS=
+
+randmem: randmem.c
+	arm-none-linux-gnueabi-gcc ${CCFLAGS} randmem.c -o randmem --static
+	arm-none-linux-gnueabi-objdump -dS randmem > randmem.obj
 
 nothing: nothing.c
 	arm-none-linux-gnueabi-gcc ${CCFLAGS} nothing.c -o nothing --static
@@ -23,5 +27,5 @@ attacker_H: attacker_H.c
 
 
 clean:
-	rm -f attacker_L attacker_M attacker_H victim nothing *.obj
+	rm -f attacker_L attacker_M attacker_H victim nothing randmem *.obj
 
