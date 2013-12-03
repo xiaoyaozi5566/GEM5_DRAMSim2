@@ -4,6 +4,7 @@ require 'fileutils'
 
 gem5home = Dir.new(Dir.pwd)
 puts gem5home.path
+$synthbench_dir = (Dir.pwd+"/tests/test-progs/test/arm/");
 specint_dir = (Dir.pwd+"/benchmarks/spec2k6bin/specint")
 unless File.directory? File.expand_path(Dir.pwd+"/scriptgen")
     FileUtils.mkdir_p File.expand_path(Dir.pwd+"/scriptgen")
@@ -98,7 +99,7 @@ $cpus.each do |cpu|
                 script.puts("    --outputfile="+
                             "/mnt/#{filename}.out \\")
                 script.puts("    --p0=#{$specinvoke[p0file]} \\")
-                script.puts("    --p1=/root/GEM5_DRAMSim2/tests/test-progs/test/arm/nothing\\")
+                script.puts("    --p1=#{$synthbench_dir}nothing\\")
                 script.puts("    > results/stdout_#{filename}.out")
                 script.puts("./parse_latencies.rb /mnt/#{filename}.out "+
                             "results/latency_t0_#{filename}.csv results/latency_t1_#{filename}.csv")
