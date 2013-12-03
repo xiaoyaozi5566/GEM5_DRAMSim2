@@ -15,8 +15,8 @@ end
 scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
 #Gem5 options
-$fastforward = 10**6
-$maxtinsts = 10**6
+$fastforward = 10**9
+$maxtinsts = 10**8
 $maxtick = 2*10**15 
 
 #randmem options
