@@ -9,9 +9,10 @@ using namespace DRAMSim;
 
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
         ostream &dramsim_log_, unsigned tpTurnLength_,
-        int num_pids_):
+        int num_pids_, bool fixAddr_):
     CommandQueue(states,dramsim_log_,num_pids_)
 {
+    fixAddr = fixAddr_;
     tpTurnLength = tpTurnLength_;
 #ifdef DEBUG_TP
     cout << "TP Debugging is on." <<endl;
@@ -277,8 +278,13 @@ unsigned CommandQueueTP::getCurrentPID(){
 bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
     uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
-    uint64_t dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-            int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
+    uint64_t dead_time;
+    if ( fixAddr )
+		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
+				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
+    else
+		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
+				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
     return (tlength - (currentClockCycle & (tlength - 1))) <= dead_time;
 }
 

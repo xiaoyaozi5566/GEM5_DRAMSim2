@@ -65,7 +65,7 @@ using namespace DRAMSim;
 
 MemoryController::MemoryController(MemorySystem *parent, CSVWriter &csvOut_,
         ostream &dramsim_log_, const string &outputFilename_, bool genTrace_,
-        const string &traceFilename_, int num_pids_) :
+        const string &traceFilename_, int num_pids_, bool fixAddr) :
     dramsim_log(dramsim_log_),
     bankStates(NUM_RANKS, vector<BankState>(NUM_BANKS, dramsim_log)),
     //commandQueue(bankStates, dramsim_log_),

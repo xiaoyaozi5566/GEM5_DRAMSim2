@@ -140,7 +140,9 @@ if options.dramsim2 :
                         #Generate trace
                         genTrace=options.gentrace,
                         #Number of PIDs
-                        numPids=options.numpids
+                        numPids=options.numpids,
+                        #Use fixed address mapping
+                        fixAddr=options.fixaddr
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

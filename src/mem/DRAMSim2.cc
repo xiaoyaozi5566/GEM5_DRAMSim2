@@ -36,6 +36,7 @@
  */
 
 #include <cstdlib>
+#include <iomanip>
 
 #include "mem/DRAMSim2.hh"
 
@@ -49,7 +50,7 @@ DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
     //dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, p->systemConfigFile, p->cwd, p->traceFile, memoryCapacity, "./results/output", NULL, NULL);
     dramsim2 = new DRAMSim::MultiChannelMemorySystem(p->deviceConfigFile, 
             p->systemConfigFile, atoi((p->tpTurnLength).c_str()), p->genTrace, p->cwd, p->traceFile, 
-            memoryCapacity, p->outputFile, NULL, NULL, p->numPids);
+            memoryCapacity, p->outputFile, NULL, NULL, p->numPids, p->fixAddr);
     // intentionally set CPU:Memory clock ratio as 1, we do the synchronization later
     dramsim2->setCPUClockSpeed(0);
     num_pids = p->numPids;
@@ -128,6 +129,8 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
             retVal = dramsim2->addTransaction(tr);
             //std::cout << "case 2" << std::endl;
+            //std::cout << "Thread: " << threadID << std::endl;
+            //std::cout << "Addr  : " << std::hex << setfill('0') << setw(8) << addr << std::endl;
         } else {
             if (pkt->isWrite()) {	// write-back does not need a response, but DRAMsim2 needs to track it
                 transType = DATA_WRITE;

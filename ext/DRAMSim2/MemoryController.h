@@ -70,7 +70,7 @@ namespace DRAMSim
             //functions
             MemoryController(MemorySystem* ms, CSVWriter &csvOut_, ostream 
                     &dramsim_log_, const string &outputFilename_, bool genTrace_,
-                    const string &traceFilename_, int num_pids_);
+                    const string &traceFilename_, int num_pids_, bool fixAddr);
             virtual ~MemoryController();
 
             virtual bool addTransaction(Transaction *trans);
