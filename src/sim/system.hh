@@ -158,6 +158,7 @@ class System : public MemObject
     int numRunningContexts();
 
     Addr pagePtr[4];
+    bool fixAddr;
 
     uint64_t init_param;
 

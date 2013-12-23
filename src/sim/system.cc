@@ -97,6 +97,7 @@ System::System(Params *p)
     pagePtr[2] = (physmem.totalSize() >> (LogVMPageSize + 1));
     pagePtr[1] = pagePtr[2] >> 1;
     pagePtr[3] = pagePtr[1] + pagePtr[2];
+    fixAddr = p->fixAddr;
 
     if (FullSystem) {
         kernelSymtab = new SymbolTable;
@@ -308,19 +309,20 @@ System::replaceThreadContext(ThreadContext *tc, int context_id)
 Addr
 System::allocPhysPages(int npages, int pid)
 {
-#ifdef FIXADDR
-	Addr return_addr = pagePtr[pid] << LogVMPageSize;
-    pagePtr[pid] += npages;
-    if ((pagePtr[pid] << LogVMPageSize) > (physmem.totalSize()*(pid+1)/4))
-        fatal("Out of memory, please increase size of physical memory.");
-    return return_addr;
-#else    
-    Addr return_addr = pagePtr[0] << LogVMPageSize;
-    pagePtr[0] += npages;
-    if ((pagePtr[0] << LogVMPageSize) > physmem.totalSize())
-        fatal("Out of memory, please increase size of physical memory.");
-    return return_addr;
-#endif
+	if( fixAddr ) {
+		Addr return_addr = pagePtr[pid] << LogVMPageSize;
+		pagePtr[pid] += npages;
+		if ((pagePtr[pid] << LogVMPageSize) > (physmem.totalSize()*(pid+1)/4))
+			fatal("Out of memory, please increase size of physical memory.");
+		return return_addr;
+	}
+	else {    
+		Addr return_addr = pagePtr[0] << LogVMPageSize;
+		pagePtr[0] += npages;
+		if ((pagePtr[0] << LogVMPageSize) > physmem.totalSize())
+			fatal("Out of memory, please increase size of physical memory.");
+		return return_addr;
+	}
 }
 
 Addr
@@ -332,11 +334,10 @@ System::memSize() const
 Addr
 System::freeMemSize() const
 {
-#ifdef FIXADDR
-   return physmem.totalSize()*3 - ((pagePtr[0] + pagePtr[1] + pagePtr[2] + pagePtr[3]) << LogVMPageSize);
-#else
-   return physmem.totalSize() - (pagePtr[0] << LogVMPageSize);
-#endif
+	if( fixAddr ) 
+	   return physmem.totalSize()*3 - ((pagePtr[0] + pagePtr[1] + pagePtr[2] + pagePtr[3]) << LogVMPageSize);
+	else
+	   return physmem.totalSize() - (pagePtr[0] << LogVMPageSize);
 }
 
 bool
