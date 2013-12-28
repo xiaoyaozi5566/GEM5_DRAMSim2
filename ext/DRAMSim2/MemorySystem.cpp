@@ -55,7 +55,7 @@ powerCallBack_t MemorySystem::ReportPower = NULL;
 MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory, 
         CSVWriter &csvOut_, ostream &dramsim_log_, 
         const string &outputFilename_, unsigned tpTurnLength, bool genTrace, 
-        const string &traceFilename_, int num_pids) :
+        const string &traceFilename_, int num_pids, bool fixAddr) :
 		dramsim_log(dramsim_log_),
 		ReturnReadData(NULL),
 		WriteDataDone(NULL),
@@ -136,15 +136,15 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
     if(timingProtection == FixedTiming){
         memoryController = 
             new MemoryControllerFT(this, csvOut, dramsim_log, 
-                    outputFilename, genTrace, traceFilename, num_pids);
+                    outputFilename, genTrace, traceFilename, num_pids, fixAddr);
     } else if(timingProtection == TimingPartitioning){
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, 
-                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids);
+                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr);
     } else {
         memoryController = 
             new MemoryController(this, csvOut, dramsim_log, 
-                    outputFilename, genTrace, traceFilename, num_pids);
+                    outputFilename, genTrace, traceFilename, num_pids, fixAddr);
     }
 
 	// TODO: change to other vector constructor?

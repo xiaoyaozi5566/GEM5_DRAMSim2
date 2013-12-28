@@ -72,6 +72,8 @@ class System(MemObject):
     
     numPids = Param.Int(2,
         "number of PIDs in simulation")
+        
+    fixAddr = Param.Bool(False, "whether using fixed address mapping")
 
     init_param = Param.UInt64(0, "numerical value to pass into simulator")
     boot_osflags = Param.String("a", "boot flags to pass to the kernel")

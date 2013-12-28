@@ -78,6 +78,8 @@ if '--dramsim2' in sys.argv:
             help="Turn length for TP. Unused if another scheme is used.")
     parser.add_option("--outputfile", type="string", default="",
             help="output file for DRAMSim results."),
+    parser.add_option("--fixaddr", action="store_true", default=False,
+    		help="fixed the address mapping of each application")
     parser.add_option("--p0", type="string", 
             help="workload for processor 0."),
     parser.add_option("--p1", type="string",
@@ -138,7 +140,9 @@ if options.dramsim2 :
                         #Generate trace
                         genTrace=options.gentrace,
                         #Number of PIDs
-                        numPids=options.numpids
+                        numPids=options.numpids,
+                        #Use fixed address mapping
+                        fixAddr=options.fixaddr
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
@@ -262,7 +266,8 @@ system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
                 membus = CoherentBus(), 
                 mem_mode = test_mem_mode,
-                numPids = options.numpids)
+                numPids = options.numpids,
+                fixAddr = options.fixaddr)
 
 # Sanity check
 if options.fastmem and (options.caches or options.l2cache):
