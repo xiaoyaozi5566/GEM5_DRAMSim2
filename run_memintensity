@@ -59,15 +59,15 @@ def sav_script( test, cpu, scheme, cacheSize, period )
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    system "qsub -wd #{gem5home.path} #{script_abspath}"
+    system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
 $test = "randmem"
-$cpus.product( $schemes, $cacheSizes, $periods ).each do |params|
-    sav_script( $test, params[0], params[1], params[2], params[3] )
+$cpus.product( $schemes, $cacheSizes, $periods ).each do |cpu, scheme, cacheSize, period|
+    sav_script( $test, cpu, scheme, cacheSize, period )
 end
 
 $test = "hardstride"
-$cpus.product( $schemes, $cacheSizes           ).each do |params|
-    sav_script( $test, params[0], params[1], params[2], 1        )
+$cpus.product( $schemes, $cacheSizes           ).each do |period, scheme, cacheSize|
+    sav_script( $test, cpu, scheme, cacheSize, 1      )
 end
