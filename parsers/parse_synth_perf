@@ -1,0 +1,71 @@
+#!/usr/bin/ruby
+require 'fileutils'
+$schemes = %w[tp]
+$models = %w[ timing detailed ]
+$benchmarks = %w[ randmem hardstride ]
+$cacheSizes = [0, 1, 2, 4]
+$periods = (0..4).map{|x| 10**(x*2)}
+
+def findTime( filename )
+    currFile = File.open(filename,'r')
+    timingregex = 
+        /Exiting @ tick (\d*)\w* because a\w*/
+    time=nil
+    foundtime = false
+    currFile.each_line do |line|
+        if line.match(timingregex) != nil
+            time = (line.match timingregex)[1]
+            foundtime = true
+            break
+        end
+    end
+    currFile.close()
+    [time,foundtime]
+end
+
+def make_timing_results(indir,outdir)
+    Dir.chdir(indir)
+    $schemes.product($models).each do |scheme,model|
+        currOutFile = File.new(outdir+
+                               "/perfsynth_#{scheme}_#{model}.out",'w')
+
+        currOutFile.printf("%s,%s\n",scheme,model)
+        currOutFile.printf("%-18s","bench")
+        $cacheSizes.each {|cacheSize| currOutFile.printf("%-18s,",cacheSize)}
+        currOutFile.printf("\n")
+
+        $bench_configs= $periods.map{|p| "randmem#{p}"} << "hardstride1"
+
+        $bench_configs.each do |bench|
+            currOutFile.printf("%-18s,",bench)
+            $cacheSizes.each do |c|
+                inFileName=indir+
+                    "/stdout_#{scheme}_#{model}_#{bench}_c#{c}MB.out"
+                baseFileName=indir+
+                    "/stdout_none_#{model}_#{bench}_c#{c}MB.out"
+                time, foundtime = findTime(inFileName)
+                basetime, foundbase  = findTime(baseFileName)
+                result=100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                if foundtime && foundbase
+                    currOutFile.printf("%-18.9f,",result)
+                else
+                    currOutFile.printf("------------------,")
+                end
+            end
+            currOutFile.printf("\n")
+        end
+
+    end
+end
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    make_timing_results(File.expand_path(result_dir),
+                        File.expand_path(perfrep_dir))
+end
