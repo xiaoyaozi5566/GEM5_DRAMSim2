@@ -175,7 +175,8 @@ enum TimingProtection
 {
     None,
     FixedTiming,
-    TimingPartitioning
+    TimingPartitioning,
+    FixedAddress
 };
 
 enum SchedulingPolicy
