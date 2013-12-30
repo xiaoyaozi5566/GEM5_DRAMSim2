@@ -165,7 +165,7 @@ class TransactionReceiver
 		#endif
 
 			pendingReadRequests[address].pop_front();
-			cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
+			//cout << "Read Callback:  0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
 		void write_complete(unsigned id, uint64_t address, uint64_t done_cycle, uint64_t threadID)
 		{
@@ -233,7 +233,7 @@ class TransactionReceiver
 			uint64_t latency = done_cycle - added_cycle;
 
 			pendingWriteRequests[address].pop_front();
-			cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
+			//cout << "Write Callback: 0x"<< std::hex << address << std::dec << " latency="<<latency<<"cycles ("<< done_cycle<< "->"<<added_cycle<<") "<<threadID<<endl;
 		}
 };
 #endif
@@ -530,6 +530,7 @@ int main(int argc, char **argv)
 	string systemIniFilename("system.ini");
     unsigned tpTurnLength=12;
     int num_pids=2;
+    bool fixAddr=false;
 	string deviceIniFilename;
 	string pwdString;
 	string *visFilename = NULL;
@@ -565,7 +566,6 @@ int main(int argc, char **argv)
 			{"systemini", required_argument, 0, 's'},
             {"tpturnlength", required_argument, 0, 'l'},
             {"numpids", required_argument, 0, 'P'},
-
 			{"pwd", required_argument, 0, 'p'},
 			{"numcycles",  required_argument,	0, 'c'},
 			{"option",  required_argument,	0, 'o'},
@@ -577,7 +577,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		int option_index=0; //for getopt
-		c = getopt_long (argc, argv, "t:T:u:U:s:l:P:r:c:d:o:p:S:v:qn", long_options, &option_index);
+		c = getopt_long (argc, argv, "t:T:u:U:s:l:P:r:c:d:o:p:S:v:qnf", long_options, &option_index);
 		if (c == -1)
 		{
 			break;
@@ -622,6 +622,9 @@ int main(int argc, char **argv)
         case 'P':
             num_pids = atoi(optarg);
             break;
+        case 'f':
+        	fixAddr = true;
+        	break;
 		case 'd':
 			deviceIniFilename = string(optarg);
 			break;
@@ -708,13 +711,12 @@ int main(int argc, char **argv)
 	ifstream traceFile3;
 	string line;
 
-
 	MultiChannelMemorySystem *memorySystem = new MultiChannelMemorySystem(
             deviceIniFilename, systemIniFilename, tpTurnLength, 0, 
             pwdString, traceFileName, 
             megsOfMemory, outputFilename, 
             visFilename, paramOverrides,
-            num_pids);
+            num_pids, fixAddr);
 	// set the frequency ratio to 1:1
 	memorySystem->setCPUClockSpeed(0); 
     //std::ostream &dramsim_logfile = memorySystem->getLogFile(); 
