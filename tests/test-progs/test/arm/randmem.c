@@ -11,7 +11,7 @@ void nop( int delay ){
 
 int main(int argc, char **argv) {
     int SEED = 2;
-    int MEM_SIZE = 1024 * 1024; // *32 bits (number of ints)
+    int MEM_SIZE = 10 * 1024 * 1024; // *32 bits (number of ints)
     int DURATION = 6 * 1000 * 1000; //us
     int DELAY_OPS = 1000; //us between mem requests
 

@@ -1,5 +1,9 @@
-all: randmem nothing victim attacker_L attacker_M attacker_H
+all: hardstride randmem nothing victim attacker_L attacker_M attacker_H
 	CCFLAGS=
+
+hardstride: hardstride.c
+	arm-none-linux-gnueabi-gcc ${CCFLAGS} hardstride.c -o hardstride --static
+	arm-none-linux-gnueabi-objdump -dS hardstride > hardstride.obj
 
 randmem: randmem.c
 	arm-none-linux-gnueabi-gcc ${CCFLAGS} randmem.c -o randmem --static
@@ -27,5 +31,5 @@ attacker_H: attacker_H.c
 
 
 clean:
-	rm -f attacker_L attacker_M attacker_H victim nothing randmem *.obj
+	rm -f attacker_L attacker_M attacker_H victim nothing randmem hardstride *.obj
 

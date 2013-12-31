@@ -1,0 +1,130 @@
+#!/usr/bin/ruby
+require 'fileutils'
+require 'rubyvis'
+require 'csv'
+
+$schemes = %w[ tp none ]
+$models = %w[ timing detailed ]
+$benchmarks = %w[ randmem hardstride ]
+$periods = (0..4).map{|x| 10**(2*x) }
+$caches = [1,2,4]
+
+$l1hit = 2  #cycles
+$l2hit = 7  #cycles
+$l3hit = 17 #cycles
+
+$regexes = {
+    'instructions' => /sim_insts\s*(\d*)/,
+    'imiss' => /system\.cpu0\.icache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'dmiss' => /system\.cpu0\.dcache\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'l2miss' => /system\.l20\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'l3missrate' => /system\.l3\.overall_miss_rate::total\s*(\d*\.?\d*)/,
+    'ilat' => 
+        /system\.cpu0\.icache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'dlat' => 
+        /system\.cpu0\.dcache\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'l2lat' => /system\.l20\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'l3lat' => /system\.l3\.overall_avg_miss_latency::total\s*(\d*\.?\d*)/,
+    'l3miss' => /system\.l3\.overall_misses::total\s*(\d*)/
+}
+
+def getStatVal(filename,regex)
+    file=File.open(filename,'r')
+    file.each_line do |line|
+        if line.match(regex)!=nil
+            file.close()
+            return [line.match(regex)[1].to_f,true]
+        end
+    end
+    file.close()
+    [nil,false]
+end
+
+def makeCachestats(indir)
+    Dir.chdir(indir)
+    stats = $regexes.keys
+
+    data = $schemes.inject({}){|i,sc|
+        i[sc]=$models.inject({}){|j,m|
+            j[m]=[1,2,4].inject({}){|k,c|
+                k[c]= stats.inject({}){|l,st|
+                    l[st]=[]
+                    l }
+                k } 
+            j } 
+        i }
+
+    $schemes.product($models,$periods,$caches).each do |scheme,model,period,cache|
+        statVals = Hash.new()
+        statsFound = Hash.new()
+
+        inFileName=indir+
+            "/#{scheme}_#{model}_randmem#{period}_c#{cache}MB_stats.txt"
+        stats.each do |stat|
+            statVals[stat], statsFound[stat] =
+                getStatVal(inFileName,$regexes[stat])
+            if statsFound[stat]
+                data[scheme][model][cache][stat] << statVals[stat]
+            else
+                puts "#{scheme} #{model} randmem#{period} #{cache} #{stat} not found"
+                data[scheme][model][cache][stat] << 0
+            end
+        end
+
+    end
+
+    $schemes.product($models,$caches).each do |scheme,model,cache|
+        statVals = Hash.new()
+        statsFound = Hash.new()
+
+        inFileName=indir+
+            "/#{scheme}_#{model}_hardstride1_c#{cache}MB_stats.txt"
+        stats.each do |stat|
+            statVals[stat], statsFound[stat] =
+                getStatVal(inFileName,$regexes[stat])
+            if statsFound[stat]
+                data[scheme][model][cache][stat] << statVals[stat]
+            else
+                puts "#{scheme} #{model} hardstride1 #{cache} #{stat} not found"
+                data[scheme][model][cache][stat] << 0
+            end
+        end
+
+    end
+
+    data
+end
+
+def memAccessPerInst(data,outdir)
+    $schemes.product($models).each do |scheme,model|
+        mpiOutFile = File.new( outdir + "/#{scheme}_#{model}_mpi.csv", "w" )
+        mpiOutFile.printf( "%s,%s\n", scheme, model)
+        mpiOutFile.printf("%-18s,","cache" )
+        $bench_configs = $periods.map{|p| "randmem#{p}"} << "hardstride1"
+        $bench_configs.each {|bench| mpiOutFile.printf("%-18s,",bench)}
+        mpiOutFile.printf("\n")
+        $caches.each do |cache|
+            instructions = data[scheme][model][cache]['instructions']
+            kinstructions = instructions.map{|i| i/1000}
+            l3miss = data[scheme][model][cache]['l3miss']
+            #divide misses by instruction count
+            memperin = [l3miss,kinstructions].transpose.map{|i| i[1]==0? -1 : i.reduce(:/)}
+            mpiOutFile.printf("%-18s,",cache)
+            memperin.each {|bench| mpiOutFile.printf("%-18.13f,",bench)}
+            mpiOutFile.printf("\n") 
+        end
+    end
+end
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    stats=makeCachestats(File.expand_path(result_dir))
+    memAccessPerInst(stats,File.expand_path(perfrep_dir))
+
+end
