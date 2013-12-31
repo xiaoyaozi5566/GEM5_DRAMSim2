@@ -26,7 +26,7 @@ $schemes = ["tp","none"]
 
 #benchmark options
 $duration = 60 * 10**6 #randmem duration in us
-$periods = (0..4).map{|x| 10**(2*x)}  #in us
+$periods = (0..2).map{|x| 10**x}  #in us
 
 def sav_script( test, cpu, scheme, cacheSize, period )
     filename = "#{scheme}_#{cpu}_#{test}#{period}_c#{cacheSize}MB"
