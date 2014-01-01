@@ -43,7 +43,7 @@ def sav_script( test, cpu, scheme, cacheSize, period )
         script.puts("    --l3cache \\")
         script.puts("    --l3_size=#{cacheSize}MB\\")
     end
-    script.puts("   --fixaddr\\") if scheme == fa
+    script.puts("   --fixaddr\\") if scheme == "fa"
     script.puts("    --maxinsts=#{$maxtinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --dramsim2 \\")
