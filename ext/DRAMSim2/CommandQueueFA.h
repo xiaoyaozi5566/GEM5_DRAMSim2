@@ -11,7 +11,8 @@ namespace DRAMSim
         public:
             CommandQueueFA(vector< vector<BankState> > &states,
                     ostream &dramsim_log_,unsigned tpTurnLength,
-                    int num_pids, bool fixAddr_);
+                    int num_pids, bool fixAddr_,
+                    bool diffPeriod_, int p0Period_, int p1Period_);
             virtual void enqueue(BusPacket *newBusPacket);
             virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, 
                     unsigned bank, unsigned pid);
@@ -33,6 +34,9 @@ namespace DRAMSim
             unsigned tpTurnLength;
             unsigned lastPopTime;
             bool fixAddr;
+            bool diffPeriod;
+            int p0Period;
+            int p1Period;
 
             unsigned getCurrentPID();
             bool isBufferTime();
