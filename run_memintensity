@@ -28,8 +28,16 @@ $schemes = %w[tp none fa]
 $duration = 60 * 10**6 #randmem duration in us
 $periods = (0..2).map{|x| 10**x}  #in us
 
-def sav_script( test, cpu, scheme, cacheSize, period )
-    filename = "#{scheme}_#{cpu}_#{test}#{period}_c#{cacheSize}MB"
+$tests = {
+    "hardstride1" => "#{$synthbench_dir}hardstride -d #{$duration} -p 1",
+    "randmem1"    => "#{$synthbench_dir}randmem -d #{$duration} -p 1",
+    "randmem10"   => "#{$synthbench_dir}randmem -d #{$duration} -p 10",
+    "randmem100"  => "#{$synthbench_dir}randmem -d #{$duration} -p 100",
+    "nothing"     => "#{$synthbench_dir}nothing"
+}
+
+def sav_script( p0, p1, cpu, scheme, cacheSize )
+    filename = "#{scheme}_#{cpu}_#{p0}_#{p1}_c#{cacheSize}MB"
     script = File.new($scriptgen_dir.path+
                       "/run_#{filename}","w+")
     script.puts("#!/bin/bash")
@@ -53,22 +61,16 @@ def sav_script( test, cpu, scheme, cacheSize, period )
                 "./ext/DRAMSim2/ini/#{$device} \\")
     script.puts("    --systemcfg="+
                 "./ext/DRAMSim2/system_#{scheme}.ini \\")
-    script.puts("    --outputfile=/dev/null \\") 
-    script.puts("    --p0='#{$synthbench_dir}" +
-                "#{test} -d #{$duration} -p #{period}'\\")
-    script.puts("    --p1='#{$synthbench_dir}nothing'\\")
+    script.puts("    --outputfile=/dev/null \\")
+    script.puts("    --p0='#{$tests[p0]}'\\")
+    script.puts("    --p1='#{$tests[p1]}'\\")
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
     system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-$test = "randmem"
-$cpus.product( $schemes, $cacheSizes, $periods ).each do |cpu, scheme, cacheSize, period|
-    sav_script( $test, cpu, scheme, cacheSize, period )
-end
-
-$test = "hardstride"
-$cpus.product( $schemes, $cacheSizes           ).each do |cpu, scheme, cacheSize|
-    sav_script( $test, cpu, scheme, cacheSize, 1      )
+$cpus.product( $tests.keys, $tests.keys, $schemes, $cacheSizes ).
+    each do |cpu, p0, p1, scheme, cacheSize|
+    sav_script( p0, p1, cpu, scheme, cacheSize )
 end

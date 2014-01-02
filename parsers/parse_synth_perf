@@ -1,10 +1,10 @@
 #!/usr/bin/ruby
 require 'fileutils'
-$schemes = %w[tp]
+$schemes = %w[fa tp]
 $models = %w[ timing detailed ]
 $benchmarks = %w[ randmem hardstride ]
 $cacheSizes = [0, 1, 2, 4]
-$periods = (0..4).map{|x| 10**(x*2)}
+$periods = (0..2).map{|x| 10**x }
 
 def findTime( filename )
     currFile = File.open(filename,'r')
