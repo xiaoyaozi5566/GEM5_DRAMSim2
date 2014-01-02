@@ -43,6 +43,7 @@
 #include "MemoryController.h"
 #include "MemoryControllerFT.h"
 #include "MemoryControllerTP.h"
+#include "MemoryControllerFA.h"
 #include "Rank.h"
 #include "Transaction.h"
 #include "Callback.h"

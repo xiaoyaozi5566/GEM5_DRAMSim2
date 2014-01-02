@@ -141,7 +141,11 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, 
                     outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr);
-    } else {
+    } else if(timingProtection == FixedAddress){
+    	memoryController = 
+            new MemoryControllerFA(this, csvOut, dramsim_log, 
+                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr);
+	} else {
         memoryController = 
             new MemoryController(this, csvOut, dramsim_log, 
                     outputFilename, genTrace, traceFilename, num_pids, fixAddr);

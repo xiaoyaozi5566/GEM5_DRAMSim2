@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 int main(int argc, char **argv) {
-    int MEM_SIZE = 1024 * 1024; // *32 bits (number of ints)
+    int MEM_SIZE = 10 * 1024 * 1024; // *32 bits (number of ints)
     int DURATION = 60 * 1000 * 1000; // us
     int DELAY_OPS = 1; //us between mem requests
     int count = 0;
