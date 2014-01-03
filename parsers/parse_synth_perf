@@ -6,10 +6,18 @@ $benchmarks = %w[ randmem hardstride ]
 $cacheSizes = [0, 1, 2, 4]
 $periods = (0..2).map{|x| 10**x }
 
-def findTime( filename )
+$test_order = {
+    "randmem100"  => 0,
+    "randmem10"   => 1,
+    "randmem1"    => 2,
+    "hardstride1" => 3
+}
+
+def findTime( filename, p0, p1 )
     currFile = File.open(filename,'r')
-    timingregex = 
-        /Exiting @ tick (\d*)\w* because a\w*/
+    timingregex = $test_order[p0] > $test_order[p1] ?
+        /Exiting @ tick (\d*)\w* because a\w*/ :
+        /count @ Tick (\d*)/
     time=nil
     foundtime = false
     currFile.each_line do |line|
@@ -34,19 +42,27 @@ def make_timing_results(indir,outdir)
         $cacheSizes.each {|cacheSize| currOutFile.printf("%-18s,",cacheSize)}
         currOutFile.printf("\n")
 
-        $bench_configs= $periods.map{|p| "randmem#{p}"} << "hardstride1"
+        $bench_configs = $test_order.keys
 
-        $bench_configs.each do |bench|
-            currOutFile.printf("%-18s,",bench)
+        $bench_configs.each do |p0|
+            currOutFile.printf("%-18s,",p0)
             $cacheSizes.each do |c|
-                inFileName=indir+
-                    "/stdout_#{scheme}_#{model}_#{bench}_c#{c}MB.out"
-                baseFileName=indir+
-                    "/stdout_none_#{model}_#{bench}_c#{c}MB.out"
-                time, foundtime = findTime(inFileName)
-                basetime, foundbase  = findTime(baseFileName)
-                result=100.0*(time.to_f-basetime.to_f)/basetime.to_f
-                if foundtime && foundbase
+                overheads = []
+                $bench_configs.each do |p1|
+                    inFileName=indir+
+                        "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{c}MB.out"
+                    baseFileName=indir+
+                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{c}MB.out"
+                    time, foundtime = findTime( inFileName, p0, p1 )
+                    basetime, foundbase  = findTime( baseFileName, p0, p1 )
+                    if foundtime && foundbase
+                        t = time.to_f
+                        b = basetime.to_f
+                        overheads << 100 * (t-b)/b
+                    end
+                end
+                if overheads.length > 0
+                    result = overheads.reduce(:+)/overheads.length
                     currOutFile.printf("%-18.9f,",result)
                 else
                     currOutFile.printf("------------------,")
@@ -54,7 +70,6 @@ def make_timing_results(indir,outdir)
             end
             currOutFile.printf("\n")
         end
-
     end
 end
 
