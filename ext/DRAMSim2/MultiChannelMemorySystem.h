@@ -47,7 +47,8 @@ namespace DRAMSim {
                     const string &pwd, const string &trc, unsigned megsOfMemory,
                     const string &output, string *visFilename=NULL, 
                     const IniReader::OverrideMap *paramOverrides=NULL,
-                    int num_pids=2, bool fixAddr=false);
+                    int num_pids=2, bool fixAddr=false,
+                    bool diffPeriod=false, int p0Period=64, int p1Period=64);
             virtual ~MultiChannelMemorySystem();
             bool addTransaction(Transaction *trans);
             bool addTransaction(const Transaction &trans);

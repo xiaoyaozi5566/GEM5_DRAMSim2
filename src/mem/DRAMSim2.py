@@ -18,3 +18,6 @@ class DRAMSim2(DRAMSim2Wrapper):
     cwd = Param.String("", "current work directory");
     traceFile = Param.String("./results/DRAMSim.trc", "output file for trace generation");
     outputFile = Param.String("./results/DRAMSim.out", "output file containing DRAMSim results");
+    diffPeriod = Param.Bool(False, "Use different periods for different threads")
+    p0Period = Param.Int(64, "Period for thread 0")
+    p1Period = Param.Int(64, "Period for thread 1")

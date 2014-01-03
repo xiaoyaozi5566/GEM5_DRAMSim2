@@ -61,7 +61,8 @@ public:
 	MemorySystem(unsigned id, unsigned megsOfMemory, 
             CSVWriter &csvOut_, ostream &dramsim_log_, 
             const string &outputFilename_, unsigned tpTurnLength, bool genTrace, 
-            const string &traceFilename_, int num_pids, bool fixAddr);
+            const string &traceFilename_, int num_pids, bool fixAddr,
+            bool diffPeriod, int p0Period, int p1Period);
 	virtual ~MemorySystem();
 	void update();
 	bool addTransaction(Transaction *trans);

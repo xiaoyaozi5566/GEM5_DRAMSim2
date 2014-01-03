@@ -13,7 +13,8 @@ namespace DRAMSim
                     unsigned tpTurnLength_,
 		    bool genTrace_,
                     const string &traceFilename_,
-                    int num_pids_, bool fixAddr);
+                    int num_pids_, bool fixAddr,
+                    bool diffPeriod, int p0Period, int p1Period);
 
             virtual bool addTransaction(Transaction *trans);
             virtual void receiveFromBus(BusPacket *bpacket);
