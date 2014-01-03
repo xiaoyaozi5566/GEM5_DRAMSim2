@@ -80,6 +80,12 @@ if '--dramsim2' in sys.argv:
             help="output file for DRAMSim results."),
     parser.add_option("--fixaddr", action="store_true", default=False,
     		help="fixed the address mapping of each application")
+    parser.add_option("--diffperiod", action="store_true", default=False,
+    		help="use different periods for different security domains")
+    parser.add_option("--p0period", type="int", default=64,
+    		help="period for security domain 0")
+    parser.add_option("--p1period", type="int", default=64,
+    		help="period for security domain 1")
     parser.add_option("--p0", type="string", 
             help="workload for processor 0."),
     parser.add_option("--p1", type="string",
@@ -142,7 +148,13 @@ if options.dramsim2 :
                         #Number of PIDs
                         numPids=options.numpids,
                         #Use fixed address mapping
-                        fixAddr=options.fixaddr
+                        fixAddr=options.fixaddr,
+                        #Use different periods
+                        diffPeriod=options.diffperiod,
+                        #Period for thread 0
+                        p0Period=options.p0period,
+                        #Period for thread 1
+                        p1Period=options.p1period
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

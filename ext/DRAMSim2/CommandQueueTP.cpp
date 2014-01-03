@@ -9,11 +9,15 @@ using namespace DRAMSim;
 
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
         ostream &dramsim_log_, unsigned tpTurnLength_,
-        int num_pids_, bool fixAddr_):
+        int num_pids_, bool fixAddr_,
+        bool diffPeriod_, int p0Period_, int p1Period_):
     CommandQueue(states,dramsim_log_,num_pids_)
 {
     fixAddr = fixAddr_;
     tpTurnLength = tpTurnLength_;
+    diffPeriod = diffPeriod_;
+    p0Period = p0Period_;
+    p1Period = p1Period_;
 #ifdef DEBUG_TP
     cout << "TP Debugging is on." <<endl;
 #endif
@@ -272,12 +276,24 @@ void CommandQueueTP::print()
 }
 
 unsigned CommandQueueTP::getCurrentPID(){
-    return (currentClockCycle >> tpTurnLength) % num_pids;
+    if ( diffPeriod ) {
+    	return (currentClockCycle%(p0Period+p1Period)/p0Period);
+    }
+    else {
+    	return (currentClockCycle >> tpTurnLength) % num_pids;
+    }
 }
 
 bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
     uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
+    if ( diffPeriod ) {
+    	turnBegin = currentClockCycle - (currentClockCycle%(p0Period+p1Period)%p0Period);
+    	unsigned pid = getCurrentPID();
+    	if ( pid == 0 ) tlength = p0Period;
+    	else tlength = p1Period;
+    }
+    
     uint64_t dead_time;
     if ( fixAddr )
 		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
