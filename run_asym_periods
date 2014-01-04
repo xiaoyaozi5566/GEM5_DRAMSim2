@@ -19,11 +19,11 @@ $maxtinsts = 10**8
 $maxtick = 2*10**15 
 $cpus = [ "detailed", "timing"]
 $cacheSizes = [0,1,2,4]
-$p0periods = [96,128,192,256]
+$p0periods = [64,96,128,192,256]
 
 #dramsim options
 $device = "DDR3_micron_16M_8B_x8_sg15.ini"
-$schemes = %w[tp none fa]
+$schemes = %w[tp fa]
 
 #benchmark options
 $duration = 60 * 10**6 #randmem duration in us
@@ -75,7 +75,6 @@ def sav_script( p0, tl0, p1, cpu, scheme, cacheSize )
     system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-$cpus.product( $tests.keys, $p0periods, $tests.keys, $schemes, $cacheSizes ).
-    each do |cpu, p0, tl0, p1, scheme, cacheSize|
-    sav_script( p0, tl0, p1, cpu, scheme, cacheSize )
+$cpus.product( $p0periods, $schemes ).each do |cpu, tl0, scheme|
+    sav_script( "hardstride1", tl0, "randmem100", cpu, scheme, 4 )
 end
