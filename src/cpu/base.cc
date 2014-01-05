@@ -144,7 +144,10 @@ BaseCPU::BaseCPU(Params *p, bool is_checker)
     // set up instruction-count-based termination events, if any
     //
     if (p->max_insts_any_thread != 0) {
-        const char *cause = "a thread reached the max instruction count";
+        stringstream ss;
+        ss << _cpuId;
+        string causeString = "a thread in cpu"+ss.str()+" reached the max instruction count";
+        const char * cause = causeString.c_str();
         for (ThreadID tid = 0; tid < numThreads; ++tid) {
             Event *event = new SimLoopExitEvent(cause, 0);
             comInstEventQueue[tid]->schedule(event, p->max_insts_any_thread);
