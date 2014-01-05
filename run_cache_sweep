@@ -85,8 +85,8 @@ def sav_script( p0, p1, cpu, scheme, cacheSize )
     script.puts("    --systemcfg="+
                 "./ext/DRAMSim2/system_#{scheme}.ini \\")
     script.puts("    --outputfile=/dev/null \\")
-    script.puts("    --p0='#{$specinvoke[p0]}'\\")
-    script.puts("    --p1='#{$specinvoke[p1]}'\\")
+    script.puts("    --p0=#{$specinvoke[p0]}\\")
+    script.puts("    --p1=#{$specinvoke[p1]}\\")
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
@@ -95,7 +95,7 @@ end
 
 Dir.chdir( specint_dir )
 $cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
-    $specint.combination( 2 ).each do|p0, p1|
+    $specint.repeated_combination( 2 ).each do|p0, p1|
         sav_script( p0, p1, cpu, scheme, cacheSize )
     end
 end
