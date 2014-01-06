@@ -21,11 +21,11 @@ $specint = [
 $sim_stop_insts = 10**8
 
 ## consts for debug
-# $models = %w[timing]
-# $schemes = %w[none]
-# $cacheSizes = [4]
-# $specint = %w[gobmk h264ref].sort
-# $sim_stop_insts = 10**5
+#$models = %w[timing]
+#$schemes = %w[none]
+#$cacheSizes = [4]
+#$specint = %w[gobmk h264ref].sort
+#$sim_stop_insts = 10**5
 
 def whichFinishedFirst(expname)
     filename = "results/stdout_" + expname + ".out"
@@ -43,7 +43,6 @@ def whichFinishedFirst(expname)
         end
     end
     file.close()
-    puts which
     which
 end
 
@@ -93,7 +92,11 @@ end
 if __FILE__ == $0
     data = build_results( Dir.pwd )
 
-    outfile = ARGV[0].to_s
+    outfile = "inscount_hash"
+    if ARGV.length > 0
+        outfile = ARGV[0].to_s
+    end
+
     File.open(outfile,'w'){|f| f.write Marshal.dump( data ) }
     #puts Marshal.load( File.read outfile )
 

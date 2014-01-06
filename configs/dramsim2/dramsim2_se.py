@@ -201,12 +201,13 @@ process0.cmd = options.p0.split()
 process0.pid = 0
 multiprocesses.append(process0)
 
-process1 = LiveProcess()
-#process1.executable = "./tests/test-progs/test/arm/attacker_H"
-#process1.executable = options.p1
-process1.cmd = options.p1.split()
-process1.pid = 1
-multiprocesses.append(process1)
+if options.numpids > 1:
+    process1 = LiveProcess()
+    #process1.executable = "./tests/test-progs/test/arm/attacker_H"
+    #process1.executable = options.p1
+    process1.cmd = options.p1.split()
+    process1.pid = 1
+    multiprocesses.append(process1)
 
 if options.numpids > 2:
     process2 = LiveProcess()
