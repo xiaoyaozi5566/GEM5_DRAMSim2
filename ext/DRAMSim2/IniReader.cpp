@@ -524,6 +524,14 @@ void IniReader::InitEnumsFromStrings()
 			DEBUG("ADDR SCHEME: 7");
 		}
 	}
+	else if (ADDRESS_MAPPING_SCHEME == "scheme8")
+	{
+		addressMappingScheme = Scheme8;
+		if (DEBUG_INI_READER) 
+		{
+			DEBUG("ADDR SCHEME: 8");
+		}
+	}
 	else
 	{
 		cout << "WARNING: unknown address mapping scheme '"<<ADDRESS_MAPPING_SCHEME<<"'; valid values are 'scheme1'...'scheme7'. Defaulting to scheme1"<<endl;
