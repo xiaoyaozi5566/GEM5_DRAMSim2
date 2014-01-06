@@ -3,10 +3,11 @@
 #include <unistd.h>
 #include <ctype.h>
 
-void nop( int delay ){
-    int tmp,i;
+int nop( int delay ){
+    int tmp=0,i;
     for( i=0; i<delay; i++ )
         tmp = i + tmp;
+    return tmp;
 }
 
 int main(int argc, char **argv) {
@@ -35,15 +36,17 @@ int main(int argc, char **argv) {
     int * mem = ( int* ) malloc( sizeof( int ) * MEM_SIZE );
     int elapsed = 0;
     int tmp;
+    int count = 0;
     srand( SEED );
 
     while( elapsed < DURATION ){
-        int read_addr  = rand() % MEM_SIZE;
-        int write_addr = rand() % MEM_SIZE;
-        tmp = mem[read_addr];
+        //int read_addr  = rand() % MEM_SIZE;
+        int read_addr = count % MEM_SIZE;
+        tmp += mem[read_addr];
         elapsed += DELAY_OPS;
-        nop(DELAY_OPS);
+        tmp += nop(DELAY_OPS);
+        count += 16;
     }
-
+    printf("Sum is %d\n", tmp);
 }
 

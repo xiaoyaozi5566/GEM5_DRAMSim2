@@ -11,14 +11,14 @@ int main(int argc, char **argv) {
 
     int * mem = ( int* ) malloc( sizeof( int ) * MEM_SIZE );
     int elapsed = 0;
-    int tmp;
+    int tmp=0;
 
     while( elapsed < DURATION ){
         int read_addr  = count % MEM_SIZE;
-        tmp = mem[read_addr];
+        tmp += mem[read_addr];
         elapsed += DELAY_OPS;
         count += 16;
     }
-
+	printf("Sum is %d\n", tmp);
 }
 
