@@ -1,0 +1,92 @@
+#!/usr/bin/ruby
+require 'fileutils'
+
+$models = %w[timing detailed]
+$schemes = %w[none tp open]
+$cacheSizes = [0,1,2,4]
+$specint = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'xalan',
+].sort
+$sim_stop_insts = 10**8
+
+def whichFinishedFirst(expname)
+    filename = "results/stdout_" + expname + ".out"
+    file = File.open(filename,'r')
+    switchregex = /Switched CPUS/
+    exitregex = /Exiting @ tick \d*\w* because a thread in cpu(\d*)/
+    foundcpuswitch = false
+    which = nil
+    file.each_line do |line|
+        if !foundcpuswitch && line.match(switchregex)!=nil
+            foundcpuswitch = true
+        end
+        if line.match(exitregex)!= nil && foundcpuswitch
+            which =(line.match exitregex)[1]
+        end
+    end
+    file.close()
+    which
+end
+
+def findInstCounts(expname)
+    filename = "m5out/" + expname + "_stats.txt"
+    statsfile = File.open(filename,'r')
+    instsregex = /sim_insts\s*(\d*)/
+    otherinsts = -1
+    statsfile.each_line do |line|
+        if line =~ instsregex
+            otherinsts = line.match( instsregex )[1].to_i - $sim_stop_insts
+        end
+    end
+    statsfile.close()
+    return whichFinishedFirst(expname) == 0 ?
+        [$sim_stop_insts,otherinsts] :
+        [otherinsts,$sim_stop_insts]
+end
+
+def build_results( indir )
+    Dir.chdir(indir)
+
+    #nested hash to pair of num threads executed
+    data = $schemes.inject({}){|i,sc|
+        i[sc]=$models.inject({}){|j,m|
+            j[m]=$cacheSizes.inject({}){|k,c|
+                k[c] = $specint.inject({}){|l,p0|
+                    l[p0] = $specint.inject({}){|n,p1|
+                        n[p1]=[]
+                        n }
+                    l }
+                k }
+            j }
+        i }
+
+    $schemes.product( $models, $cacheSizes ).each do |scheme, model, cacheSize|
+        $specint.combination( 2 ).each do |p0,p1|
+            expname = "#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB"
+            data[scheme][model][cacheSize][p0][p1] =findInstCounts( expname )
+        end
+    end
+
+    data
+end
+
+
+if __FILE__ == $0
+    data = build_results( Dir.pwd )
+
+    outfile = ARGV[0].to_s
+    File.open(outfile,'w'){|f| f.write Marshal.dump( data ) }
+    #puts Marshal.load( File.read outfile )
+
+end
