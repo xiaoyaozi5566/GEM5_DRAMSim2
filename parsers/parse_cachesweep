@@ -1,7 +1,9 @@
 #!/usr/bin/ruby
 require 'fileutils'
 
-$models = ['timing','detailed']
+$models = %w[timing detailed]
+$schemes = %w[none tp open]
+$cacheSizes = [0,1,2,4]
 $specint = [
     'astar',
     'bzip2',
@@ -14,104 +16,148 @@ $specint = [
     #    'omnetpp',
     #    'perlbench',
     'sjeng',
-    'Xalan',
-]
+    'xalan',
+].sort
 
-$time_order_old = {
-    'libquantum' => 0,
-    'hmmer' => 1,
-    'astar' => 2,
-    'gcc' => 3,
-    'h264ref' => 4,
-    'bzip2' => 5, 
-    'gobmk' => 6,
-    'mcf' => 7,
-    'Xalan' => 8,
-    'sjeng' => 9,
+$metrics= {
+    "stp" => lambda {|tsp, tmp|
+        [tsp,tmp].transpose.map{|x| x.reduce(:/)}.reduce(:+)
+    },
+    "antt" => lambda {|tsp, tmp|
+        [tmp,tsp].transpose.map{|x| x.reduce(:/)}.reduce(:+)
+    }
 }
 
-$time_order = {
-    'libquantum' => 0,
-    'sjeng' => 1,
-    'hmmer' => 2,
-    'astar' => 3,
-    'h264ref' => 4,
-    'bzip2' => 5,
-    'Xalan' => 6,
-    'gcc' => 7, 
-    'mcf' => 8,
-    'gobmk' => 9,
-}
-
-def findTime(filename,p0,p1)
+def findTimeMP( filename )
     currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
-    timingregex = $time_order[p0] > $time_order[p1] ?
-        /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
-    foundtime = false
+    lastregex = /Exiting @ tick (\d*) because a thread in cpu(\d*)/ 
+    firstregex = /count @ Tick (\d*) because a thread in cpu(\d*)/
     foundcpuswitch = false
-    time = nil
+    #[p0time, p1time, foundp0, foundp1]
+    result = [-1,false,-1,false]
     currFile.each_line do |line|
         if !foundcpuswitch && line.match(switchregex)!=nil
             foundcpuswitch = true
         end
-        unless line.match(timingregex)== nil || !foundcpuswitch
-            time =(line.match timingregex)[1]
-            time = time.to_f
-            foundtime=true
-            break
+        if line.match(firstregex)!= nil && foundcpuswitch
+            time = (line.match firstregex)[1]
+            cpu  = (line.match firstregex)[2]
+            result[cpu]   = time.to_f
+            result[cpu+2] = true
+        end
+        if line.match(lastregex)!= nil && foundcpuswitch
+            time = (line.match lastregex)[1]
+            cpu  = (line.match lastregex)[1]
+            result[cpu]   = time.to_f
+            result[cpu+2] = true
         end
     end
     currFile.close()
-    [time,foundtime]
+    result
 end
 
-$schemes = ['tp','open']
-def make_timing_results(indir,outdir)
-    Dir.chdir(indir)
-    $schemes.product($models).each do |scheme,model|
-        currOutFile = File.new(outdir+
-                               "/cachesweep_#{scheme}_#{model}.out",'w')
+def findTimeSP( filename )
+    currFile = File.open(filename,'r')
+    switchregex = /Switched CPUS/
+    timeregex = /Exiting @ tick (\d*) because a thread/ 
+    time = -1
+    currFile.each_line do |line|
+        if !foundcpuswitch && line =~ switchregex
+            foundcpuswitch = true
+        end
+        if line =~ timeregex && foundcpuswitch
+            time = (line.match timeregex)[1]
+        end
+    end
+    currFile.close()
+    time.to_f
+end
 
-        currOutFile.printf("%s,%s\n",scheme,model)
-        currOutFile.printf("%-15s","p0")
-        [0,1,2,4].each {|cacheSize| currOutFile.printf("%-15s,",cacheSize)}
-        currOutFile.printf("\n")
+def build_results( spdir, mpdir, inscount_hash )
+    mpdata = $schemes.inject({}){|i,sc|
+        i[sc]=$models.inject({}){|j,m|
+            j[m]=$cacheSizes.inject({}){|k,c|
+                k[c] = $specint.inject({}){|l,p0|
+                    l[p0] = $specint.inject({}){|n,p1|
+                        n[p1]=[]
+                        n }
+                    l }
+                k }
+            j }
+        i }
 
-        $specint.each do |p0|
-            currOutFile.printf("%-15s,",p0)
-            [0,1,2,4].each do |cacheSize|
-                overheads=[]
-                $specint.each do |p1|
-                    inFileName=indir+
-                        "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
-                    baseFileName=indir+
-                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
-                    time, foundtime = findTime(inFileName,p0,p1)
-                    basetime, foundbase  = findTime(baseFileName,p0,p1)
-                    overheads<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
-                end
-                if(overheads.length>0)
-                    currOutFile.printf("%-15.9f,",
-                                       overheads.reduce(:+)/overheads.length)
-                else
-                    currOutFile.printf("----------,")
-                end
+    spdata = $schemes.inject({}){|i,sc|
+        i[sc]=$models.inject({}){|j,m|
+            j[m]=$cacheSizes.inject({}){|k,c|
+                k[c] = $specint.inject({}){|l,p0|
+                    l[p0] = $specint.inject({}){|n,p1|
+                        n[p1]=[]
+                        n }
+                    l }
+                k }
+            j }
+        i }
+
+    $schemes.product( $models, $cacheSizes ).each do |scheme, model, cacheSize|
+        $specint.combinations(2).each do |p1,p0|
+            p0ins = inscount_hash[scheme][model][cacheSize][p0][p1][0]
+            p1ins = inscount_hash[scheme][model][cacheSize][p0][p1][1]
+            p0FileName = spdir +
+                "/stdout_#{scheme}_#{model}_#{p0}_sp#{p0ins}_c#{cacheSize}MB.out"
+            p1FileName = spdir +
+                "/stdout_#{scheme}_#{model}_#{p1}_sp#{p1ins}_c#{cacheSize}MB.out"
+            mpFileName = mpdir +
+                "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
+            mp0, mp1 = findTimeMP( mpFileName )[0..1]
+            sp0 = findTimeSP( p0FileName )
+            sp1 = findTimeSP( p1FileName )
+            mpdata[scheme][model][cacheSize][p0][p1] = [mp0,mp1]
+            spdata[scheme][model][cacheSize][p0][p1] = [sp0,sp1]
+        end
+    end
+    [spdata,mpdata]
+end
+
+def setup_outfile( filename )
+    file = File.new( filename, 'w' )
+    file.printf("%s,%s\n",scheme,model)
+    file.printf("%-18s,","workload")
+    $cacheSizes.each {|cacheSize| file.printf("%-15s,",cacheSize)}
+    file.printf("\n")
+end
+
+def save_results( outdir, spdata, mpdata )
+    $schemes.product( $models, $metrics.keys ).
+        each do |scheme, model, metric|
+
+        outfile = setup_outfile( outdir +
+            "/spec_#{metric}_#{scheme}_#{model}.out" )
+
+        $specint.combinations(2).each do |p0,p1|
+            outfile.printf("%-18s","#{p0}_#{p1}")
+            $cacheSizes.each do |cacheSize|
+                tsps  = spdata[scheme][model][cacheSize][p0][p1]
+                tmps  = mpdata[scheme][model][cacheSize][p0][p1]
+                stat  = $metrics[metric].call(tsps,tmps)
+                outfile.printf("%-15.9f\n",stat)
             end
-            currOutFile.printf("\n")
+            outfile.printf("\n")
         end
     end
 end
 
-
 if __FILE__ == $0
-    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+    spdir = Dir.new(File.expand_path ARGV[0].to_s)
+    mpdir = Dir.new(File.expand_path ARGV[1].to_s)
 
-    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    out_dir = Dir.new(File.expand_path ARGV[2].to_s)
     unless File.directory? perfrep_dir.path
         FileUtils.mkdir_p perfrep_dir.path
     end
 
-    make_timing_results(File.expand_path(result_dir),
-                        File.expand_path(perfrep_dir))
+    inscount_hash = Marshal.load( File.read "inscount_hash" )
+    sp, mp = build_results( spdir, mpdir, inscount_hash )
+    save_results( out_dir, sp, mp )
+
 end
