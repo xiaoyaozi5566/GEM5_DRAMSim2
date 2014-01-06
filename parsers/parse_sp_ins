@@ -20,11 +20,18 @@ $specint = [
 ].sort
 $sim_stop_insts = 10**8
 
+## consts for debug
+# $models = %w[timing]
+# $schemes = %w[none]
+# $cacheSizes = [4]
+# $specint = %w[gobmk h264ref].sort
+# $sim_stop_insts = 10**5
+
 def whichFinishedFirst(expname)
     filename = "results/stdout_" + expname + ".out"
     file = File.open(filename,'r')
     switchregex = /Switched CPUS/
-    exitregex = /Exiting @ tick \d*\w* because a thread in cpu(\d*)/
+    exitregex = /Exiting @ tick \d* because a thread in cpu(\d*)/
     foundcpuswitch = false
     which = nil
     file.each_line do |line|
@@ -32,10 +39,11 @@ def whichFinishedFirst(expname)
             foundcpuswitch = true
         end
         if line.match(exitregex)!= nil && foundcpuswitch
-            which =(line.match exitregex)[1]
+            which =(line.match exitregex)[1].to_i
         end
     end
     file.close()
+    puts which
     which
 end
 
