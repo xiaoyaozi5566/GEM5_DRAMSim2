@@ -24,21 +24,8 @@ $cacheSizes = [0,1,2,4]
 $device = "DDR3_micron_16M_8B_x8_sg15.ini"
 $schemes = %w[tp none]
 
-#for running debug spec inputs
-$specinvoke_test = { 
-    #    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
-    "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.program 5'",
-    "gcc"        => "'#{specint_dir}/gcc #{specint_dir}/cccp.in -o results/cccp.s'",
-    "mcf"        => "'#{specint_dir}/mcf #{specint_dir}/inp.in'",
-    "gobmk"      => "'#{specint_dir}/gobmk --quiet --mode gtp < #{specint_dir}/capture.tst'",
-    "hmmer"      => "'#{specint_dir}/hmmer --fixed 0 --mean 325 --num 45000 --sd 200 --seed 0 #{specint_dir}/bombesin.hmm'",
-    "sjeng"      => "'#{specint_dir}/sjeng #{specint_dir}/test.txt'",
-    "libquantum" => "'#{specint_dir}/libquantum 33 5'",
-    "h264ref"    => "#{specint_dir}/h264ref -d #{specint_dir}/foreman_test_encoder_baseline.cfg'",
-    #    "omnetpp"    => "'#{specint_dir}/omnetpp #{specint_dir}/omnetpp.ini'",
-    "astar"      => "'#{specint_dir}/astar #{specint_dir}/lake.cfg'",
-    "xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/test.xml #{specint_dir}/xalanc.xsl'"  
-}
+#other options
+$inscount_hash_name = "inscount_hash"
 
 #full spec inputs
 $specinvoke = { 
@@ -56,12 +43,28 @@ $specinvoke = {
     "xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/t5.xml #{specint_dir}/xalanc.xsl'"  
 }
 
+# debug constants
+#$fastforward = 10
+#$maxinsts    = 10**5
+#$cpus        = %w[timing]
+#$cacheSizes  = [4]
+#$schemes     = %w[none]
+#$specinvoke = {
+#    "gobmk"      => "'#{specint_dir}/gobmk --quiet --mode gtp --gtp-input #{specint_dir}/13x13.tst'",
+#    "h264ref"    => "'#{specint_dir}/h264ref -d #{specint_dir}/foreman_ref_encoder_baseline.cfg'"
+#}
+
+
 $specint = $specinvoke.keys.sort
 
-def sav_script( p0, p1, cpu, scheme, cacheSize )
-    filename = "#{scheme}_#{cpu}_#{p0}_#{p1}_c#{cacheSize}MB"
+def get_filename( p0, cpu, scheme, cacheSize, inscount )
+    "#{scheme}_#{cpu}_#{p0}_sp#{inscount}_c#{cacheSize}MB"
+end
+
+def sav_script( p0, cpu, scheme, cacheSize, inscount )
+    filename = get_filename( p0, cpu, scheme, cacheSize, inscount )
     script = File.new($scriptgen_dir.path+
-                      "/run_#{filename}","w+")
+        "/run_#{filename}","w+")
     script.puts("#!/bin/bash")
     script.puts("build/ARM/gem5.fast \\")
     script.puts("    --stats-file=#{filename}_stats.txt \\")
@@ -75,10 +78,10 @@ def sav_script( p0, p1, cpu, scheme, cacheSize )
     end
     script.puts("    --fast-forward=#{$fastforward} \\")
     script.puts("    --fixaddr\\") if scheme == "fa"
-    script.puts("    --maxinsts=#{$maxtinsts} \\")
+    script.puts("    --maxinsts=#{inscount} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --dramsim2 \\")
-    script.puts("    --numpids=2 \\")
+    script.puts("    --numpids=1 \\")
     script.puts("    --tpturnlength=6 \\")
     script.puts("    --devicecfg="+
                 "./ext/DRAMSim2/ini/#{$device} \\")
@@ -86,16 +89,36 @@ def sav_script( p0, p1, cpu, scheme, cacheSize )
                 "./ext/DRAMSim2/system_#{scheme}.ini \\")
     script.puts("    --outputfile=/dev/null \\")
     script.puts("    --p0=#{$specinvoke[p0]}\\")
-    script.puts("    --p1=#{$specinvoke[p1]}\\")
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
     system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
+inscounts = Marshal.load( File.read $inscount_hash_name )
+puts inscounts
 Dir.chdir( specint_dir )
+exp_run = []
 $cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
     $specint.combination( 2 ).each do|p0, p1|
-        sav_script( p0, p1, cpu, scheme, cacheSize )
+
+        puts "#{scheme} #{cpu} #{cacheSize} #{p0} #{p1}"
+        puts inscounts[scheme]
+        puts inscounts[scheme][cpu]
+        puts inscounts[scheme][cpu][cacheSize][p0]
+        inscount = inscounts[scheme][cpu][cacheSize][p0][p1]
+
+        curr_exp = get_filename( p0, cpu, scheme, cacheSize, inscount[0] )
+        unless exp_run.include? curr_exp
+            sav_script( p0, cpu, scheme, cacheSize, inscount[0] )
+            exp_run << curr_exp
+        end
+
+        curr_exp = get_filename( p1, cpu, scheme, cacheSize, inscount[1] )
+        unless exp_run.include? curr_exp
+            sav_script( p1, cpu, scheme, cacheSize, inscount[1] )
+            exp_run << curr_exp
+        end
+
     end
 end
