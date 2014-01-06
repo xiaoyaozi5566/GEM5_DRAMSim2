@@ -27,7 +27,7 @@ $sim_stop_insts = 10**8
 #$specint = %w[gobmk h264ref].sort
 #$sim_stop_insts = 10**5
 
-def whichFinishedFirst(expname)
+def whichFinishedLast(expname)
     filename = "results/stdout_" + expname + ".out"
     file = File.open(filename,'r')
     switchregex = /Switched CPUS/
@@ -57,7 +57,7 @@ def findInstCounts(expname)
         end
     end
     statsfile.close()
-    return whichFinishedFirst(expname) == 0 ?
+    return whichFinishedLast(expname) == 0 ?
         [$sim_stop_insts,otherinsts] :
         [otherinsts,$sim_stop_insts]
 end
