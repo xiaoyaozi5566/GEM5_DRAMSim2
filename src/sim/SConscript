@@ -35,6 +35,7 @@ SimObject('ClockedObject.py')
 SimObject('Root.py')
 SimObject('InstTracer.py')
 
+Source('global_exit_count.cc')
 Source('arguments.cc')
 Source('async.cc')
 Source('core.cc')
