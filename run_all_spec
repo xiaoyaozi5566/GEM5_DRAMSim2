@@ -98,7 +98,7 @@ $cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
     end
 end
 $cpus.product( $cacheSizes, $specint ).each do |cpu, cacheSize, p0|
-    sav_script( cpu, scheme, cacheSize, 6, p0 )
+    sav_script( cpu, "none", cacheSize, 6, p0 )
 end
 
 #Turn Length Sweeping
