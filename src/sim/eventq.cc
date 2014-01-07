@@ -431,6 +431,5 @@ Event::dump() const
 EventQueue::EventQueue(const string &n)
     : objName(n), head(NULL)
 {
-    fprintf(stderr,"making an eventqueue with name %s\n", n.c_str() );
     exit_count=2;
 }

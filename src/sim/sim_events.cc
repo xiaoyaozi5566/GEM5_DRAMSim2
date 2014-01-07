@@ -86,11 +86,9 @@ isExitFF( const std::string &message ){
     }
     else if(message.find("max instruction count")){
         if(--mainEventQueue.exit_count>0){
-            fprintf(stderr,"here1\n");
             return false;
         }
     }
-    fprintf(stderr,"here2\n");
     return true;
 }
 
@@ -99,11 +97,9 @@ isExitNormal( const std::string &message ){
 
     if( message.find("max instruction count")!=string::npos ){
         if( message.find("cpu0")==string::npos ){
-            fprintf(stderr,"here3\n");
             return false;
         }
     }
-    fprintf(stderr,"here4\n");
     return true;
 }
 void
@@ -112,7 +108,6 @@ exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
 
     
     int count = ExitCounter::get();
-    fprintf(stderr,"exit_count %d\n",count);
     if( count > 0 ){
         cout << message << " @ " << curTick() << endl;
         if( !isExitFF(     message ) ){
