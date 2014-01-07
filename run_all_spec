@@ -22,7 +22,7 @@ $cacheSizes = [0,1,2,4]
 #dramsim options
 $device = "DDR3_micron_16M_8B_x8_sg15.ini"
 $schemes = %w[tp none]
-$turnlengths = [0] + (7 .9).to_a
+$turnlengths = [0] + (7..9).to_a
 
 $specinvoke = { 
     #    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
@@ -82,6 +82,8 @@ def sav_script( cpu, scheme, cacheSize, turnlength, p0, p1=nil, p2=nil, p3=nil )
     script.puts("    --numpids=#{numpids} \\")
     script.puts("    --p0=#{$specinvoke[p0]}\\")
     script.puts("    --p1=#{$specinvoke[p1]}\\") unless p1.nil?
+    script.puts("    --p2=#{$specinvoke[p2]}\\") unless p2.nil?
+    script.puts("    --p3=#{$specinvoke[p3]}\\") unless p3.nil?
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
