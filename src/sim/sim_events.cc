@@ -120,7 +120,7 @@ exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
         }
     }
     
-    //ExitCounter::dec();
+    ExitCounter::dec();
     Event *event = new SimLoopExitEvent(message, exit_code, repeat);
     mainEventQueue.schedule(event, when);
 }
