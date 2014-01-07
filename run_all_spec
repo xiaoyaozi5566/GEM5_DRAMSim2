@@ -97,6 +97,9 @@ $cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
         sav_script( cpu, scheme, cacheSize, 6, p0, p1 )
     end
 end
+$cpus.product( $cacheSizes, $specint ).each do |cpu, cacheSize, p0|
+    sav_script( cpu, scheme, cacheSize, 6, p0 )
+end
 
 #Turn Length Sweeping
 Dir.chdir(specint_dir)
@@ -105,7 +108,7 @@ $cpus.product( $turnlengths ).each do |cpu, turnlength|
         sav_script( cpu, "tp", 4, turnlength, p0, p1 )
     end
     $specint.each do |p0|
-        sav_script( cpu, "tp", 4, turnlength, p0 )
+        sav_script( cpu, "none", 4, turnlength, p0 )
     end
 end
 
