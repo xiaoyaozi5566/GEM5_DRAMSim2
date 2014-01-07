@@ -43,6 +43,7 @@
 #include "debug/Config.hh"
 #include "sim/core.hh"
 #include "sim/eventq.hh"
+#include "sim/global_exit_count.hh"
 
 using namespace std;
 
@@ -430,5 +431,6 @@ Event::dump() const
 EventQueue::EventQueue(const string &n)
     : objName(n), head(NULL)
 {
+    fprintf(stderr,"making an eventqueue with name %s\n", n.c_str() );
     exit_count=2;
 }
