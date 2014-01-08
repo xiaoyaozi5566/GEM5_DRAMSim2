@@ -43,6 +43,7 @@
 #include "debug/Config.hh"
 #include "sim/core.hh"
 #include "sim/eventq.hh"
+#include "sim/global_exit_count.hh"
 
 using namespace std;
 

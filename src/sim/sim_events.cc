@@ -36,6 +36,7 @@
 #include "sim/sim_events.hh"
 #include "sim/sim_exit.hh"
 #include "sim/stats.hh"
+#include "sim/global_exit_count.hh"
 
 using namespace std;
 
@@ -76,24 +77,50 @@ SimLoopExitEvent::description() const
     return "simulation loop exit";
 }
 
-    void
+bool
+isExitFF( const std::string &message ){
+    if(message=="target called exit()"){
+        if(--mainEventQueue.exit_count>0){
+            return false;
+        }
+    }
+    else if(message.find("max instruction count")){
+        if(--mainEventQueue.exit_count>0){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
+isExitNormal( const std::string &message ){
+
+    if( message.find("max instruction count")!=string::npos ){
+        if( message.find("cpu0")==string::npos ){
+            return false;
+        }
+    }
+    return true;
+}
+void
 exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
 {
 
-    if(message=="target called exit()"){
-        if(--mainEventQueue.exit_count>0){
-            cout <<"A thread called exit() @ Tick " << curTick() << endl;
+    
+    int count = ExitCounter::get();
+    if( count > 0 ){
+        cout << message << " @ " << curTick() << endl;
+        if( !isExitFF(     message ) ){
             return;
         }
-    } 
-    else if(message.find("max instruction count")){
-        if(--mainEventQueue.exit_count>0){
+    } else {
+        if( !isExitNormal( message ) ){
             cout << message << " @ " << curTick() << endl;
             return;
         }
     }
-
-
+    
+    ExitCounter::dec();
     Event *event = new SimLoopExitEvent(message, exit_code, repeat);
     mainEventQueue.schedule(event, when);
 }
