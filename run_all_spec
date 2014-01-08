@@ -87,32 +87,31 @@ def sav_script( cpu, scheme, cacheSize, turnlength, p0, p1=nil, p2=nil, p3=nil )
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    #system "qsub -wd #{$gem5home.path} #{script_abspath}"
+    system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-#Cache Sweeping
-Dir.chdir( specint_dir )
-$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
-    $specint.product( $specint ).each do|p0, p1|
-        sav_script( cpu, scheme, cacheSize, 6, p0, p1 )
-    end
-end
-
-#Turn Length Sweeping
-Dir.chdir(specint_dir)
-$cpus.product( $turnlengths ).each do |cpu, turnlength|
-    $specint.product( $specint ).each do |p0,p1|
-        sav_script( cpu, "tp", 4, turnlength, p0, p1 )
-    end
-    $specint.each do |p0|
-        sav_script( cpu, "tp", 4, turnlength, p0 )
-    end
-end
+##Cache Sweeping
+#Dir.chdir( specint_dir )
+#$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
+#    $specint.product( $specint ).each do|p0, p1|
+#        sav_script( cpu, scheme, cacheSize, 6, p0, p1 )
+#    end
+#end
+#
+##Turn Length Sweeping
+#Dir.chdir(specint_dir)
+#$cpus.product( $turnlengths ).each do |cpu, turnlength|
+#    $specint.product( $specint ).each do |p0,p1|
+#        sav_script( cpu, "tp", 4, turnlength, p0, p1 )
+#    end
+#    $specint.each do |p0|
+#        sav_script( cpu, "tp", 4, turnlength, p0 )
+#    end
+#end
 
 #Thread Scaling
-otherbench = %w[astar mcf]
 $cpus.product( $schemes ).each do |cpu, scheme|
-    $specint.product( otherbench ).each do |p0,other|
+    $specint.product( $specint ).each do |p0,other|
         sav_script( cpu, scheme, 4, 6, p0, other, other )
         sav_script( cpu, scheme, 4, 6, p0, other, other, other )
     end
