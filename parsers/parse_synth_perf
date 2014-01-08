@@ -1,28 +1,35 @@
 #!/usr/bin/ruby
 require 'fileutils'
-$schemes = %w[fa tp]
-$models = %w[ timing detailed ]
+$schemes = %w[ fa tp ]
+$models = %w[ detailed ]
 $benchmarks = %w[ randmem hardstride ]
-$cacheSizes = [0, 1, 2, 4]
+$cacheSizes = [4]
 $periods = (0..2).map{|x| 10**x }
 
-$test_order = {
-    "randmem100"  => 0,
-    "randmem10"   => 1,
-    "randmem1"    => 2,
-    "hardstride1" => 3
-}
+$tests = [
+    #"randmem100",
+    #"randmem10",
+    "randmem1",
+    "hardstride1",
+    "nothing"
+]
+
+$p0tls= [64,96,128,192,256]
 
 def findTime( filename, p0, p1 )
     currFile = File.open(filename,'r')
-    timingregex = $test_order[p0] > $test_order[p1] ?
-        /Exiting @ tick (\d*)\w* because a\w*/ :
-        /count @ Tick (\d*)/
+    timingregex1 = /Exiting @ tick (\d*) [\w\s]* thread in cpu0\w*/
+    timingregex2 = /a thread in cpu0 [\w\s]* count @ (\d*)/
     time=nil
     foundtime = false
     currFile.each_line do |line|
-        if line.match(timingregex) != nil
-            time = (line.match timingregex)[1]
+        if line.match(timingregex1) != nil
+            time = (line.match timingregex1)[1]
+            foundtime = true
+            break
+        end
+        if line.match(timingregex2) != nil
+            time = (line.match timingregex2)[1]
             foundtime = true
             break
         end
@@ -35,37 +42,31 @@ def make_timing_results(indir,outdir)
     Dir.chdir(indir)
     $schemes.product($models).each do |scheme,model|
         currOutFile = File.new(outdir+
-                               "/perfsynth_#{scheme}_#{model}.out",'w')
+            "/perfsynth_#{scheme}_#{model}.csv",'w')
 
         currOutFile.printf("%s,%s\n",scheme,model)
         currOutFile.printf("%-18s","bench")
-        $cacheSizes.each {|cacheSize| currOutFile.printf("%-18s,",cacheSize)}
+        $tests.each {|test| currOutFile.printf("%-18s,",test)}
         currOutFile.printf("\n")
 
-        $bench_configs = $test_order.keys
-
-        $bench_configs.each do |p0|
-            currOutFile.printf("%-18s,",p0)
+        $tests.product($p0tls).each do |p0,p0tl|
+            currOutFile.printf("%-18s,","#{p0} tl#{p0tl}")
             $cacheSizes.each do |c|
-                overheads = []
-                $bench_configs.each do |p1|
+                $tests.each do |p1|
                     inFileName=indir+
-                        "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{c}MB.out"
+                        "/stdout_#{scheme}_#{model}_#{p0}tl#{p0tl}_#{p1}tl64_c#{c}MB.out"
                     baseFileName=indir+
-                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{c}MB.out"
+                        "/stdout_none_#{model}_#{p0}tl#{p0tl}_#{p1}tl64_c#{c}MB.out"
                     time, foundtime = findTime( inFileName, p0, p1 )
                     basetime, foundbase  = findTime( baseFileName, p0, p1 )
                     if foundtime && foundbase
                         t = time.to_f
                         b = basetime.to_f
-                        overheads << 100 * (t-b)/b
+                        result = 100 * (t-b)/b
+                        currOutFile.printf("%-18.9f,",result)
+                    else
+                        currOutFile.printf("------------------,")
                     end
-                end
-                if overheads.length > 0
-                    result = overheads.reduce(:+)/overheads.length
-                    currOutFile.printf("%-18.9f,",result)
-                else
-                    currOutFile.printf("------------------,")
                 end
             end
             currOutFile.printf("\n")
