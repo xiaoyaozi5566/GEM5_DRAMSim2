@@ -50,8 +50,7 @@ $time_order = {
 def findTime(filename,p0,p1)
     currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
-    timingregex = $time_order[p0] > $time_order[p1] ?
-        /Exiting @ tick (\d*)\w* because a\w*/ : /count @ Tick (\d*)/ 
+    timingregex = /Exiting @ tick (\d*)\w* because a\w*/
     foundtime = false
     foundcpuswitch = false
     time = nil
@@ -69,13 +68,13 @@ def findTime(filename,p0,p1)
     [time,foundtime]
 end
 
-$specedges = ["astar","gobmk","mcf","sjeng"]
+$specedges = ["astar","mcf"]
 
 def threadscale_results(indir,outdir)
     Dir.chdir(indir)
     $models.each do |model|
         currOutFile = File.new(outdir+
-                               "/threadscale_tp_#{model}.out",'w')
+                               "/threadscale_tp_#{model}.csv",'w')
         currOutFile.printf("%s,%s\n","model",model)
         currOutFile.printf("%-15s , %-15s, %-15s, %-15s\n",
                            "workload","2 Threads","3 Threads", "4 Threads")
@@ -83,10 +82,10 @@ def threadscale_results(indir,outdir)
             overheads2=[]
             overheads3=[]
             overheads4=[]
-            $specint.each do |p1|
+            $specedges.each do |p1|
                 #2 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}.out"
-                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}.out"
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_c4MB_tl6.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
                 if foundbase && foundtime
@@ -94,8 +93,8 @@ def threadscale_results(indir,outdir)
                 end
 
                 #3 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}.out"
-                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}.out"
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_c4MB_tl6.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
                 if foundbase && foundtime
@@ -103,8 +102,8 @@ def threadscale_results(indir,outdir)
                 end
 
                 #4 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out"
-                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_#{p1}.out"
+                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_#{p1}_c4MB_tl6.out"
+                baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
                 if foundbase && foundtime
@@ -112,9 +111,10 @@ def threadscale_results(indir,outdir)
                 end
 
             end
-            avg2 = overheads2.reduce(:+)/overheads2.length 
-            avg3 = overheads3.reduce(:+)/overheads3.length
-            avg4 = overheads4.reduce(:+)/overheads4.length 
+            avg2, avg3, avg4 = [-1,-1,-1]
+            avg2 = overheads2.reduce(:+)/overheads2.length if overheads2.length >0
+            avg3 = overheads3.reduce(:+)/overheads3.length if overheads3.length >0
+            avg4 = overheads4.reduce(:+)/overheads4.length if overheads4.length >0
             currOutFile.printf("%-15s, %-15.9f, %-15.9f, %-15.9f\n",
                                p0,avg2,avg3,avg4)
 
