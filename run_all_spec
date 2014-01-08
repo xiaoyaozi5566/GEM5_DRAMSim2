@@ -109,7 +109,8 @@ end
 #    end
 #end
 
-#Thread Scaling
+#Thread Scalings
+$cpus = %w[ detailed ]
 $cpus.product( $schemes ).each do |cpu, scheme|
     $specint.product( $specint ).each do |p0,other|
         sav_script( cpu, scheme, 4, 6, p0, other, other )
