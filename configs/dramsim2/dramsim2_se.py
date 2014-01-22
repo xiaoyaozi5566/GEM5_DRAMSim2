@@ -129,6 +129,9 @@ elif np == 8 or np == 16:
 else:
     memorysize = '2048MB'
 
+if options.fixaddr :
+    memorysize = '4096MB'
+
 ### instantiate the DRAMSim2 model if we enable it
 if options.dramsim2 :
     DRAM = DRAMSim2(    # memory capacity
