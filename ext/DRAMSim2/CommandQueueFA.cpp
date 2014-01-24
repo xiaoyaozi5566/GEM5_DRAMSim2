@@ -18,6 +18,8 @@ CommandQueueFA::CommandQueueFA(vector< vector<BankState> > &states,
     diffPeriod = diffPeriod_;
     p0Period = p0Period_;
     p1Period = p1Period_;
+    lastPID = 0;
+    lastPID1 = 0;
 #ifdef DEBUG_TP
     cout << "TP Debugging is on." <<endl;
 #endif

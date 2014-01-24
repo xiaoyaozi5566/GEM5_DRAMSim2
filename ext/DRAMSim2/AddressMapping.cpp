@@ -157,7 +157,7 @@ void addressMapping(uint64_t physicalAddress, unsigned &newTransactionChan, unsi
 		physicalAddress = physicalAddress >> (bankBitWidth-1);
 		tempB = physicalAddress << (bankBitWidth-1);
 		newTransactionBank = tempA ^ tempB;
-		if( physicalAddress > (0x20000000 >> (rankBitWidth + bankBitWidth - 1)) )
+		if( physicalAddress > (0x20000000 >> (colLowBitWidth + byteOffsetWidth + rankBitWidth + bankBitWidth - 1)) )
 			newTransactionBank += 1 << (bankBitWidth - 1);
 
 		tempA = physicalAddress;
