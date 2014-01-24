@@ -17,7 +17,7 @@ $scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 #Gem5 options
 $maxtinsts = 10**8
 $maxtick = 2*10**15 
-$cpus = [ "detailed", "timing"]
+$cpus = [ "detailed" ]
 $cacheSizes = [0,1,2,4]
 $p0periods = [64,96,128,192,256]
 
@@ -32,8 +32,12 @@ $periods = (0..2).map{|x| 10**x}  #in us
 $tests = {
     "hardstride1" => "#{$synthbench_dir}hardstride -d #{$duration} -p 1",
     "randmem1"    => "#{$synthbench_dir}randmem -d #{$duration} -p 1",
-    "randmem10"   => "#{$synthbench_dir}randmem -d #{$duration} -p 10",
-    "randmem100"  => "#{$synthbench_dir}randmem -d #{$duration} -p 100",
+    #"randmem10"   => "#{$synthbench_dir}randmem -d #{$duration} -p 10",
+    #"randmem100"  => "#{$synthbench_dir}randmem -d #{$duration} -p 100",
+    "nothing"     => "#{$synthbench_dir}nothing"
+}
+$p0tests = {
+    "hardstride1" => "#{$synthbench_dir}hardstride -d #{$duration} -p 1",
     "nothing"     => "#{$synthbench_dir}nothing"
 }
 
@@ -66,15 +70,19 @@ def sav_script( p0, tl0, p1, cpu, scheme, cacheSize )
     script.puts("    --outputfile=/dev/null \\")
     script.puts("    --p0='#{$tests[p0]}'\\")
     script.puts("    --p1='#{$tests[p1]}'\\")
-    script.puts("    --diffperiod \\")
-    script.puts("    --p0period=#{tl0} \\")
-    script.puts("    --p1period=#{tl1} \\")
+    if tl0 != tl1
+        script.puts("    --diffperiod \\")
+        script.puts("    --p0period=#{tl0} \\")
+        script.puts("    --p1period=#{tl1} \\")
+    end
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
     system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-$cpus.product( $p0periods, $schemes ).each do |cpu, tl0, scheme|
-    sav_script( "hardstride1", tl0, "randmem100", cpu, scheme, 4 )
+$p0periods.product($schemes).each do |tl0,scheme|
+    $tests.product($tests).each do |p0,p1|
+        sav_script( "hardstride1", tl0, "randmem100", cpu, scheme, 4 )
+    end
 end
