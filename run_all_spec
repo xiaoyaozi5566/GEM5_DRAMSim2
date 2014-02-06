@@ -18,10 +18,11 @@ $maxtinsts = 10**8
 $maxtick = 2*10**15 
 $cpus = %w[detailed timing]
 $cacheSizes = [0,1,2,4]
+$p0periods = [64,96,128,192,256]
 
 #dramsim options
 $device = "DDR3_micron_16M_8B_x8_sg15.ini"
-$schemes = %w[tp none]
+$schemes = %w[tp none fa]
 $turnlengths = [0] + (7..9).to_a
 
 $specinvoke = { 
@@ -41,12 +42,14 @@ $specinvoke = {
 
 $specint = $specinvoke.keys.sort
 
-def sav_script( cpu, scheme, cacheSize, turnlength, p0, p1=nil, p2=nil, p3=nil ) 
-    filename = "#{scheme}_#{cpu}_#{p0}"
-    filename += "_#{p1}" unless p1.nil?
-    filename += "_#{p2}" unless p2.nil?
-    filename += "_#{p3}" unless p3.nil?
-    filename += "_c#{cacheSize}MB_tl#{turnlength}"
+def sav_script( cpu, scheme, cacheSize, diffperiod,
+                p0, tl0, p1=nil, tl1=6, p2=nil, tl2=6, p3=nil, tl3=6
+              ) 
+    filename = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
+    filename += "_#{p1}tl#{tl1}" unless p1.nil?
+    filename += "_#{p2}tl#{tl2}" unless p2.nil?
+    filename += "_#{p3}tl#{tl3}" unless p3.nil?
+    filename += "_c#{cacheSize}MB"
     
     numpids  = 1
     numpids += 1 unless p1.nil?
@@ -65,15 +68,16 @@ def sav_script( cpu, scheme, cacheSize, turnlength, p0, p1=nil, p2=nil, p3=nil )
         script.puts("    --l3cache \\")
         script.puts("    --l3_size=#{cacheSize}MB\\")
     end
+    script.puts("   --fixaddr\\") if scheme == "fa"
     script.puts("    --fast-forward=#{$fastforward} \\")
     script.puts("    --fixaddr\\") if scheme == "fa"
     script.puts("    --maxinsts=#{$maxtinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --dramsim2 \\")
-    script.puts("    --tpturnlength=#{turnlength} \\") unless turnlength==0
+    script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
     script.puts("    --devicecfg="+
                 "./ext/DRAMSim2/ini/#{$device} \\")
-    if turnlength == 0
+    if tl0== 0
         script.puts("    --systemcfg=./ext/DRAMSim2/system_ft.ini \\")
     else
         script.puts("    --systemcfg=./ext/DRAMSim2/system_#{scheme}.ini \\")
@@ -84,36 +88,71 @@ def sav_script( cpu, scheme, cacheSize, turnlength, p0, p1=nil, p2=nil, p3=nil )
     script.puts("    --p1=#{$specinvoke[p1]}\\") unless p1.nil?
     script.puts("    --p2=#{$specinvoke[p2]}\\") unless p2.nil?
     script.puts("    --p3=#{$specinvoke[p3]}\\") unless p3.nil?
+    if diffperiod
+        script.puts("    --diffperiod \\")
+        script.puts("    --p0period=#{tl0} \\")
+        script.puts("    --p1period=#{tl1} \\")
+        script.puts("    --p2period=#{tl2} \\")
+        script.puts("    --p3period=#{tl3} \\")
+    end
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
     system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-#Cache Sweeping
-Dir.chdir( specint_dir )
-$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
-    $specint.product( $specint ).each do|p0, p1|
-        sav_script( cpu, scheme, cacheSize, 6, p0, p1 )
-    end
-end
+#------------------------------------------------------------------------------
+# Unoptimized Runs
+#------------------------------------------------------------------------------
+#$schemes = %w[tp none]
+#
+##Cache Sweeping
+#Dir.chdir( specint_dir )
+#$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
+#    $specint.product( $specint ).each do|p0, p1|
+#        sav_script( cpu, scheme, cacheSize, false, p0, 6, p1 )
+#    end
+#end
+#
+##Turn Length Sweeping
+#Dir.chdir(specint_dir)
+#$cpus.product( $turnlengths ).each do |cpu, turnlength|
+#    $specint.product( $specint ).each do |p0,p1|
+#        sav_script( cpu, "tp", 4, false, p0, turnlength, p1)
+#    end
+#    $specint.each do |p0|
+#        sav_script( cpu, "tp", 4, false, p0, turnlength )
+#    end
+#end
+#
+##Thread Scaling
+#$cpus = %w[ detailed ]
+#$cpus.product( $schemes ).each do |cpu, scheme|
+#    $specint.product( $specint ).each do |p0,other|
+#        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6 )
+#        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6, other, 6 )
+#    end
+#end
 
-#Turn Length Sweeping
-Dir.chdir(specint_dir)
-$cpus.product( $turnlengths ).each do |cpu, turnlength|
-    $specint.product( $specint ).each do |p0,p1|
-        sav_script( cpu, "tp", 4, turnlength, p0, p1 )
-    end
-    $specint.each do |p0|
-        sav_script( cpu, "tp", 4, turnlength, p0 )
+#------------------------------------------------------------------------------
+# Optimized Runs
+#------------------------------------------------------------------------------
+$schemes = %w[fa]
+$cpus = %w[ detailed ]
+
+#Thread Scaling (Just FA)
+$cpus.product( $schemes ).each do |cpu, scheme|
+    $specint.product( $specint ).each do |p0,other|
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6 )
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6 )
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6, other, 6 )
     end
 end
 
 #Thread Scaling
-$cpus = %w[ detailed ]
-$cpus.product( $schemes ).each do |cpu, scheme|
-    $specint.product( $specint ).each do |p0,other|
-        sav_script( cpu, scheme, 4, 6, p0, other, other )
-        sav_script( cpu, scheme, 4, 6, p0, other, other, other )
-    end
-end
+#$cpus.product( $schemes ).each do |cpu, scheme|
+#    $specint.product( $specint, $p0periods ).each do |p0,other,tl0|
+#        sav_script( cpu, scheme, 4, true, p0, tl0, other, 64, other, 64 )
+#        sav_script( cpu, scheme, 4, true, p0, tl0, other, 64, other, 64, other, 64)
+#    end
+#end
