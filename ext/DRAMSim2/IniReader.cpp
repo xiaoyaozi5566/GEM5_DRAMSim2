@@ -601,6 +601,8 @@ void IniReader::InitEnumsFromStrings()
     } else if(TIMING_PROTECTION == "fix_address"){
     	timingProtection = FixedAddress;
     	queuingStructure = PerRankPerThread;
+    } else if(TIMING_PROTECTION == "fr_fcfs"){
+    	timingProtection = FR_FCFS;
     }
 
 	if (SCHEDULING_POLICY == "rank_then_bank_round_robin")

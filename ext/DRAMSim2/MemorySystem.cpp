@@ -146,6 +146,10 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
     	memoryController = 
             new MemoryControllerFA(this, csvOut, dramsim_log, 
                     outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period);
+	} else if(timingProtection == FR_FCFS){
+    	memoryController = 
+            new MemoryControllerFR(this, csvOut, dramsim_log, 
+                    outputFilename, genTrace, traceFilename, num_pids, fixAddr);
 	} else {
         memoryController = 
             new MemoryController(this, csvOut, dramsim_log, 

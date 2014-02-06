@@ -73,7 +73,7 @@ namespace DRAMSim
         virtual ~CommandQueue(); 
 
         virtual void enqueue(BusPacket *newBusPacket);
-        bool pop(BusPacket **busPacket);
+        virtual bool pop(BusPacket **busPacket);
         virtual bool hasRoomFor(unsigned numberToEnqueue, unsigned rank, unsigned 
                 bank, unsigned pid);
         bool isIssuable(BusPacket *busPacket);

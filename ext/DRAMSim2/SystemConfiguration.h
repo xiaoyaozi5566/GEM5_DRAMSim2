@@ -177,7 +177,8 @@ enum TimingProtection
     None,
     FixedTiming,
     TimingPartitioning,
-    FixedAddress
+    FixedAddress,
+    FR_FCFS
 };
 
 enum SchedulingPolicy
