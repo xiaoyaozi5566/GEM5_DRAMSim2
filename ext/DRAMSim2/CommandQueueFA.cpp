@@ -334,7 +334,7 @@ void CommandQueueFA::print()
     }
 }
 
-unsigned CommandQueueTP::getCurrentPID(){
+unsigned CommandQueueFA::getCurrentPID(){
     if ( diffPeriod ) {
     	if(num_pids == 2)
     		return (currentClockCycle%(p0Period+p1Period)/p0Period);
@@ -357,7 +357,7 @@ unsigned CommandQueueTP::getCurrentPID(){
     }
 }
 
-bool CommandQueueTP::isBufferTime(){
+bool CommandQueueFA::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
     uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
     if ( diffPeriod ) {
