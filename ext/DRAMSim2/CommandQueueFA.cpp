@@ -334,26 +334,42 @@ void CommandQueueFA::print()
     }
 }
 
-unsigned CommandQueueFA::getCurrentPID(){
+unsigned CommandQueueTP::getCurrentPID(){
     if ( diffPeriod ) {
-    	return (currentClockCycle%(p0Period+p1Period)/p0Period);
+    	if(num_pids == 2)
+    		return (currentClockCycle%(p0Period+p1Period)/p0Period);
+    	else if (num_pids == 3) {
+    		uint64_t remainder = currentClockCycle%(p0Period+2*p1Period);
+    		if( remainder < p0Period ) return 0;
+    		else if (remainder < p0Period + p1Period ) return 1;
+    		else return 2;
+    	}
+    	else if (num_pids == 4) {
+    		uint64_t remainder = currentClockCycle%(p0Period+3*p1Period);
+    		if( remainder < p0Period ) return 0;
+    		else if (remainder < p0Period + p1Period ) return 1;
+    		else if (remainder < p0Period + 2*p1Period ) return 2;
+    		else return 3;
+    	}
     }
     else {
     	return (currentClockCycle >> tpTurnLength) % num_pids;
     }
 }
 
-bool CommandQueueFA::isBufferTime(){
+bool CommandQueueTP::isBufferTime(){
     unsigned tlength = 1<<tpTurnLength;
     uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
-    uint64_t dead_time;
     if ( diffPeriod ) {
-    	turnBegin = currentClockCycle - (currentClockCycle%(p0Period+p1Period)%p0Period);
     	unsigned pid = getCurrentPID();
     	if ( pid == 0 ) tlength = p0Period;
     	else tlength = p1Period;
+    	if (pid == 0 )
+    		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period));
+    	else
+    		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
     }
-    
+    uint64_t dead_time;
     if ( fixAddr )
 		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
 				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
