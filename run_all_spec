@@ -134,23 +134,23 @@ end
 #------------------------------------------------------------------------------
 # Optimized Runs
 #------------------------------------------------------------------------------
-$schemes = %w[fa tp]
-$cpus = %w[ detailed ]
-
-#Thread Scaling (Just FA)
-$cpus.product( $schemes ).each do |cpu, scheme|
-    $specint.product( $specint, $p0periods ).each do |p0,other,tlp0|
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64 )
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64, other, 64 )
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64, other, 64, other, 64 )
-    end
-end
+#$schemes = %w[fa tp]
+#$cpus = %w[ detailed ]
+#
+##Thread Scaling (Just FA)
+#$cpus.product( $schemes ).each do |cpu, scheme|
+#    $specint.product( $specint, $p0periods ).each do |p0,other,tlp0|
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64 )
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64, other, 64 )
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, 64, other, 64, other, 64 )
+#    end
+#end
 
 #------------------------------------------------------------------------------
 # FCFS vs FR-FCFS
 #------------------------------------------------------------------------------
 $schemes = %w[frfcfs frfcfs_open]
-$cpus = %w[detailed inorder]
+$cpus = %w[detailed timing]
 
 #Cache Sweeping
 Dir.chdir( specint_dir )
