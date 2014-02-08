@@ -1,0 +1,111 @@
+#!/usr/bin/ruby
+require 'fileutils'
+
+MODELS = %w[detailed]
+SCHEMES = %w[none]
+CACHESIZES = [0,1,2,4]
+SPECINT = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+].sort
+BENCHMARKS = SPECINT
+INSTRUCTIONS = 10**8
+DATAREGEXES = {
+    'instructions' => /sim_insts\s*(\d*)/,
+    'memir' => /system\.physmem\.num_reads::switch_cpus\.inst\s*(\d*)/,
+    'memdr' => /system\.physmem\.num_reads::switch_cpus\.data\s*(\d*)/
+}
+STATS =  {
+    'mpki' => lambda{|parsed| 
+        memir = parsed['memir']
+        memdr = parsed['memdr']
+        mpki = (memir+memdr) * 1000 / INSTRUCTIONS
+        mpki
+    }
+}
+
+def getStats( expname, stat )
+    filename = "m5out/" + expname + "_stats.txt"
+    statsfile = File.open filename
+    regex = DATAREGEXES[stat]
+    datum = -1
+    statsfile.each_line do |line|
+        if line =~ regex
+            datum = line.match( regex )[1].to_f
+        end
+    end
+
+    datum
+end
+
+def getParsedStats( indir )
+    Dir.chdir(indir)
+    parsed_stats = DATAREGEXES.keys
+
+    data = SCHEMES.inject({}){|i,sc|
+        i[sc] = MODELS.inject({}){|j,mo|
+            j[mo] = CACHESIZES.inject({}){|k,ca|
+                k[ca] = BENCHMARKS.inject({}){|l,be|
+                    l[be]= parsed_stats.inject({}){|m,st|
+                        m[st]=[]
+                        m }
+                    l}
+                k } 
+            j } 
+        i }
+
+    SCHEMES.product( MODELS, CACHESIZES, BENCHMARKS, parsed_stats ).
+        each do |scheme, model, cacheSize, bench, stat|
+        
+        expname = "MEMINTENSITY_#{scheme}_#{model}_#{bench}_c#{cacheSize}MB_tl6"
+        data[scheme][model][cacheSize][bench][stat] = getStats( expname, stat )
+    end
+
+    data
+end
+
+def getCalcStats( parsedStats )
+    data = SCHEMES.inject({}){|i,sc|
+        i[sc] = MODELS.inject({}){|j,mo|
+            j[mo] = CACHESIZES.inject({}){|k,ca|
+                k[ca] = BENCHMARKS.inject({}){|l,be|
+                    l[be]= STATS.keys.inject({}){|m,st|
+                        m[st]=[]
+                        m }
+                    l}
+                k } 
+            j } 
+        i }
+
+    SCHEMES.product( MODELS, CACHESIZES, BENCHMARKS, STATS.keys ).
+        each do |scheme, model, cacheSize, bench, stat|
+       
+        data[scheme][model][cacheSize][bench][stat] = 
+            STATS[stat].call( parsedStats[scheme][model][cacheSize][bench] )
+    end
+
+    data
+end
+
+if __FILE__ == $0
+    data = getCalcStats( getParsedStats( Dir.pwd ) )
+
+    outfile = "mpki.rubyobj"
+    if ARGV.length > 0
+        outfile = ARGV[0].to_s
+    end
+
+    File.open(outfile,'w'){|f| f.write Marshal.dump( data ) }
+    #puts Marshal.load( File.read outfile )
+
+end
