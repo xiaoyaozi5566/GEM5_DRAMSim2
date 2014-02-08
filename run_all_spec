@@ -140,7 +140,7 @@ $cpus = %w[ detailed timing ]
 # This is a Hash of the form scheme -> model -> cache size -> benchmark -> mpki 
 # saved to a file. It was generated using parsers/parse_mpki_spec
 $mpkidata = Marshal.load( File.open( "mpki.rubyobj" ) )
-$mpkidata = $mpkidata["none"]["detailed"][4]
+$mpkidata = $mpkidata["none"]["detailed"][0]
 
 
 $tester = [
