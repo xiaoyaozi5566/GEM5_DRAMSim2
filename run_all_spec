@@ -97,7 +97,7 @@ def sav_script( cpu, scheme, cacheSize, diffperiod,
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    #system "qsub -wd #{$gem5home.path} #{script_abspath}"
+    system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
 ##------------------------------------------------------------------------------
