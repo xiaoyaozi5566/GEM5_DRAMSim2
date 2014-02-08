@@ -753,7 +753,7 @@ $experiments = %w[
 ]
 
 $experiments.each do |experiment|
-    File.open(Dir.pwd+"/scriptgen/"+experiment) {|file|
+    File.open(Dir.pwd+"/scriptgen/run_"+experiment) {|file|
         exp_abspath = File.expand_path file
         system "qsub -wd #{$gem5home.path} #{exp_abspath}"
     }
