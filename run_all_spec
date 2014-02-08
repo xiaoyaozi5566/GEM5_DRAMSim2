@@ -179,8 +179,8 @@ $configs = {
 # as the index to configs. Configs is set up to return the appropriate 
 # configuration as a pair [p0_turnlength, p1turnlength].
 def get_turns( p0,p1 )
-        mpki0 = mpkidata[p0]
-        mpki1 = mpkidata[p1]
+        mpki0 = $mpkidata[p0]["mpki"]
+        mpki1 = $mpkidata[p1]["mpki"]
         mpkir = mpki0 / mpki1
         $configs[
             $tester.map{|test|
@@ -192,7 +192,7 @@ end
 #Thread Scaling (Just FA)
 $cpus.product( $schemes ).each do |cpu, scheme|
     $specint.product( $specint ).each do |p0,other|
-        tlp0, tlp1 = get_turns( p0, p1 )
+        tlp0, tlp1 = get_turns( p0, other )
         sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1 )
         sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1 )
         sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1,
