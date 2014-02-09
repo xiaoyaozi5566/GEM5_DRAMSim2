@@ -317,7 +317,10 @@ bool CommandQueueTP::isBufferTime(){
     else
 		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
 				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
-    return (tlength - (currentClockCycle & (tlength - 1))) <= dead_time;
+    if ( diffPeriod )
+    	return (tlength - (currentClockCycle - turnBegin)) <= dead_time;
+    else
+    	return (tlength - (currentClockCycle & (tlength - 1))) <= dead_time;
 }
 
 #ifdef DEBUG_TP
