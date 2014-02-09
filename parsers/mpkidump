@@ -1,0 +1,52 @@
+#!/usr/bin/ruby
+
+MODELS = %w[detailed]
+SPECINT = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+]
+STATS = %w[mpki]
+SCHEMES = %w[none]
+BENCHMARKS = SPECINT
+CACHESIZES = [0,1,2,4]
+
+DATA = Marshal.load File.open( "mpki.rubyobj" )
+
+def printResults( outdir )
+    SCHEMES.product( MODELS ).each do |scheme,model|
+        filename = outdir + "/mpki_#{scheme}_#{model}.csv"
+
+        File.open(filename,'w'){|file|
+            file.printf("%s,%s\n",scheme,model)
+            file.printf("%-15s","benchmark,")
+            CACHESIZES.each{|c| file.printf("%-15s,",c)}
+            file.printf("\n")
+            BENCHMARKS.each do |bench|
+                file.printf("%-15s,",bench)
+                CACHESIZES.each do |c|
+                    datum = DATA[scheme][model][c][bench]["mpki"]
+                    file.printf("%-15.9f,",datum)
+                end
+                file.printf("\n")
+            end
+        }
+    
+    
+    end
+end
+
+if __FILE__ == $0
+    outdir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    printResults(File.expand_path(outdir))
+end

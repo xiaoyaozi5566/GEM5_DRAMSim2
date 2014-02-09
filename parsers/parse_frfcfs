@@ -1,0 +1,92 @@
+#!/usr/bin/ruby
+require 'fileutils'
+
+$models = ['timing','detailed']
+$specint = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'Xalan',
+]
+
+def findTime(filename,p0,p1)
+    currFile = File.open(filename,'r')
+    switchregex = /Switched CPUS/
+    timingregex = /Exiting @ tick (\d*)\w* because a\w*/
+    foundtime = false
+    foundcpuswitch = false
+    time = nil
+    currFile.each_line do |line|
+        if !foundcpuswitch && line.match(switchregex)!=nil
+            foundcpuswitch = true
+        end
+        unless line.match(timingregex)== nil || !foundcpuswitch
+            time =(line.match timingregex)[1]
+            time = time.to_f
+            foundtime=true
+            break
+        end
+    end
+    currFile.close()
+    [time,foundtime]
+end
+
+$schemes = %w[ frfcfs frfcfs_open ]
+def make_timing_results(indir,outdir)
+    Dir.chdir(indir)
+    $schemes.product($models).each do |scheme,model|
+        currOutFile = File.new(outdir+
+                               "/cachesweep_#{scheme}_#{model}.csv",'w')
+
+        currOutFile.printf("%s,%s\n",scheme,model)
+        currOutFile.printf("%-15s","p0,")
+        [0,1,2,4].each {|cacheSize| currOutFile.printf("%-15s,",cacheSize)}
+        currOutFile.printf("\n")
+
+        $specint.each do |p0|
+            currOutFile.printf("%-15s,",p0)
+            [0,1,2,4].each do |cacheSize|
+                overheads=[]
+                $specint.each do |p1|
+                    inFileName=indir+
+                        "/stdout_#{scheme}_#{model}_#{p0}tl6_#{p1}tl6_c#{cacheSize}MB.out"
+                    baseFileName=indir+
+                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{cacheSize}MB_tl6.out"
+                    time, foundtime = findTime(inFileName,p0,p1)
+                    basetime, foundbase  = findTime(baseFileName,p0,p1)
+                    if foundtime && foundbase
+                        overheads<<100.0*(time.to_f-basetime.to_f)/basetime.to_f
+                    end
+                end
+                if(overheads.length>0)
+                    currOutFile.printf("%-15.9f,",
+                                       overheads.reduce(:+)/overheads.length)
+                else
+                    currOutFile.printf("----------,")
+                end
+            end
+            currOutFile.printf("\n")
+        end
+    end
+end
+
+
+if __FILE__ == $0
+    result_dir = Dir.new(File.expand_path ARGV[0].to_s)
+
+    perfrep_dir = Dir.new(File.expand_path ARGV[1].to_s)
+    unless File.directory? perfrep_dir.path
+        FileUtils.mkdir_p perfrep_dir.path
+    end
+
+    make_timing_results(File.expand_path(result_dir),
+                        File.expand_path(perfrep_dir))
+end
