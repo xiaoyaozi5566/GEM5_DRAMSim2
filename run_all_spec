@@ -189,14 +189,25 @@ def get_turns( p0,p1 )
         ]
 end
 
+##Thread Scaling
+#$cpus.product( $schemes ).each do |cpu, scheme|
+#    $specint.product( $specint ).each do |p0,other|
+#        tlp0, tlp1 = get_turns( p0, other )
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1 )
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1 )
+#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1,
+#                   other, tlp1 )
+#    end
+#end
+
 #Thread Scaling (Just FA)
+$schemes = %w[fa]
 $cpus.product( $schemes ).each do |cpu, scheme|
     $specint.product( $specint ).each do |p0,other|
-        tlp0, tlp1 = get_turns( p0, other )
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1 )
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1 )
-        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1,
-                   other, tlp1 )
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6 )
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6 )
+        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6,
+                   other, 6 )
     end
 end
 
