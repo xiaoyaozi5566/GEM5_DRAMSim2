@@ -95,7 +95,10 @@ def config_cache(options, system):
     # L3
     #-------------------------------------------------------------------------
     if options.l3cache:
-        l3config = L3Shared( options, system )
+        if options.l3config == "shared":
+            l3config = L3Shared( options, system )
+        else:
+            l3config = L3Private( options, system )
 
     #-------------------------------------------------------------------------
     # L1
