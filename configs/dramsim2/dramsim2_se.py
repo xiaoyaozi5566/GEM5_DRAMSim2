@@ -276,9 +276,6 @@ CPUClass.clock = options.clock
 CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
-                l2 = [L2Cache(size = options.l2_size, assoc = options.l2_assoc,
-                                block_size=options.cacheline_size) for i in xrange(np)],
-                tol2bus = [CoherentBus() for i in xrange(np)],
                 physmem = DRAM,
                 membus = CoherentBus(), 
                 mem_mode = test_mem_mode,

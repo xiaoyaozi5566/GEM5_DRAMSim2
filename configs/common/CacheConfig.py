@@ -35,6 +35,10 @@ from Caches import *
 from O3_ARM_v7a import *
 
 def config_cache(options, system):
+
+    #-------------------------------------------------------------------------
+    # L3
+    #-------------------------------------------------------------------------
     if options.l3cache:
         latencies = {
                 '4MB' : '8.48ns',
@@ -51,7 +55,11 @@ def config_cache(options, system):
         system.tol3bus = CoherentBus()
         system.l3.cpu_side = system.tol3bus.master
         system.l3.mem_side = system.membus.slave
-        	
+
+
+    #-------------------------------------------------------------------------
+    # L1
+    #-------------------------------------------------------------------------
     for i in xrange(options.num_cpus):
         if options.caches:
             icache = L1Cache(size = options.l1i_size,
@@ -68,6 +76,19 @@ def config_cache(options, system):
             else:
                 system.cpu[i].addPrivateSplitL1Caches(icache, dcache)
         system.cpu[i].createInterruptController()
+
+    #-------------------------------------------------------------------------
+    # L2
+    #-------------------------------------------------------------------------
+    system.l2 = [ L2Cache( 
+                    size = options.l2_size,
+                    assoc = options.l2_assoc,
+                    block_size=options.cacheline_size 
+                  ) for i in xrange( options.num_cpus )
+                ]
+    system.tol2bus = [CoherentBus() for i in xrange( options.num_cpus )]
+
+    for i in xrange(options.num_cpus):
         if options.l2cache:
             system.cpu[i].connectAllPorts(system.tol2bus[i])
             system.l2[i].cpu_side = system.tol2bus[i].master
@@ -77,6 +98,5 @@ def config_cache(options, system):
                 system.l2[i].mem_side = system.membus.slave
         else:
             system.cpu[i].connectAllPorts(system.membus)
-
 
     return system
