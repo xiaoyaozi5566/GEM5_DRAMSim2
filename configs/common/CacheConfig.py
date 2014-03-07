@@ -36,49 +36,30 @@ from O3_ARM_v7a import *
 
 def config_cache(options, system):
     if options.l3cache:
-        if options.cpu_type == "arm_detailed":
-            system.l3 = O3_ARM_v7aL2(size = options.l3_size, assoc = options.l3_assoc,
-                                block_size=options.cacheline_size)
-        else: 
-            latencies = {
-                    '4MB' : '8.48ns',
-                    '3MB' : '7.5',
-                    '2MB' : '6.5ns',
-                    '1MB' : '5ns'
-            }
-            system.l3 = L3Cache(size = options.l3_size, 
-                                latency=latencies[options.l3_size],
-                                assoc = options.l3_assoc,
-                                block_size=options.cacheline_size)
+        latencies = {
+                '4MB' : '8.48ns',
+                '3MB' : '7.5',
+                '2MB' : '6.5ns',
+                '1MB' : '5ns'
+        }
+        system.l3 = L3Cache(size = options.l3_size, 
+                            latency=latencies[options.l3_size],
+                            assoc = options.l3_assoc,
+                            block_size=options.cacheline_size)
 
 
         system.tol3bus = CoherentBus()
         system.l3.cpu_side = system.tol3bus.master
         system.l3.mem_side = system.membus.slave
         	
-    if options.l2cache:
-        if options.cpu_type == "arm_detailed":
-            system.l2_0 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
-                                block_size=options.cacheline_size)
-            system.l2_1 = O3_ARM_v7aL2(size = options.l2_size, assoc = options.l2_assoc,
-                                block_size=options.cacheline_size)
-
     for i in xrange(options.num_cpus):
         if options.caches:
-            if options.cpu_type == "arm_detailed":
-                icache = O3_ARM_v7a_ICache(size = options.l1i_size,
-                                     assoc = options.l1i_assoc,
-                                     block_size=options.cacheline_size)
-                dcache = O3_ARM_v7a_DCache(size = options.l1d_size,
-                                     assoc = options.l1d_assoc,
-                                     block_size=options.cacheline_size)
-            else:
-                icache = L1Cache(size = options.l1i_size,
-                                 assoc = options.l1i_assoc,
-                                 block_size=options.cacheline_size)
-                dcache = L1Cache(size = options.l1d_size,
-                                 assoc = options.l1d_assoc,
-                                 block_size=options.cacheline_size)
+            icache = L1Cache(size = options.l1i_size,
+                             assoc = options.l1i_assoc,
+                             block_size=options.cacheline_size)
+            dcache = L1Cache(size = options.l1d_size,
+                             assoc = options.l1d_assoc,
+                             block_size=options.cacheline_size)
 
             if buildEnv['TARGET_ISA'] == 'x86':
                 system.cpu[i].addPrivateSplitL1Caches(icache, dcache,
