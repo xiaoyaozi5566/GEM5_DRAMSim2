@@ -34,28 +34,68 @@ from m5.objects import *
 from Caches import *
 from O3_ARM_v7a import *
 
+class L3Config(object):
+    def __init__( self, options, system ):
+        self.options = options
+        self.system = system
+        self.latencies = {
+            '4MB' : '8.48ns',
+            '3MB' : '7.5',
+            '2MB' : '6.5ns',
+            '1MB' : '5ns'
+        }
+
+    def connect_l2( self ): return
+
+class L3Shared( L3Config ):
+    def __init__( self, options, system ):
+        super( L3Shared, self ).__init__( options, system )
+        system.l3 = L3Cache(size = options.l3_size, 
+                            latency=self.latencies[options.l3_size],
+                            assoc = options.l3_assoc,
+                            block_size=options.cacheline_size)
+
+        system.tol3bus = CoherentBus()
+        system.l3.cpu_side = system.tol3bus.master
+        system.l3.mem_side = system.membus.slave
+
+    def connect_l2( self ):
+        for i in xrange( self.options.num_cpus ):
+            self.system.l2[i].mem_side = self.system.tol3bus.slave
+
+
+
+class L3Private( L3Config ):
+    def __init__( self, options, system ):
+        super( L3Private , self ).__init__( options, system )
+        system.l3 = [
+                L3Cache(
+                    size = options.l3_size,
+                    latency = self.latencies[options.l3_size],
+                    assoc = options.l3_assoc,
+                    block_size = options.cacheline_size
+                )
+                for i in xrange( options.num_cpus )
+            ]
+
+        system.tol3bus = [CoherentBus() for i in xrange( options.num_cpus ) ]
+
+        for i in xrange( options.num_cpus ):
+            system.l3[i].cpu_side = system.tol3bus[i].master
+            system.l3[i].mem_side = system.membus.slave
+
+    def connect_l2( self ):
+        for i in xrange( self.options.num_cpus ):
+            self.system.l2[i].mem_side = self.system.tol3bus[i].slave
+
+
 def config_cache(options, system):
 
     #-------------------------------------------------------------------------
     # L3
     #-------------------------------------------------------------------------
     if options.l3cache:
-        latencies = {
-                '4MB' : '8.48ns',
-                '3MB' : '7.5',
-                '2MB' : '6.5ns',
-                '1MB' : '5ns'
-        }
-        system.l3 = L3Cache(size = options.l3_size, 
-                            latency=latencies[options.l3_size],
-                            assoc = options.l3_assoc,
-                            block_size=options.cacheline_size)
-
-
-        system.tol3bus = CoherentBus()
-        system.l3.cpu_side = system.tol3bus.master
-        system.l3.mem_side = system.membus.slave
-
+        l3config = L3Shared( options, system )
 
     #-------------------------------------------------------------------------
     # L1
@@ -80,23 +120,26 @@ def config_cache(options, system):
     #-------------------------------------------------------------------------
     # L2
     #-------------------------------------------------------------------------
-    system.l2 = [ L2Cache( 
-                    size = options.l2_size,
-                    assoc = options.l2_assoc,
-                    block_size=options.cacheline_size 
-                  ) for i in xrange( options.num_cpus )
-                ]
+    system.l2 = [ 
+            L2Cache( 
+                size = options.l2_size,
+                assoc = options.l2_assoc,
+                block_size=options.cacheline_size 
+            ) 
+            for i in xrange( options.num_cpus )
+        ]
     system.tol2bus = [CoherentBus() for i in xrange( options.num_cpus )]
 
     for i in xrange(options.num_cpus):
         if options.l2cache:
             system.cpu[i].connectAllPorts(system.tol2bus[i])
             system.l2[i].cpu_side = system.tol2bus[i].master
-            if options.l3cache:
-                system.l2[i].mem_side = system.tol3bus.slave
-            else:
+            if not options.l3cache:
                 system.l2[i].mem_side = system.membus.slave
         else:
             system.cpu[i].connectAllPorts(system.membus)
+
+    if options.l3cache:
+        l3config.connect_l2()
 
     return system
