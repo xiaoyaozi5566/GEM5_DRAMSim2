@@ -17,6 +17,7 @@ $tests = [
 $p0tls= [64,96,128,192,256]
 
 def findTime( filename, p0, p1 )
+    return [nil,false] unless File.exists? filename
     currFile = File.open(filename,'r')
     timingregex1 = /Exiting @ tick (\d*) [\w\s]* thread in cpu0\w*/
     timingregex2 = /a thread in cpu0 [\w\s]* count @ (\d*)/

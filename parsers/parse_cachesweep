@@ -14,36 +14,11 @@ $specint = [
     #    'omnetpp',
     #    'perlbench',
     'sjeng',
-    'Xalan',
+    'xalan',
 ]
 
-$time_order_old = {
-    'libquantum' => 0,
-    'hmmer' => 1,
-    'astar' => 2,
-    'gcc' => 3,
-    'h264ref' => 4,
-    'bzip2' => 5, 
-    'gobmk' => 6,
-    'mcf' => 7,
-    'Xalan' => 8,
-    'sjeng' => 9,
-}
-
-$time_order = {
-    'libquantum' => 0,
-    'sjeng' => 1,
-    'hmmer' => 2,
-    'astar' => 3,
-    'h264ref' => 4,
-    'bzip2' => 5,
-    'Xalan' => 6,
-    'gcc' => 7, 
-    'mcf' => 8,
-    'gobmk' => 9,
-}
-
 def findTime(filename,p0,p1)
+    return [nil, false] unless File.exists? filename
     currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
     timingregex = /Exiting @ tick (\d*)\w* because a\w*/
@@ -65,7 +40,7 @@ def findTime(filename,p0,p1)
     [time,foundtime]
 end
 
-$schemes = ['tp']
+$schemes = %w[ tp fa ]
 def make_timing_results(indir,outdir)
     Dir.chdir(indir)
     $schemes.product($models).each do |scheme,model|
@@ -73,7 +48,7 @@ def make_timing_results(indir,outdir)
                                "/cachesweep_#{scheme}_#{model}.csv",'w')
 
         currOutFile.printf("%s,%s\n",scheme,model)
-        currOutFile.printf("%-15s","p0")
+        currOutFile.printf("%-15s","p0,")
         [0,1,2,4].each {|cacheSize| currOutFile.printf("%-15s,",cacheSize)}
         currOutFile.printf("\n")
 
@@ -83,9 +58,9 @@ def make_timing_results(indir,outdir)
                 overheads=[]
                 $specint.each do |p1|
                     inFileName=indir+
-                        "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB_tl6.out"
+                        "/stdout_#{scheme}_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
                     baseFileName=indir+
-                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{cacheSize}MB_tl6.out"
+                        "/stdout_none_#{model}_#{p0}_#{p1}_c#{cacheSize}MB.out"
                     time, foundtime = findTime(inFileName,p0,p1)
                     basetime, foundbase  = findTime(baseFileName,p0,p1)
                     if foundtime && foundbase

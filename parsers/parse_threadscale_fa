@@ -47,6 +47,7 @@ $time_order = {
 }
 
 def findTime(filename,p0,p1)
+    return [nil,false] unless File.exists? filename
     currFile = File.open(filename,'r')
     switchregex = /Switched CPUS/
     timingregex = /Exiting @ tick (\d*)\w* because a\w*/
@@ -81,9 +82,9 @@ def threadscale_results(indir,outdir)
             overheads2=[]
             overheads3=[]
             overheads4=[]
-            $specedges.each do |p1|
+            $specint.each do |p1|
                 #2 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_c4MB_tl6.out"
+                inFileName = indir+"/stdout_fa_#{model}_#{p0}tl6_#{p1}tl6_c4MB.out"
                 baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
@@ -92,7 +93,7 @@ def threadscale_results(indir,outdir)
                 end
 
                 #3 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_c4MB_tl6.out"
+                inFileName = indir+"/stdout_fa_#{model}_#{p0}tl6_#{p1}tl6_#{p1}tl6_c4MB.out"
                 baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
@@ -101,7 +102,7 @@ def threadscale_results(indir,outdir)
                 end
 
                 #4 Threads
-                inFileName = indir+"/stdout_tp_#{model}_#{p0}_#{p1}_#{p1}_#{p1}_c4MB_tl6.out"
+                inFileName = indir+"/stdout_fa_#{model}_#{p0}tl6_#{p1}tl6_#{p1}tl6_#{p1}tl6_c4MB.out"
                 baseFileName = indir+"/stdout_none_#{model}_#{p0}_#{p1}_#{p1}_#{p1}_c4MB_tl6.out"
                 time, foundtime = findTime(inFileName,p0,p1)
                 basetime, foundbase  = findTime(baseFileName,p0,p1)
