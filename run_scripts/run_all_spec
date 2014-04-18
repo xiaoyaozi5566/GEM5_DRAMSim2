@@ -43,9 +43,31 @@ $specinvoke = {
 
 $specint = $specinvoke.keys.sort
 
-def sav_script( cpu, scheme, cacheSize, diffperiod,
-                p0, tl0, p1=nil, tl1=6, p2=nil, tl2=6, p3=nil, tl3=6
-              ) 
+def sav_script( cpu, scheme, p0, options = {} ) 
+
+    options = {
+        cacheSize: 4,
+        p1: nil,
+        p2: nil,
+        p3: nil,
+        tl0: 6,
+        tl1: 6,
+        tl2: 6,
+        tl3: 6,
+        diffperiod: false,
+        l3config: "shared"
+    }.merge options
+    cacheSize  = options[:cacheSize]
+    p1         = options[:p1]
+    p2         = options[:p2]
+    p3         = options[:p3]
+    tl0        = options[:tl0]
+    tl1        = options[:tl1]
+    tl2        = options[:tl2]
+    tl3        = options[:tl3]
+    diffperiod = options[:diffperiod]
+    l3config   = options[:shared]
+
     filename = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
     filename += "_#{p1}tl#{tl1}" unless p1.nil?
     filename += "_#{p2}tl#{tl2}" unless p2.nil?
@@ -97,39 +119,39 @@ def sav_script( cpu, scheme, cacheSize, diffperiod,
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    system "qsub -wd #{$gem5home.path} #{script_abspath}"
+    #system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
-##------------------------------------------------------------------------------
-## Unoptimized Runs
-##------------------------------------------------------------------------------
-##Cache Sweeping
-#Dir.chdir( specint_dir )
-#$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
-#    $specint.product( $specint ).each do|p0, p1|
-#        sav_script( cpu, scheme, cacheSize, false, p0, 6, p1 )
-#    end
-#end
-#
-##Turn Length Sweeping
-#Dir.chdir(specint_dir)
-#$cpus.product( $turnlengths ).each do |cpu, turnlength|
-#    $specint.product( $specint ).each do |p0,p1|
-#        sav_script( cpu, "tp", 4, false, p0, turnlength, p1)
-#    end
-#    $specint.each do |p0|
-#        sav_script( cpu, "tp", 4, false, p0, turnlength )
-#    end
-#end
-#
-##Thread Scaling
-#$cpus = %w[ detailed ]
-#$cpus.product( $schemes ).each do |cpu, scheme|
-#    $specint.product( $specint ).each do |p0,other|
-#        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6 )
-#        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6, other, 6 )
-#    end
-#end
+#------------------------------------------------------------------------------
+# Unoptimized Runs
+#------------------------------------------------------------------------------
+#Cache Sweeping
+Dir.chdir( specint_dir )
+$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
+    $specint.product( $specint ).each do|p0, p1|
+        sav_script( cpu, scheme, p0, {p1: p1} )
+    end
+end
+
+#Turn Length Sweeping
+Dir.chdir(specint_dir)
+$cpus.product( $turnlengths ).each do |cpu, turnlength|
+    $specint.product( $specint ).each do |p0,p1|
+        sav_script( cpu, "tp", p0, {tl0: turnlength, p1: p1} )
+    end
+    $specint.each do |p0|
+        sav_script( cpu, "tp", p0, {tl0: turnlength} )
+    end
+end
+
+#Thread Scaling
+$cpus = %w[ detailed ]
+$cpus.product( $schemes ).each do |cpu, scheme|
+    $specint.product( $specint ).each do |p0,other|
+        sav_script( cpu, scheme, p0, {p1: other, p2: other} )
+        sav_script( cpu, scheme, p0, {p1: other, p2: other, p3:other} )
+    end
+end
 
 #------------------------------------------------------------------------------
 # Optimized Runs
@@ -139,7 +161,7 @@ $cpus = %w[ detailed timing ]
 
 # This is a Hash of the form scheme -> model -> cache size -> benchmark -> mpki 
 # saved to a file. It was generated using parsers/parse_mpki_spec
-$mpkidata = Marshal.load( File.open( "mpki.rubyobj" ) )
+$mpkidata = Marshal.load( File.open $gem5home.path+"/mpki.rubyobj" )
 $mpkidata = $mpkidata["none"]["detailed"][0]
 
 
@@ -189,39 +211,48 @@ def get_turns( p0,p1 )
         ]
 end
 
-##Thread Scaling
-#$cpus.product( $schemes ).each do |cpu, scheme|
-#    $specint.product( $specint ).each do |p0,other|
-#        tlp0, tlp1 = get_turns( p0, other )
-#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1 )
-#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1 )
-#        sav_script( cpu, scheme, 4, true, p0, tlp0, other, tlp1, other, tlp1,
-#                   other, tlp1 )
-#    end
-#end
-
-#Thread Scaling (Just FA)
-$schemes = %w[fa]
+#Thread Scaling
 $cpus.product( $schemes ).each do |cpu, scheme|
     $specint.product( $specint ).each do |p0,other|
-        sav_script( cpu, scheme, 4, false, p0, 6, other, 6 )
-        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6 )
-        sav_script( cpu, scheme, 4, false, p0, 6, other, 6, other, 6,
-                   other, 6 )
+        tlp0, tlp1 = get_turns( p0, other )
+        sav_script( cpu, scheme, p0,
+           {diffperiod: true, tl0: tlp0, p1: other, tl1: tlp1 }
+        )
+        sav_script( cpu, scheme, p0,
+           {diffperiod: true, tl0: tlp0, 
+            p1: other, tl1: tlp1, p2: other, tl2: tlp1}
+        )
+        sav_script( cpu, scheme, p0,
+           {diffperiod: true, tl0: tlp0, 
+            p1: other, tl1: tlp1, p2: other, tl2: tlp1, p3: other, tl3: tlp1}
+        )
+    end
+end
+
+#Thread Scaling (Just FA)
+$cpus.product( %w[fa] ).each do |cpu, scheme|
+    $specint.product( $specint ).each do |p0,other|
+        sav_script( cpu, scheme, p0, {p1: other} )
+        sav_script( cpu, scheme, p0, {p1: other, p2: other} )
+        sav_script( cpu, scheme, p0, {p1: other, p2: other, p3: other} )
     end
 end
 
 #------------------------------------------------------------------------------
 # FCFS vs FR-FCFS
 #------------------------------------------------------------------------------
-#$schemes = %w[frfcfs frfcfs_open]
-#$cpus = %w[detailed timing]
-#
-##Cache Sweeping
-#Dir.chdir( specint_dir )
-#$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
-#    $specint.product( $specint ).each do|p0, p1|
-#        sav_script( cpu, scheme, cacheSize, false, p0, 6, p1 )
-#    end
-#end
+$schemes_tmp = $schemes
+$cpus_tmp= $cpus
+$schemes = %w[frfcfs frfcfs_open]
+$cpus = %w[detailed timing]
 
+#Cache Sweeping
+Dir.chdir( specint_dir )
+$cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
+    $specint.product( $specint ).each do|p0, p1|
+        sav_script( cpu, scheme, p0, {p1: p1} )
+    end
+end
+
+$schemes = $schemes_tmp
+$cpus = $cpus_tmp
