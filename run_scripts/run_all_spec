@@ -26,6 +26,7 @@ $schemes = %w[tp none fa]
 $turnlengths = [0] + (7..9).to_a
 $p0periods = [64,96,128,192,256]
 
+#benchmarks
 $specinvoke = { 
     #    "perlbench"  => "'#{specint_dir}/perlbench -I#{specint_dir}/perldepends -I#{specint_dir}/lib #{specint_dir} pack.pl'",
     "bzip2"      => "'#{specint_dir}/bzip2 #{specint_dir}/input.source 280'",
@@ -40,8 +41,16 @@ $specinvoke = {
     "astar"      => "'#{specint_dir}/astar #{specint_dir}/BigLakes2048.cfg'",
     "Xalan"      => "'#{specint_dir}/Xalan -v #{specint_dir}/t5.xml #{specint_dir}/xalanc.xsl'"  
 }
-
 $specint = $specinvoke.keys.sort
+
+$synthinvoke = {
+    "hardstride1" => "#{$synthbench_dir}hardstride -d #{$duration} -p 1",
+    "randmem1"    => "#{$synthbench_dir}randmem -d #{$duration} -p 1",
+    #"randmem10"   => "#{$synthbench_dir}randmem -d #{$duration} -p 10",
+    #"randmem100"  => "#{$synthbench_dir}randmem -d #{$duration} -p 100",
+    "nothing"     => "#{$synthbench_dir}nothing"
+}
+$synthb = $synthinvoke.keys.sort
 
 def sav_script( cpu, scheme, p0, options = {} ) 
 
@@ -119,7 +128,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    #system "qsub -wd #{$gem5home.path} #{script_abspath}"
+    system "qsub -wd #{$gem5home.path} #{script_abspath}"
 end
 
 #------------------------------------------------------------------------------
