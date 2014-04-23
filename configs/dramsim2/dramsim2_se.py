@@ -98,6 +98,8 @@ if '--dramsim2' in sys.argv:
             help="generate the trace for benchmarks.")
     parser.add_option("--numpids", type="int", default=2,
             help="determine the number of PIDs")
+    parser.add_option("--l3tracefile", type="string", default="l3trace.txt",
+            help="Output file for l3 cache traces")
 ######################################################################
 
 ######################################################################

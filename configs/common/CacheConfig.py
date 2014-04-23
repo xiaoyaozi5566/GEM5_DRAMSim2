@@ -53,7 +53,8 @@ class L3Shared( L3Config ):
         system.l3 = L3Cache(size = options.l3_size, 
                             latency=self.latencies[options.l3_size],
                             assoc = options.l3_assoc,
-                            block_size=options.cacheline_size)
+                            block_size=options.cacheline_size,
+                            l3_trace_file = options.l3tracefile)
 
         system.tol3bus = CoherentBus()
         system.l3.cpu_side = system.tol3bus.master
@@ -73,7 +74,8 @@ class L3Private( L3Config ):
                     size = options.l3_size,
                     latency = self.latencies[options.l3_size],
                     assoc = options.l3_assoc,
-                    block_size = options.cacheline_size
+                    block_size = options.cacheline_size,
+                    l3_trace_file = options.l3tracefile
                 )
                 for i in xrange( options.num_cpus )
             ]
