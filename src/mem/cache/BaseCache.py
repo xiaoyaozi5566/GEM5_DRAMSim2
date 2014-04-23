@@ -62,3 +62,4 @@ class BaseCache(MemObject):
     mem_side = MasterPort("Port on side closer to MEM")
     addr_ranges = VectorParam.AddrRange([AllMemory], "The address range for the CPU-side port")
     system = Param.System(Parent.any, "System we belong to")
+    do_cache_trace = Param.Bool(False, "should a cache trace be saved?")

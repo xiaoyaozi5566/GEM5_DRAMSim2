@@ -35,6 +35,7 @@ class L1Cache(BaseCache):
     mshrs = 10
     tgts_per_mshr = 20
     is_top_level = True
+    do_cache_trace = False
 
 class L2Cache(BaseCache):
     assoc = 8
@@ -42,6 +43,7 @@ class L2Cache(BaseCache):
     latency = '3.33ns'
     mshrs = 20
     tgts_per_mshr = 12
+    do_cache_trace = False
 
 class L3Cache(BaseCache):
     assoc = 16
@@ -49,6 +51,7 @@ class L3Cache(BaseCache):
     latency = '8.48ns'
     mshrs = 20
     tgts_per_mshr = 12
+    do_cache_trace = True
 
 class PageTableWalkerCache(BaseCache):
     assoc = 2
