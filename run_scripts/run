@@ -1,16 +1,22 @@
 #!/usr/bin/ruby
 
-require_relative './runscripts'
-require_relative './unoptimized'
-require_relative './optimized'
-require_relative './scheduler'
-require_relative './synthetic'
+require_relative 'runscripts'
+require_relative 'unoptimized'
+require_relative 'optimized'
+require_relative 'scheduler'
+require_relative 'synthetic'
+require_relative 'security'
 include RunScripts
+
+#------------------------------------------------------------------------------
+# Security
+#------------------------------------------------------------------------------
+cache_security
 
 #------------------------------------------------------------------------------
 # Unptimized Runs
 #------------------------------------------------------------------------------
-cache_sweeping
+# cache_sweeping
 # turn_length_sweeping
 # thread_scaling
 
