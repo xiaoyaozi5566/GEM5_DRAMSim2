@@ -60,6 +60,7 @@
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
 #include "sim/sim_exit.hh"
+#include "mem/cache/cache_trace.hh"
 
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p, TagStore *tags)
