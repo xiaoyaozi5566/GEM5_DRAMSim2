@@ -10,7 +10,7 @@ $scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 
 #Gem5 options
 $fastforward = 10**9
-$maxtinsts = 10**8
+$maxinsts = 10**8
 $maxtick = 2*10**15 
 $cpus = %w[detailed timing]
 $cacheSizes = [0,1,2,4]
@@ -64,24 +64,38 @@ def sav_script( cpu, scheme, p0, options = {} )
         tl2: 6,
         tl3: 6,
         diffperiod: false,
-        l3config: "shared"
+        l3config: "shared",
+        runmode: :qsub,
+        maxinsts: $maxinsts,
+        fastforward: $fastforward
     }.merge options
+
     cacheSize  = options[:cacheSize]
+    # workloads to run on p1-p3
     p1         = options[:p1]
     p2         = options[:p2]
     p3         = options[:p3]
+    # turn length for p0-p3. Assumed equal unless diffperiod is supplied. The 
+    # turn length is 2**arg unless diffperiod is supplied, otherwise it is arg.
     tl0        = options[:tl0]
     tl1        = options[:tl1]
     tl2        = options[:tl2]
     tl3        = options[:tl3]
+    # allows the turn lengths for p0-p3 to differ
     diffperiod = options[:diffperiod]
     l3config   = options[:shared]
+    # runmode can be qsub: to submit jobs, local: to run the test locally, or 
+    # none: to generate the scripts without running them
+    runmode    = options[:runmode]
+    maxinsts   = options[:maxinsts]
+    fastforward= options[:fastforward]
 
     filename = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
     filename += "_#{p1}tl#{tl1}" unless p1.nil?
     filename += "_#{p2}tl#{tl2}" unless p2.nil?
     filename += "_#{p3}tl#{tl3}" unless p3.nil?
     filename += "_c#{cacheSize}MB"
+    filename += "_l3#{l3config}"
     
     numpids  = 1
     numpids += 1 unless p1.nil?
@@ -101,9 +115,9 @@ def sav_script( cpu, scheme, p0, options = {} )
         script.puts("    --l3_size=#{cacheSize}MB\\")
     end
     script.puts("   --fixaddr\\") if scheme == "fa"
-    script.puts("    --fast-forward=#{$fastforward} \\")
+    script.puts("    --fast-forward=#{fastforward} \\") unless fastforward == 0
     script.puts("    --fixaddr\\") if scheme == "fa"
-    script.puts("    --maxinsts=#{$maxtinsts} \\")
+    script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --dramsim2 \\")
     script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
@@ -128,7 +142,8 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    #system "qsub -wd #{$gem5home.path} #{script_abspath}"
+    system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
+    system "sh #{script_abspath}" if runmode == :local
 end
 
 end
