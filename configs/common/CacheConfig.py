@@ -54,6 +54,7 @@ class L3Shared( L3Config ):
                             latency=self.latencies[options.l3_size],
                             assoc = options.l3_assoc,
                             block_size=options.cacheline_size,
+                            save_traces = options.savetraces,
                             l3_trace_file = options.l3tracefile)
 
         system.tol3bus = CoherentBus()
@@ -75,6 +76,7 @@ class L3Private( L3Config ):
                     latency = self.latencies[options.l3_size],
                     assoc = options.l3_assoc,
                     block_size = options.cacheline_size,
+                    save_traces = options.savetraces,
                     l3_trace_file = options.l3tracefile
                 )
                 for i in xrange( options.num_cpus )
