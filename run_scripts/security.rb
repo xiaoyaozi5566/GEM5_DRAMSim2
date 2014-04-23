@@ -15,7 +15,8 @@ module RunScripts
         opts = {
             maxinsts: 10**5,
             fastforward: 0,
-            runmode: :local
+            runmode: :local,
+            savetraces: true
         }
 
         cpus.product( schemes, l3configs ).each do |cpu, scheme, l3config|

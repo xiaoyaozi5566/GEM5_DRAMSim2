@@ -100,6 +100,9 @@ if '--dramsim2' in sys.argv:
             help="determine the number of PIDs")
     parser.add_option("--l3tracefile", type="string", default="l3trace.txt",
             help="Output file for l3 cache traces")
+    parser.add_option("--savetraces", action="store_true", default=False,
+            help="Determines whether or not security traces should be saved")
+
 ######################################################################
 
 ######################################################################

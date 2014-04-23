@@ -66,6 +66,7 @@ def sav_script( cpu, scheme, p0, options = {} )
         diffperiod: false,
         l3config: "shared",
         runmode: :qsub,
+        savetraces: false,
         maxinsts: $maxinsts,
         fastforward: $fastforward
     }.merge options
@@ -89,18 +90,20 @@ def sav_script( cpu, scheme, p0, options = {} )
     runmode    = options[:runmode]
     maxinsts   = options[:maxinsts]
     fastforward= options[:fastforward]
+    # Determines if trace files for security should be saved
+    savetraces = options[:savetraces]
+    # Determines l3 trace file output. nil by default to allow short-circuiting
+    l3tracefile= options[:l3tracefile]
+    
 
-    filename = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
+    filename  = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
     filename += "_#{p1}tl#{tl1}" unless p1.nil?
     filename += "_#{p2}tl#{tl2}" unless p2.nil?
     filename += "_#{p3}tl#{tl3}" unless p3.nil?
     filename += "_c#{cacheSize}MB"
     filename += "_l3#{l3config}"
-    
-    numpids  = 1
-    numpids += 1 unless p1.nil?
-    numpids += 1 unless p2.nil?
-    numpids += 1 unless p3.nil?
+   
+    numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
 
     script = File.new($scriptgen_dir.path+"/run_#{filename}","w+")
     script.puts("#!/bin/bash")
@@ -120,6 +123,9 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --dramsim2 \\")
+    script.puts("    --savetraces \\") if savetraces
+    l3tracefile = l3tracefile || "results/l3trace_#{filename}.txt"
+    script.puts("    --l3tracefile #{l3tracefile}\\") if savetraces
     script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
     script.puts("    --devicecfg="+
                 "./ext/DRAMSim2/ini/#{$device} \\")
