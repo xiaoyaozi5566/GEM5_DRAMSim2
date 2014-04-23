@@ -57,6 +57,7 @@
 #include "mem/cache/blk.hh"
 #include "mem/cache/mshr.hh"
 #include "sim/eventq.hh"
+#include "mem/cache/cache_trace.hh"
 
 //Forward decleration
 class BasePrefetcher;
@@ -74,6 +75,8 @@ class Cache : public BaseCache
     typedef typename TagStore::BlkType BlkType;
     /** A typedef for a list of BlkType pointers. */
     typedef typename TagStore::BlkList BlkList;
+
+    CacheTrace * cacheTrace;
 
   protected:
 

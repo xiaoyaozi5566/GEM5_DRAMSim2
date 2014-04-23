@@ -60,7 +60,6 @@
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
 #include "sim/sim_exit.hh"
-#include "mem/cache/cache_trace.hh"
 
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p, TagStore *tags)
@@ -81,6 +80,13 @@ Cache<TagStore>::Cache(const Params *p, TagStore *tags)
     tags->setCache(this);
     if (prefetcher)
         prefetcher->setCache(this);
+
+    if ( p->do_cache_trace ){
+        cacheTrace = new CacheTrace();
+        Callback *ctPrintCB =
+            new MakeCallback< CacheTrace , &CacheTrace::print >( cacheTrace );
+        registerExitCallback( ctPrintCB );
+    }
 }
 
 template<class TagStore>
