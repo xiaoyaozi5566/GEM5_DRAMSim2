@@ -84,7 +84,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     tl3        = options[:tl3]
     # allows the turn lengths for p0-p3 to differ
     diffperiod = options[:diffperiod]
-    l3config   = options[:shared]
+    l3config   = options[:l3config]
     # runmode can be qsub: to submit jobs, local: to run the test locally, or 
     # none: to generate the scripts without running them
     runmode    = options[:runmode]
