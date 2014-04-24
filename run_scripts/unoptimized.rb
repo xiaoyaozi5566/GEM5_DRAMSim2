@@ -5,6 +5,18 @@ require_relative './runscripts.rb'
 include RunScripts
 
 module RunScripts
+# Single Benchmark
+def single_benchmark
+    $specint.each do |p0|
+        opts = {
+            maxinsts: 10**4,
+            fastforward: 0,
+            runmode: :local
+        }
+        sav_script( "detailed", "none", p0, opts )
+    end
+end
+
 #Cache Sweeping
 def cache_sweeping
     $cpus.product( $schemes,  $cacheSizes ).each do |cpu, scheme, cacheSize|
