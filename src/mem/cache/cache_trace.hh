@@ -31,7 +31,7 @@ class TraceNode {
     {}
 };
 
-class CacheTrace : public std::list<TraceNode>{
+class CacheTrace : public std::list<TraceNode*>{
     std::string outFile;
     public:
 
@@ -43,14 +43,14 @@ class CacheTrace : public std::list<TraceNode>{
         std::string return_val = "";
         for( CacheTrace::iterator it=this->begin();
                 it != this->end(); it++ ){
-            return_val += it->to_s() + "\n";
+            return_val += (*it)->to_s() + "\n";
         }
         return return_val;
     }
     void print(){
         // printf( to_s().c_str() );
         FILE * of = fopen( outFile.c_str() , "w" );
-        fprintf( of, "Cache trace got printed to %s\n", outFile.c_str() );
+        fprintf( of, to_s().c_str() );
         fclose( of );
     }
 };
