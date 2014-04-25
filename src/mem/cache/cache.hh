@@ -78,6 +78,8 @@ class Cache : public BaseCache
 
     CacheTrace * cacheTrace;
 
+    const Params *params;
+
   protected:
 
     /**

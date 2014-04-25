@@ -81,12 +81,14 @@ Cache<TagStore>::Cache(const Params *p, TagStore *tags)
     if (prefetcher)
         prefetcher->setCache(this);
 
-    cacheTrace = new CacheTrace( p->l3_trace_file );
-    if ( p->do_cache_trace ){
+    if ( p->do_cache_trace && p->save_traces ){
+        cacheTrace = new CacheTrace( p->l3_trace_file );
         Callback *ctPrintCB =
             new MakeCallback< CacheTrace , &CacheTrace::print >( cacheTrace );
         registerExitCallback( ctPrintCB );
     }
+
+    params = p;
 }
 
 template<class TagStore>
@@ -1351,7 +1353,9 @@ bool
 Cache<TagStore>::CpuSidePort::recvTimingSnoopResp(PacketPtr pkt)
 {
     // Express snoop responses from master to slave, e.g., from L1 to L2
-    cache->cacheTrace->push_back( new TraceNode(pkt) );
+    if( cache->params->save_traces && pkt->threadID == 0 ){
+        cache->cacheTrace->push_back( new TraceNode(pkt) );
+    }
     cache->timingAccess(pkt);
     return true;
 }
@@ -1606,7 +1610,9 @@ Cache<TagStore>::CpuSidePort::recvTimingReq(PacketPtr pkt)
         return false;
     }
 
-    cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    if( cache->params->save_traces && pkt->threadID == 0 ){
+        cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    }
     cache->timingAccess(pkt);
     return true;
 }
@@ -1645,7 +1651,9 @@ template<class TagStore>
 bool
 Cache<TagStore>::MemSidePort::recvTimingResp(PacketPtr pkt)
 {
-    cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    if( cache->params->save_traces && pkt->threadID == 0 ){
+        cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    }
     cache->handleResponse(pkt);
     return true;
 }
@@ -1656,7 +1664,9 @@ void
 Cache<TagStore>::MemSidePort::recvTimingSnoopReq(PacketPtr pkt)
 {
     // handle snooping requests
-    cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    if( cache->params->save_traces && pkt->threadID == 0 ){
+        cache->cacheTrace->push_back( new TraceNode( pkt ) );
+    }
     cache->snoopTiming(pkt);
 }
 
