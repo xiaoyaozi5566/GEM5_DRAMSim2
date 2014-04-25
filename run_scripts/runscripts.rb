@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 require 'fileutils'
+require 'colored'
 
 module RunScripts
 #directories
@@ -15,6 +16,7 @@ $maxtick = 2*10**15
 $cpus = %w[detailed timing]
 $cacheSizes = [0,1,2,4]
 $p0periods = [64,96,128,192,256]
+$l3configs = %w[shared private]
 
 #dramsim options
 $device = "DDR3_micron_16M_8B_x8_sg15.ini"
@@ -35,7 +37,7 @@ $specinvoke = {
     "h264ref"    => "'#{$specint_dir}/h264ref -d #{$specint_dir}/foreman_ref_encoder_baseline.cfg'",
    #"omnetpp"    => "'#{$specint_dir}/omnetpp #{$specint_dir}/omnetpp.ini'",
     "astar"      => "'#{$specint_dir}/astar #{$specint_dir}/BigLakes2048.cfg'",
-    "Xalan"      => "'#{$specint_dir}/Xalan -v #{$specint_dir}/t5.xml #{$specint_dir}/xalanc.xsl'"  
+    "xalan"      => "'#{$specint_dir}/Xalan -v #{$specint_dir}/t5.xml #{$specint_dir}/xalanc.xsl'"  
 }
 $specint = $specinvoke.keys.sort
 
@@ -149,7 +151,9 @@ def sav_script( cpu, scheme, p0, options = {} )
     script_abspath = File.expand_path(script.path)
     script.close
     system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
+    puts "#{filename}".magenta if runmode == :local
     system "sh #{script_abspath}" if runmode == :local
+
 end
 
 end

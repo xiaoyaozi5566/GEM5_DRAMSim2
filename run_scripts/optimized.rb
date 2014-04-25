@@ -68,17 +68,13 @@ def optimized_thread_scaling
     $cpus.product( $schemes ).each do |cpu, scheme|
         $specint.product( $specint ).each do |p0,other|
             tlp0, tlp1 = get_turns( p0, other )
-            sav_script( cpu, scheme, p0,
-               {diffperiod: true, tl0: tlp0, p1: other, tl1: tlp1 }
-            )
-            sav_script( cpu, scheme, p0,
-               {diffperiod: true, tl0: tlp0, 
-                p1: other, tl1: tlp1, p2: other, tl2: tlp1}
-            )
-            sav_script( cpu, scheme, p0,
-               {diffperiod: true, tl0: tlp0, 
-                p1: other, tl1: tlp1, p2: other, tl2: tlp1, p3: other, tl3: tlp1}
-            )
+            sav_script( cpu, scheme, p0, diffperiod: true, tl0: tlp0,
+                       p1: other, tl1: tlp1 )
+            sav_script( cpu, scheme, p0, diffperiod: true, tl0: tlp0,
+                       p1: other, tl1: tlp1, p2: other, tl2: tlp1 )
+            sav_script( cpu, scheme, p0, diffperiod: true, tl0: tlp0, 
+                       p1: other, tl1: tlp1, p2: other, tl2: tlp1,
+                       p3: other, tl3: tlp )
         end
     end
 end
@@ -87,9 +83,9 @@ end
 def fa_thread_scaling
     $cpus.product( %w[fa] ).each do |cpu, scheme|
         $specint.product( $specint ).each do |p0,other|
-            sav_script( cpu, scheme, p0, {p1: other} )
-            sav_script( cpu, scheme, p0, {p1: other, p2: other} )
-            sav_script( cpu, scheme, p0, {p1: other, p2: other, p3: other} )
+            sav_script( cpu, scheme, p0, p1: other )
+            sav_script( cpu, scheme, p0, p1: other, p2: other )
+            sav_script( cpu, scheme, p0, p1: other, p2: other, p3: other )
         end
     end
 end
