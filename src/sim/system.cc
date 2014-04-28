@@ -73,6 +73,8 @@ vector<System *> System::systemList;
 
 int System::numSystemsRunning = 0;
 
+bool System::is_fast_forward;
+
 System::System(Params *p)
     : MemObject(p), _systemPort("system_port", this),
       _numContexts(0),
@@ -92,6 +94,8 @@ System::System(Params *p)
 {
     // add self to global system list
     systemList.push_back(this);
+
+    is_fast_forward = p->fast_forward;
     
     pagePtr[0] = 0;
     pagePtr[2] = (physmem.totalSize() >> (LogVMPageSize + 1));

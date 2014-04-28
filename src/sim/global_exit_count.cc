@@ -1,5 +1,4 @@
 #include "global_exit_count.hh"
-#include <stddef.h>
 ExitCounter* ExitCounter::instance = NULL;
 int ExitCounter::get()
 {

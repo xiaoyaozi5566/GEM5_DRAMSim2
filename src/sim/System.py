@@ -72,6 +72,9 @@ class System(MemObject):
     
     numPids = Param.Int(2,
         "number of PIDs in simulation")
+
+    fast_forward = Param.Bool(False,
+            "Is fastforwarding used?")
         
     fixAddr = Param.Bool(False, "whether using fixed address mapping")
 

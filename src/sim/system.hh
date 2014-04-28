@@ -71,6 +71,7 @@ class ObjectFile;
 class Platform;
 class ThreadContext;
 
+
 class System : public MemObject
 {
   private:
@@ -99,6 +100,7 @@ class System : public MemObject
     SystemPort _systemPort;
 
   public:
+    static bool is_fast_forward;
     int num_exits;
 
     /**
@@ -409,5 +411,6 @@ class System : public MemObject
 
 
 };
+
 
 #endif // __SYSTEM_HH__

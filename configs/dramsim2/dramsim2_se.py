@@ -285,6 +285,7 @@ system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 membus = CoherentBus(), 
                 mem_mode = test_mem_mode,
                 numPids = options.numpids,
+                fast_forward = (options.fast_forward != None),
                 fixAddr = options.fixaddr)
 
 # Sanity check
