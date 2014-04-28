@@ -45,6 +45,7 @@
 // Tag Templates
 #if defined(USE_CACHE_LRU)
 #include "mem/cache/tags/lru.hh"
+#include "mem/cache/tags/wplru.hh"
 #endif
 
 #if defined(USE_CACHE_FALRU)
@@ -80,7 +81,11 @@ using namespace std;
 
 #if defined(USE_CACHE_LRU)
 #define BUILD_LRU_CACHE do {                                            \
-        LRU *tags = new LRU(numSets, block_size, assoc, latency);       \
+        LRU *tags;                                                      \
+        if( use_way_part )                                              \
+            tags = new WPLRU(numSets, block_size, assoc, latency );     \
+        else                                                            \
+            tags = new LRU(numSets, block_size, assoc, latency);        \
         BUILD_CACHE(LRU, tags);                                         \
     } while (0)
 #else
