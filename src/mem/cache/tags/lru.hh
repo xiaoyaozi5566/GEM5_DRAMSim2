@@ -147,7 +147,7 @@ public:
      * @param asid The address space ID.
      * @return Pointer to the cache block if found.
      */
-    BlkType* findBlock(Addr addr) const;
+    BlkType* findBlock(Addr addr);
 
     /**
      * Find a block to evict for the address provided.
@@ -164,6 +164,17 @@ public:
      * @param blk The block to update.
      */
      void insertBlock(Addr addr, BlkType *blk, int context_src);
+
+
+
+     /*
+      * return the set at a particular index with a particular tid. The regular 
+      * LRU cache has only one group of sets. The WPLRU cache will override 
+      * this method and actually use the tid to do partitioning.
+      */
+    virtual CacheSet get_set( int setnum, int tid );
+
+    virtual void init_sets();
 
     /**
      * Generate the tag from the given address.

@@ -71,7 +71,18 @@ LRU::LRU(unsigned _numSets, unsigned _blkSize, unsigned _assoc,
     warmedUp = false;
     /** @todo Make warmup percentage a parameter. */
     warmupBound = numSets * assoc;
+    
+    init_sets();
+}
 
+CacheSet
+LRU::get_set( int setnum, int tid ){
+    return sets[setnum];
+}
+
+
+void
+LRU::init_sets(){
     sets = new CacheSet[numSets];
     blks = new BlkType[numSets * assoc];
     // allocate data storage in one big chunk
@@ -120,11 +131,11 @@ LRU::accessBlock(Addr addr, int &lat, int master_id)
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
-    BlkType *blk = sets[set].findBlk(tag);
+    BlkType *blk = get_set(set,0).findBlk(tag);
     lat = hitLatency;
     if (blk != NULL) {
         // move this block to head of the MRU list
-        sets[set].moveToHead(blk);
+        get_set(set,0).moveToHead(blk);
         DPRINTF(CacheRepl, "set %x: moving blk %x to MRU\n",
                 set, regenerateBlkAddr(tag, set));
         if (blk->whenReady > curTick()
@@ -139,11 +150,11 @@ LRU::accessBlock(Addr addr, int &lat, int master_id)
 
 
 LRU::BlkType*
-LRU::findBlock(Addr addr) const
+LRU::findBlock(Addr addr)
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
-    BlkType *blk = sets[set].findBlk(tag);
+    BlkType *blk = get_set(set,0).findBlk(tag);
     return blk;
 }
 
@@ -152,7 +163,7 @@ LRU::findVictim(Addr addr, PacketList &writebacks)
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
-    BlkType *blk = sets[set].blks[assoc-1];
+    BlkType *blk = get_set(set,0).blks[assoc-1];
 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
@@ -197,7 +208,7 @@ LRU::insertBlock(Addr addr, BlkType *blk, int master_id)
     blk->srcMasterId = master_id;
 
     unsigned set = extractSet(addr);
-    sets[set].moveToHead(blk);
+    get_set(set,0).moveToHead(blk);
 }
 
 void
@@ -210,7 +221,7 @@ LRU::invalidateBlk(BlkType *blk)
             occupancies[blk->srcMasterId]--;
             blk->srcMasterId = Request::invldMasterId;
             unsigned set = blk->set;
-            sets[set].moveToTail(blk);
+            get_set(set,0).moveToTail(blk);
         }
         blk->status = 0;
         blk->isTouched = false;
