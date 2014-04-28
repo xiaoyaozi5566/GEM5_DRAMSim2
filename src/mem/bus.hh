@@ -50,6 +50,7 @@
 
 #ifndef __MEM_BUS_HH__
 #define __MEM_BUS_HH__
+#define NUM_PIDS 2
 
 #include <list>
 #include <set>
@@ -137,7 +138,7 @@ class BaseBus : public MemObject
          *
          * @return True if the bus layer accepts the packet
          */
-        bool tryTiming(PortClass* port);
+        bool tryTiming(PortClass* port, int threadID);
 
         /**
          * Deal with a destination port accepting a packet by potentially
@@ -146,7 +147,7 @@ class BaseBus : public MemObject
          *
          * @param busy_time Time to spend as a result of a successful send
          */
-        void succeededTiming(Tick busy_time);
+        void succeededTiming(Tick busy_time, int threadID);
 
         /**
          * Deal with a destination port not accepting a packet by
@@ -156,10 +157,10 @@ class BaseBus : public MemObject
          *
          * @param busy_time Time to spend as a result of a failed send
          */
-        void failedTiming(PortClass* port, Tick busy_time);
+        void failedTiming(PortClass* port, Tick busy_time, int threadID);
 
         /** Occupy the bus layer until until */
-        void occupyLayer(Tick until);
+        void occupyLayer(Tick until, int threadID);
 
         /**
          * Send a retry to the port at the head of the retryList. The
@@ -202,7 +203,7 @@ class BaseBus : public MemObject
         enum State { IDLE, BUSY, RETRY };
 
         /** track the state of the bus layer */
-        State state;
+        State * state;
 
         /** the clock speed for the bus layer */
         Tick clock;
@@ -214,14 +215,14 @@ class BaseBus : public MemObject
          * An array of ports that retry should be called
          * on because the original send failed for whatever reason.
          */
-        std::list<PortClass*> retryList;
+        std::list<PortClass*> * retryList;
 
         /**
          * Release the bus layer after being occupied and return to an
          * idle state where we proceed to send a retry to any
          * potential waiting port, or drain if asked to do so.
          */
-        void releaseLayer();
+        void releaseLayer(int threadID);
 
         /** event used to schedule a release of the layer */
         EventWrapper<Layer, &Layer::releaseLayer> releaseEvent;
@@ -319,7 +320,7 @@ class BaseBus : public MemObject
      * Returns the tick at which the packet header is completed (which
      * will be all that is sent if the target rejects the packet).
      */
-    Tick calcPacketTiming(PacketPtr pkt);
+    Tick calcPacketTiming(PacketPtr pkt, int threadID);
 
     /**
      * Ask everyone on the bus what their size is
