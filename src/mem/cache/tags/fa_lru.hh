@@ -169,6 +169,9 @@ public:
      * @param blk The block to invalidate.
      */
     void invalidateBlk(BlkType *blk);
+    void invalidateBlk(BlkType *blk, uint64_t tid){
+        invalidateBlk(blk);
+    }
 
     /**
      * Access block and update replacement data.  May not succeed, in which case
@@ -181,7 +184,10 @@ public:
      * @param inCache The FALRUBlk::inCache flags.
      * @return Pointer to the cache block.
      */
-    FALRUBlk* accessBlock(Addr addr, int &lat, int context_src, int *inCache = 0);
+    FALRUBlk* accessBlock(Addr addr, int &lat, int context_src);
+    FALRUBlk* accessBlock(Addr addr, int &lat, int context_src, uint64_t tid){
+        return accessBlock(addr, lat, context_src);
+    }
 
     /**
      * Find the block in the cache, do not update the replacement data.
@@ -190,6 +196,9 @@ public:
      * @return Pointer to the cache block.
      */
     FALRUBlk* findBlock(Addr addr) const;
+    FALRUBlk* findBlock(Addr addr, uint64_t tid) const{
+        return findBlock( addr, tid );
+    }
 
     /**
      * Find a replacement block for the address provided.
@@ -198,8 +207,15 @@ public:
      * @return The block to place the replacement in.
      */
     FALRUBlk* findVictim(Addr addr, PacketList & writebacks);
+    FALRUBlk* findVictim(Addr addr, PacketList & writebacks,
+            uint64_t tid){
+        return findVictim( addr, writebacks );
+    }
 
     void insertBlock(Addr addr, BlkType *blk, int context_src);
+    void insertBlock(Addr addr, BlkType *blk, int context_src, uint64_t tid){
+        insertBlock( addr, blk, context_src );
+    }
 
     /**
      * Return the hit latency of this cache.

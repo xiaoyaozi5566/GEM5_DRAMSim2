@@ -162,8 +162,9 @@ FALRU::invalidateBlk(FALRU::BlkType *blk)
 }
 
 FALRUBlk*
-FALRU::accessBlock(Addr addr, int &lat, int context_src, int *inCache)
+FALRU::accessBlock(Addr addr, int &lat, int context_src)
 {
+    int *inCache = 0;
     accesses++;
     int tmp_in_cache = 0;
     Addr blkAddr = blkAlign(addr);

@@ -361,11 +361,15 @@ class Cache : public BaseCache
     }
 
     CacheBlk *findBlock(Addr addr) {
-        return tags->findBlock(addr);
+        fprintf(stderr,
+            "\x1B[31m a bad function: cache.hh findBlock(addr)\n\x1B[0m");
+        return tags->findBlock(addr,0);
     }
 
     bool inCache(Addr addr) {
-        return (tags->findBlock(addr) != 0);
+        fprintf(stderr,
+            "\x1B[31m a bad function: cache.hh inCache(addr)\n\x1B[0m");
+        return (tags->findBlock(addr,0) != 0);
     }
 
     bool inMissQueue(Addr addr) {

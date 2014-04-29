@@ -36,5 +36,5 @@
  */
 #define USE_CACHE_WPLRU 1
 #define USE_CACHE_LRU 1
-#define USE_CACHE_FALRU 1
-#define USE_CACHE_IIC 1
+#define USE_CACHE_FALRU 0
+#define USE_CACHE_IIC 0

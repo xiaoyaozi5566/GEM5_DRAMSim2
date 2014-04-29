@@ -409,6 +409,9 @@ class IIC : public BaseTags
      * @param blk The block to invalidate.
      */
     void invalidateBlk(BlkType *blk);
+    void invalidateBlk(BlkType *blk, uint64_t tid){
+        invalidateBlk( blk );
+    }
 
     /**
      * Access block and update replacement data.  May not succeed, in which case
@@ -421,6 +424,9 @@ class IIC : public BaseTags
      * @return A pointer to the block found, if any.
      */
     IICTag* accessBlock(Addr addr, int &lat, int context_src);
+    IICTag* accessBlock(Addr addr, int &lat, int context_src, uint64_t tid ){
+        return accessBlock( addr, lat, context_src, tid );
+    }
 
     /**
      * Find the block, do not update the replacement data.
@@ -429,6 +435,9 @@ class IIC : public BaseTags
      * @return A pointer to the block found, if any.
      */
     IICTag* findBlock(Addr addr) const;
+    IICTag* findBlock(Addr addr, uint64_t tid) const{
+        return findBlock( addr );
+    }
 
     /**
      * Find a replacement block for the address provided.
@@ -437,8 +446,14 @@ class IIC : public BaseTags
      * @return The block to place the replacement in.
      */
     IICTag* findVictim(Addr addr, PacketList &writebacks);
+    IICTag* findVictim(Addr addr, PacketList &writebacks, uint64_t tid){
+        return findVictim( addr, writebacks );
+    }
 
     void insertBlock(Addr addr, BlkType *blk, int context_src);
+    void insertBlock(Addr addr, BlkType *blk, int context_src, uint64_t tid){
+        insertBlock( addr, blk, context_src );
+    }
     /**
      *iterated through all blocks and clear all locks
      *Needed to clear all lock tracking at once
