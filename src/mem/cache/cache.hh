@@ -224,7 +224,7 @@ class Cache : public BaseCache
      * any to provided packet list.  Return free block frame.  May
      * return NULL if there are no replaceable blocks at the moment.
      */
-    BlkType *allocateBlock(Addr addr, PacketList &writebacks);
+    BlkType *allocateBlock(Addr addr, PacketList &writebacks, uint64_t tid);
 
     /**
      * Populates a cache block and handles all outstanding requests for the

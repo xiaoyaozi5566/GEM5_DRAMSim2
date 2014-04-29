@@ -77,6 +77,7 @@ LRU::LRU(unsigned _numSets, unsigned _blkSize, unsigned _assoc,
 
 CacheSet
 LRU::get_set( int setnum, uint64_t tid ){
+    assert(tid!=NULL);
     return sets[setnum];
 }
 
