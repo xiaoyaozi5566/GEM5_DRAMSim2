@@ -119,7 +119,7 @@ class BaseBus : public MemObject
          *
          * @return 1 if busy or waiting to retry, or 0 if idle
          */
-        unsigned int drain(Event *de, int threadID);
+        unsigned int drain(Event *de);
 
         /**
          * Get the bus layer's name
@@ -137,7 +137,7 @@ class BaseBus : public MemObject
          *
          * @return True if the bus layer accepts the packet
          */
-        bool tryTiming(PortClass* port, int threadID);
+        bool tryTiming(PortClass* port);
 
         /**
          * Deal with a destination port accepting a packet by potentially
@@ -146,7 +146,7 @@ class BaseBus : public MemObject
          *
          * @param busy_time Time to spend as a result of a successful send
          */
-        void succeededTiming(Tick busy_time, int threadID);
+        void succeededTiming(Tick busy_time);
 
         /**
          * Deal with a destination port not accepting a packet by
@@ -156,16 +156,16 @@ class BaseBus : public MemObject
          *
          * @param busy_time Time to spend as a result of a failed send
          */
-        void failedTiming(PortClass* port, Tick busy_time, int threadID);
+        void failedTiming(PortClass* port, Tick busy_time);
 
         /** Occupy the bus layer until until */
-        void occupyLayer(Tick until, int threadID);
+        void occupyLayer(Tick until);
 
         /**
          * Send a retry to the port at the head of the retryList. The
          * caller must ensure that the list is not empty.
          */
-        void retryWaiting(int threadID);
+        void retryWaiting();
 
         /**
          * Handler a retry from a neighbouring module. Eventually this
@@ -173,7 +173,7 @@ class BaseBus : public MemObject
          * retryWaiting by verifying that there are ports waiting
          * before calling retryWaiting.
          */
-        void recvRetry(int threadID);
+        void recvRetry();
 
       private:
 
@@ -202,10 +202,7 @@ class BaseBus : public MemObject
         enum State { IDLE, BUSY, RETRY };
 
         /** track the state of the bus layer */
-        State * state;
-		
-		/** number of security domains */
-		int num_pids;
+        State state;
 
         /** the clock speed for the bus layer */
         Tick clock;
@@ -217,7 +214,7 @@ class BaseBus : public MemObject
          * An array of ports that retry should be called
          * on because the original send failed for whatever reason.
          */
-        std::list<PortClass*> * retryList;
+        std::list<PortClass*> retryList;
 
         /**
          * Release the bus layer after being occupied and return to an
@@ -231,8 +228,6 @@ class BaseBus : public MemObject
 
     };
 
-	/** number of security domains */
-	int num_pids;
     /** cycles of overhead per transaction */
     int headerCycles;
     /** the width of the bus in bytes */
@@ -324,7 +319,7 @@ class BaseBus : public MemObject
      * Returns the tick at which the packet header is completed (which
      * will be all that is sent if the target rejects the packet).
      */
-    Tick calcPacketTiming(PacketPtr pkt, int threadID);
+    Tick calcPacketTiming(PacketPtr pkt);
 
     /**
      * Ask everyone on the bus what their size is

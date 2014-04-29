@@ -56,7 +56,7 @@
 
 BaseBus::BaseBus(const BaseBusParams *p)
     : MemObject(p),
-	  num_pids(p->num_pids), headerCycles(p->header_cycles), width(p->width),
+      headerCycles(p->header_cycles), width(p->width),
       defaultPortID(InvalidPortID),
       useDefaultRange(p->use_default_range),
       defaultBlockSize(p->block_size),
@@ -109,15 +109,13 @@ BaseBus::getSlavePort(const std::string &if_name, int idx)
 }
 
 Tick
-BaseBus::calcPacketTiming(PacketPtr pkt, int threadID)
+BaseBus::calcPacketTiming(PacketPtr pkt)
 {
     // determine the current time rounded to the closest following
     // clock edge
     Tick now = nextCycle();
 
-    // DONE: is now aligned with threadID?
-	now = now - (now / clock) % num_pids * clock + threadID * clock;
-	Tick headerTime = now + headerCycles * clock * num_pids;
+    Tick headerTime = now + headerCycles * clock;
 
     // The packet will be sent. Figure out how long it occupies the bus, and
     // how much of that time is for the first "word", aka bus width.
@@ -132,9 +130,9 @@ BaseBus::calcPacketTiming(PacketPtr pkt, int threadID)
 
     // The first word will be delivered after the current tick, the delivery
     // of the address if any, and one bus cycle to deliver the data
-    pkt->firstWordTime = headerTime + clock * num_pids;
+    pkt->firstWordTime = headerTime + clock;
 
-    pkt->finishTime = headerTime + numCycles * clock * num_pids;
+    pkt->finishTime = headerTime + numCycles * clock;
 
     return headerTime;
 }
@@ -142,25 +140,19 @@ BaseBus::calcPacketTiming(PacketPtr pkt, int threadID)
 template <typename PortClass>
 BaseBus::Layer<PortClass>::Layer(BaseBus& _bus, const std::string& _name,
                                  Tick _clock) :
-    bus(_bus), _name(_name), clock(_clock), drainEvent(NULL),
+    bus(_bus), _name(_name), state(IDLE), clock(_clock), drainEvent(NULL),
     releaseEvent(this)
 {
-	num_pids = _bus.num_pids;
-	state = new State[num_pids];
-	for (int i = 0; i < num_pids; i++)
-		state[i] = IDLE;
-	
-	retryList = new std::list<PortClass*>[num_pids];
 }
 
 template <typename PortClass>
-void BaseBus::Layer<PortClass>::occupyLayer(Tick until, int threadID)
+void BaseBus::Layer<PortClass>::occupyLayer(Tick until)
 {
     // ensure the state is busy or in retry and never idle at this
     // point, as the bus should transition from idle as soon as it has
     // decided to forward the packet to prevent any follow-on calls to
     // sendTiming seeing an unoccupied bus
-    assert(state[threadID] != IDLE);
+    assert(state != IDLE);
 
     // note that we do not change the bus state here, if we are going
     // from idle to busy it is handled by tryTiming, and if we
@@ -169,7 +161,7 @@ void BaseBus::Layer<PortClass>::occupyLayer(Tick until, int threadID)
 
     // until should never be 0 as express snoops never occupy the bus
     assert(until != 0);
-	bus.schedule(releaseEvent, until);
+    bus.schedule(releaseEvent, until);
 
     DPRINTF(BaseBus, "The bus is now busy from tick %d to %d\n",
             curTick(), until);
@@ -177,89 +169,82 @@ void BaseBus::Layer<PortClass>::occupyLayer(Tick until, int threadID)
 
 template <typename PortClass>
 bool
-BaseBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
+BaseBus::Layer<PortClass>::tryTiming(PortClass* port)
 {
-    // decide if it is this thread's turn
-	Tick now = bus.nextCycle()-clock;
-	if ( (now / clock) % num_pids != threadID ) return false; 
-	// first we see if the bus is busy, next we check if we are in a
+    // first we see if the bus is busy, next we check if we are in a
     // retry with a port other than the current one
-    if (state[threadID] == BUSY || (state[threadID] == RETRY && port != retryList[threadID].front())) {
+    if (state == BUSY || (state == RETRY && port != retryList.front())) {
         // put the port at the end of the retry list
-        retryList[threadID].push_back(port);
+        retryList.push_back(port);
         return false;
     }
 
     // update the state which is shared for request, response and
     // snoop responses, if we were idle we are now busy, if we are in
     // a retry, then do not change
-    if (state[threadID] == IDLE)
-        state[threadID] = BUSY;
+    if (state == IDLE)
+        state = BUSY;
 
     return true;
 }
 
 template <typename PortClass>
 void
-BaseBus::Layer<PortClass>::succeededTiming(Tick busy_time, int threadID)
+BaseBus::Layer<PortClass>::succeededTiming(Tick busy_time)
 {
     // if a retrying port succeeded, also take it off the retry list
-    if (state[threadID] == RETRY) {
+    if (state == RETRY) {
         DPRINTF(BaseBus, "Remove retry from list %s\n",
-                retryList[threadID].front()->name());
-        retryList[threadID].pop_front();
-        state[threadID] = BUSY;
+                retryList.front()->name());
+        retryList.pop_front();
+        state = BUSY;
     }
 
     // we should either have gone from idle to busy in the
     // tryTiming test, or just gone from a retry to busy
-    assert(state[threadID] == BUSY);
+    assert(state == BUSY);
 
     // occupy the bus accordingly
-    occupyLayer(busy_time, threadID);
+    occupyLayer(busy_time);
 }
 
 template <typename PortClass>
 void
-BaseBus::Layer<PortClass>::failedTiming(PortClass* port, Tick busy_time, int threadID)
+BaseBus::Layer<PortClass>::failedTiming(PortClass* port, Tick busy_time)
 {
     // if we are not in a retry, i.e. busy (but never idle), or we are
     // in a retry but not for the current port, then add the port at
     // the end of the retry list
-    if (state[threadID] != RETRY || port != retryList[threadID].front()) {
-        retryList[threadID].push_back(port);
+    if (state != RETRY || port != retryList.front()) {
+        retryList.push_back(port);
     }
 
     // even if we retried the current one and did not succeed,
     // we are no longer retrying but instead busy
-    state[threadID] = BUSY;
+    state = BUSY;
 
     // occupy the bus accordingly
-    occupyLayer(busy_time, threadID);
+    occupyLayer(busy_time);
 }
 
-// TODO: when to schedule this release
 template <typename PortClass>
 void
 BaseBus::Layer<PortClass>::releaseLayer()
 {
-	// TODO: make sure nextCycle() is doing the expected thing
-	Tick now = bus.nextCycle();
-	int threadID = now % clock - 1;
     // releasing the bus means we should now be idle
-    assert(state[threadID] == BUSY);
+    assert(state == BUSY);
     assert(!releaseEvent.scheduled());
 
-	// update the state
-    state[threadID] = IDLE;
+    // update the state
+    state = IDLE;
 
     // bus is now idle, so if someone is waiting we can retry
-    if (!retryList[threadID].empty()) {
+    if (!retryList.empty()) {
         // note that we block (return false on recvTiming) both
         // because the bus is busy and because the destination is
         // busy, and in the latter case the bus may be released before
         // we see a retry from the destination
-        retryWaiting(threadID);
+        retryWaiting();
     } else if (drainEvent) {
         DPRINTF(Drain, "Bus done draining, processing drain event\n");
         //If we weren't able to drain before, do it now.
@@ -271,45 +256,45 @@ BaseBus::Layer<PortClass>::releaseLayer()
 
 template <typename PortClass>
 void
-BaseBus::Layer<PortClass>::retryWaiting(int threadID)
+BaseBus::Layer<PortClass>::retryWaiting()
 {
     // this should never be called with an empty retry list
-    assert(!retryList[threadID].empty());
+    assert(!retryList.empty());
 
     // we always go to retrying from idle
-    assert(state[threadID] == IDLE);
+    assert(state == IDLE);
 
     // update the state which is shared for request, response and
     // snoop responses
-    state[threadID] = RETRY;
+    state = RETRY;
 
     // note that we might have blocked on the receiving port being
     // busy (rather than the bus itself) and now call retry before the
     // destination called retry on the bus
-    retryList[threadID].front()->sendRetry();
+    retryList.front()->sendRetry();
 
     // If the bus is still in the retry state, sendTiming wasn't
     // called in zero time (e.g. the cache does this)
-    if (state[threadID] == RETRY) {
-        retryList[threadID].pop_front();
+    if (state == RETRY) {
+        retryList.pop_front();
 
         //Burn a cycle for the missed grant.
 
         // update the state which is shared for request, response and
         // snoop responses
-        state[threadID] = BUSY;
+        state = BUSY;
 
         // determine the current time rounded to the closest following
         // clock edge
-        Tick now = bus.nextCycle()-1;
+        Tick now = bus.nextCycle();
 
-        occupyLayer(now + clock*num_pids, threadID);
+        occupyLayer(now + clock);
     }
 }
 
 template <typename PortClass>
 void
-BaseBus::Layer<PortClass>::recvRetry(int threadID)
+BaseBus::Layer<PortClass>::recvRetry()
 {
     // we got a retry from a peer that we tried to send something to
     // and failed, but we sent it on the account of someone else, and
@@ -317,14 +302,14 @@ BaseBus::Layer<PortClass>::recvRetry(int threadID)
     // bus layer is released before this happens and the retry (from
     // the bus point of view) is successful then this no longer holds
     // and we could in fact have an empty retry list
-    if (retryList[threadID].empty())
+    if (retryList.empty())
         return;
 
     // if the bus layer is idle
-    if (state[threadID] == IDLE) {
+    if (state == IDLE) {
         // note that we do not care who told us to retry at the moment, we
         // merely let the first one on the retry list go
-        retryWaiting(threadID);
+        retryWaiting();
     }
 }
 
@@ -508,12 +493,12 @@ BaseBus::findBlockSize()
 
 template <typename PortClass>
 unsigned int
-BaseBus::Layer<PortClass>::drain(Event * de, int threadID)
+BaseBus::Layer<PortClass>::drain(Event * de)
 {
     //We should check that we're not "doing" anything, and that noone is
     //waiting. We might be idle but have someone waiting if the device we
     //contacted for a retry didn't actually retry.
-    if (!retryList[threadID].empty() || state[threadID] != IDLE) {
+    if (!retryList.empty() || state != IDLE) {
         DPRINTF(Drain, "Bus not drained\n");
         drainEvent = de;
         return 1;

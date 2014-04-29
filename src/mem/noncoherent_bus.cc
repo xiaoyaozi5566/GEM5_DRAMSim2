@@ -98,7 +98,7 @@ NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
 
     // test if the bus should be considered occupied for the current
     // port
-    if (!reqLayer.tryTiming(src_port, pkt->threadID)) {
+    if (!reqLayer.tryTiming(src_port)) {
         DPRINTF(NoncoherentBus, "recvTimingReq: src %s %s 0x%x BUSY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
         return false;
@@ -110,7 +110,7 @@ NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
     // set the source port for routing of the response
     pkt->setSrc(slave_port_id);
 
-    Tick headerFinishTime = calcPacketTiming(pkt, pkt->threadID);
+    Tick headerFinishTime = calcPacketTiming(pkt);
     Tick packetFinishTime = pkt->finishTime;
 
     // since it is a normal request, determine the destination
@@ -124,12 +124,12 @@ NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
         DPRINTF(NoncoherentBus, "recvTimingReq: src %s %s 0x%x RETRY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
 
-        reqLayer.failedTiming(src_port, headerFinishTime, pkt->threadID);
+        reqLayer.failedTiming(src_port, headerFinishTime);
 
         return false;
     }
 
-    reqLayer.succeededTiming(packetFinishTime, pkt->threadID);
+    reqLayer.succeededTiming(packetFinishTime);
 
     return true;
 }
@@ -142,7 +142,7 @@ NoncoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
 
     // test if the bus should be considered occupied for the current
     // port
-    if (!respLayer.tryTiming(src_port, pkt->threadID)) {
+    if (!respLayer.tryTiming(src_port)) {
         DPRINTF(NoncoherentBus, "recvTimingResp: src %s %s 0x%x BUSY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
         return false;
@@ -151,7 +151,7 @@ NoncoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     DPRINTF(NoncoherentBus, "recvTimingResp: src %s %s 0x%x\n",
             src_port->name(), pkt->cmdString(), pkt->getAddr());
 
-    calcPacketTiming(pkt, pkt->threadID);
+    calcPacketTiming(pkt);
     Tick packetFinishTime = pkt->finishTime;
 
     // send the packet to the destination through one of our slave
@@ -162,7 +162,7 @@ NoncoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     // deadlock
     assert(success);
 
-    respLayer.succeededTiming(packetFinishTime, pkt->threadID);
+    respLayer.succeededTiming(packetFinishTime);
 
     return true;
 }
@@ -173,8 +173,7 @@ NoncoherentBus::recvRetry()
     // responses never block on forwarding them, so the retry will
     // always be coming from a port to which we tried to forward a
     // request
-    for (int i = 0; i < num_pids; i++)
-		reqLayer.recvRetry(i);
+    reqLayer.recvRetry();
 }
 
 Tick
@@ -216,10 +215,7 @@ unsigned int
 NoncoherentBus::drain(Event *de)
 {
     // sum up the individual layers
-	int flag = 0;
-	for (int i = 0; i < num_pids; i++)
-    	flag += reqLayer.drain(de,i) + respLayer.drain(de,i);
-	return flag;
+    return reqLayer.drain(de) + respLayer.drain(de);
 }
 
 NoncoherentBus*

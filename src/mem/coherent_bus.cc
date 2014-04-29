@@ -117,7 +117,7 @@ CoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
 
     // test if the bus should be considered occupied for the current
     // port, and exclude express snoops from the check
-    if (!is_express_snoop && !reqLayer.tryTiming(src_port, pkt->threadID)) {
+    if (!is_express_snoop && !reqLayer.tryTiming(src_port)) {
         DPRINTF(CoherentBus, "recvTimingReq: src %s %s 0x%x BUSY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
         return false;
@@ -130,7 +130,7 @@ CoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
     // set the source port for routing of the response
     pkt->setSrc(slave_port_id);
 
-    Tick headerFinishTime = is_express_snoop ? 0 : calcPacketTiming(pkt, pkt->threadID);
+    Tick headerFinishTime = is_express_snoop ? 0 : calcPacketTiming(pkt);
     Tick packetFinishTime = is_express_snoop ? 0 : pkt->finishTime;
 
     // uncacheable requests need never be snooped
@@ -178,10 +178,10 @@ CoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
                     src_port->name(), pkt->cmdString(), pkt->getAddr());
 
             // update the bus state and schedule an idle event
-            reqLayer.failedTiming(src_port, headerFinishTime, pkt->threadID);
+            reqLayer.failedTiming(src_port, headerFinishTime);
         } else {
             // update the bus state and schedule an idle event
-            reqLayer.succeededTiming(packetFinishTime, pkt->threadID);
+            reqLayer.succeededTiming(packetFinishTime);
         }
     }
 
@@ -196,7 +196,7 @@ CoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
 
     // test if the bus should be considered occupied for the current
     // port
-    if (!respLayer.tryTiming(src_port, pkt->threadID)) {
+    if (!respLayer.tryTiming(src_port)) {
         DPRINTF(CoherentBus, "recvTimingResp: src %s %s 0x%x BUSY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
         return false;
@@ -205,7 +205,7 @@ CoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     DPRINTF(CoherentBus, "recvTimingResp: src %s %s 0x%x\n",
             src_port->name(), pkt->cmdString(), pkt->getAddr());
 
-    calcPacketTiming(pkt, pkt->threadID);
+    calcPacketTiming(pkt);
     Tick packetFinishTime = pkt->finishTime;
 
     // the packet is a normal response to a request that we should
@@ -223,7 +223,7 @@ CoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     // deadlock
     assert(success);
 
-    respLayer.succeededTiming(packetFinishTime, pkt->threadID);
+    respLayer.succeededTiming(packetFinishTime);
 
     return true;
 }
@@ -260,7 +260,7 @@ CoherentBus::recvTimingSnoopResp(PacketPtr pkt, PortID slave_port_id)
 
     // test if the bus should be considered occupied for the current
     // port
-    if (!snoopRespLayer.tryTiming(src_port, pkt->threadID)) {
+    if (!snoopRespLayer.tryTiming(src_port)) {
         DPRINTF(CoherentBus, "recvTimingSnoopResp: src %s %s 0x%x BUSY\n",
                 src_port->name(), pkt->cmdString(), pkt->getAddr());
         return false;
@@ -275,7 +275,7 @@ CoherentBus::recvTimingSnoopResp(PacketPtr pkt, PortID slave_port_id)
     // responses are never express snoops
     assert(!pkt->isExpressSnoop());
 
-    calcPacketTiming(pkt, pkt->threadID);
+    calcPacketTiming(pkt);
     Tick packetFinishTime = pkt->finishTime;
 
     // determine if the response is from a snoop request we
@@ -311,7 +311,7 @@ CoherentBus::recvTimingSnoopResp(PacketPtr pkt, PortID slave_port_id)
         assert(success);
     }
 
-    snoopRespLayer.succeededTiming(packetFinishTime, pkt->threadID);
+    snoopRespLayer.succeededTiming(packetFinishTime);
 
     return true;
 }
@@ -340,8 +340,7 @@ CoherentBus::recvRetry()
     // responses and snoop responses never block on forwarding them,
     // so the retry will always be coming from a port to which we
     // tried to forward a request
-    for (int i = 0; i < num_pids; i++)
-		reqLayer.recvRetry(i);
+    reqLayer.recvRetry();
 }
 
 Tick
@@ -509,10 +508,7 @@ unsigned int
 CoherentBus::drain(Event *de)
 {
     // sum up the individual layers
-	int flag = 0;
-	for (int i = 0; i < num_pids; i++)
-    	flag += reqLayer.drain(de,i) + respLayer.drain(de,i) + snoopRespLayer.drain(de,i);
-	return flag;
+    return reqLayer.drain(de) + respLayer.drain(de) + snoopRespLayer.drain(de);
 }
 
 CoherentBus *
