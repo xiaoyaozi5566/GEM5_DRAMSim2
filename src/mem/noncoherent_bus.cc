@@ -173,7 +173,8 @@ NoncoherentBus::recvRetry()
     // responses never block on forwarding them, so the retry will
     // always be coming from a port to which we tried to forward a
     // request
-    reqLayer.recvRetry();
+    for (int i = 0; i < num_pids; i++)
+		reqLayer.recvRetry(i);
 }
 
 Tick
@@ -215,7 +216,10 @@ unsigned int
 NoncoherentBus::drain(Event *de)
 {
     // sum up the individual layers
-    return reqLayer.drain(de) + respLayer.drain(de);
+	int flag = 0;
+	for (int i = 0; i < num_pids; i++)
+    	flag += reqLayer.drain(de,i) + respLayer.drain(de,i);
+	return flag;
 }
 
 NoncoherentBus*

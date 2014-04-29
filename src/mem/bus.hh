@@ -50,7 +50,6 @@
 
 #ifndef __MEM_BUS_HH__
 #define __MEM_BUS_HH__
-#define NUM_PIDS 2
 
 #include <list>
 #include <set>
@@ -120,7 +119,7 @@ class BaseBus : public MemObject
          *
          * @return 1 if busy or waiting to retry, or 0 if idle
          */
-        unsigned int drain(Event *de);
+        unsigned int drain(Event *de, int threadID);
 
         /**
          * Get the bus layer's name
@@ -166,7 +165,7 @@ class BaseBus : public MemObject
          * Send a retry to the port at the head of the retryList. The
          * caller must ensure that the list is not empty.
          */
-        void retryWaiting();
+        void retryWaiting(int threadID);
 
         /**
          * Handler a retry from a neighbouring module. Eventually this
@@ -174,7 +173,7 @@ class BaseBus : public MemObject
          * retryWaiting by verifying that there are ports waiting
          * before calling retryWaiting.
          */
-        void recvRetry();
+        void recvRetry(int threadID);
 
       private:
 
@@ -204,6 +203,9 @@ class BaseBus : public MemObject
 
         /** track the state of the bus layer */
         State * state;
+		
+		/** number of security domains */
+		int num_pids;
 
         /** the clock speed for the bus layer */
         Tick clock;
@@ -222,13 +224,15 @@ class BaseBus : public MemObject
          * idle state where we proceed to send a retry to any
          * potential waiting port, or drain if asked to do so.
          */
-        void releaseLayer(int threadID);
+        void releaseLayer();
 
         /** event used to schedule a release of the layer */
         EventWrapper<Layer, &Layer::releaseLayer> releaseEvent;
 
     };
 
+	/** number of security domains */
+	int num_pids;
     /** cycles of overhead per transaction */
     int headerCycles;
     /** the width of the bus in bytes */

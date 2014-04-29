@@ -56,7 +56,7 @@
 
 BaseBus::BaseBus(const BaseBusParams *p)
     : MemObject(p),
-      headerCycles(p->header_cycles), width(p->width),
+	  num_pids(p->num_pids), headerCycles(p->header_cycles), width(p->width),
       defaultPortID(InvalidPortID),
       useDefaultRange(p->use_default_range),
       defaultBlockSize(p->block_size),
@@ -116,8 +116,8 @@ BaseBus::calcPacketTiming(PacketPtr pkt, int threadID)
     Tick now = nextCycle();
 
     // DONE: is now aligned with threadID?
-	now = now - (now / clock) % NUM_PIDS * clock + threadID * clock;
-	Tick headerTime = now + headerCycles * clock * NUM_PIDS;
+	now = now - (now / clock) % num_pids * clock + threadID * clock;
+	Tick headerTime = now + headerCycles * clock * num_pids;
 
     // The packet will be sent. Figure out how long it occupies the bus, and
     // how much of that time is for the first "word", aka bus width.
@@ -132,9 +132,9 @@ BaseBus::calcPacketTiming(PacketPtr pkt, int threadID)
 
     // The first word will be delivered after the current tick, the delivery
     // of the address if any, and one bus cycle to deliver the data
-    pkt->firstWordTime = headerTime + clock * NUM_PIDS;
+    pkt->firstWordTime = headerTime + clock * num_pids;
 
-    pkt->finishTime = headerTime + numCycles * clock * NUM_PIDS;
+    pkt->finishTime = headerTime + numCycles * clock * num_pids;
 
     return headerTime;
 }
@@ -145,11 +145,12 @@ BaseBus::Layer<PortClass>::Layer(BaseBus& _bus, const std::string& _name,
     bus(_bus), _name(_name), clock(_clock), drainEvent(NULL),
     releaseEvent(this)
 {
-	state = new State[NUM_PIDS];
-	for (int i = 0; i < NUM_PIDS; i++)
+	num_pids = _bus.num_pids;
+	state = new State[num_pids];
+	for (int i = 0; i < num_pids; i++)
 		state[i] = IDLE;
 	
-	retryList = new std::list<PortClass*>[NUM_PIDS];
+	retryList = new std::list<PortClass*>[num_pids];
 }
 
 template <typename PortClass>
@@ -179,8 +180,8 @@ bool
 BaseBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
 {
     // decide if it is this thread's turn
-	Tick now = nextCycle()-clock;
-	if ( (now / clock) % NUM_PIDS != threadID ) return false; 
+	Tick now = bus.nextCycle()-clock;
+	if ( (now / clock) % num_pids != threadID ) return false; 
 	// first we see if the bus is busy, next we check if we are in a
     // retry with a port other than the current one
     if (state[threadID] == BUSY || (state[threadID] == RETRY && port != retryList[threadID].front())) {
@@ -302,7 +303,7 @@ BaseBus::Layer<PortClass>::retryWaiting(int threadID)
         // clock edge
         Tick now = bus.nextCycle()-1;
 
-        occupyLayer(now + clock*NUM_PIDS, threadID);
+        occupyLayer(now + clock*num_pids, threadID);
     }
 }
 
@@ -507,12 +508,12 @@ BaseBus::findBlockSize()
 
 template <typename PortClass>
 unsigned int
-BaseBus::Layer<PortClass>::drain(Event * de)
+BaseBus::Layer<PortClass>::drain(Event * de, int threadID)
 {
     //We should check that we're not "doing" anything, and that noone is
     //waiting. We might be idle but have someone waiting if the device we
     //contacted for a retry didn't actually retry.
-    if (!retryList.empty() || state != IDLE) {
+    if (!retryList[threadID].empty() || state[threadID] != IDLE) {
         DPRINTF(Drain, "Bus not drained\n");
         drainEvent = de;
         return 1;
