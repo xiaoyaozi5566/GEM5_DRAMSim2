@@ -6,12 +6,13 @@ require_relative 'optimized'
 require_relative 'scheduler'
 require_relative 'synthetic'
 require_relative 'security'
+require_relative 'functionality'
 include RunScripts
 
 #------------------------------------------------------------------------------
 # Security
 #------------------------------------------------------------------------------
-cache_security
+# cache_security
 
 #------------------------------------------------------------------------------
 # Unptimized Runs
@@ -37,3 +38,9 @@ cache_security
 # Synthetic Benchmarks
 #------------------------------------------------------------------------------
 # synthetic_asym_period
+
+
+#------------------------------------------------------------------------------
+# Functionality
+#------------------------------------------------------------------------------
+test_sanity
