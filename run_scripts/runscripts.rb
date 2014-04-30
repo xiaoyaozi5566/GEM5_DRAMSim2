@@ -103,7 +103,6 @@ def sav_script( cpu, scheme, p0, options = {} )
     filename += "_#{p2}tl#{tl2}" unless p2.nil?
     filename += "_#{p3}tl#{tl3}" unless p3.nil?
     filename += "_c#{cacheSize}MB"
-    filename += "_l3#{l3config}"
    
     numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
 
