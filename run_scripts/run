@@ -44,3 +44,4 @@ include RunScripts
 # Functionality
 #------------------------------------------------------------------------------
 test_sanity
+test_sanity_deep
