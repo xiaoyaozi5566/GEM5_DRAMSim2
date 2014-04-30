@@ -42,6 +42,10 @@
 #include "mem/cache/tags/lru.hh"
 #endif
 
+#if defined(USE_CACHE_WPLRU)
+#include "mem/cache/tags/wplru.hh"
+#endif
+
 #if defined(USE_CACHE_SPLRU)
 #include "mem/cache/tags/splru.hh"
 #endif
@@ -74,6 +78,10 @@ template class Cache<LRU>;
 
 #if defined(USE_CACHE_WPLRU)
 template class Cache<WPLRU>;
+#endif
+
+#if defined(USE_CACHE_SPLRU)
+template class Cache<SPLRU>;
 #endif
 
 #endif //DOXYGEN_SHOULD_SKIP_THIS
