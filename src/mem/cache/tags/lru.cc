@@ -82,10 +82,6 @@ LRU::get_set( int setnum, uint64_t tid ){
 }
 
 
-void greeen( std::string s ){
-    fprintf( stderr, "\x1B[32m%s\x1B[0m\n",s.c_str() );
-}
-
 void
 LRU::init_sets(){
     sets = new CacheSet[numSets];
