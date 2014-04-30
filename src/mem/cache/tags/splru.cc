@@ -20,7 +20,6 @@ SPLRU::SPLRU( unsigned _numSets,
 
 CacheSet
 SPLRU::get_set( int setnum, uint64_t tid ){
-    return LRU::get_set( setnum, tid );
     assert(sets[setnum][tid]);
     return sets[setnum][tid];
 }
