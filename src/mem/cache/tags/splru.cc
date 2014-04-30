@@ -1,4 +1,4 @@
-#include "mem/cache/tags/wplru.hh"
+#include "mem/cache/tags/splru.hh"
 #include "base/intmath.hh"
 #include "debug/CacheRepl.hh"
 #include "mem/cache/tags/cacheset.hh"
@@ -7,7 +7,7 @@
 #include "sim/core.hh"
 #include <typeinfo>
 
-WPLRU::WPLRU( unsigned _numSets,
+SPLRU::SPLRU( unsigned _numSets,
         unsigned _blkSize,
         unsigned _assoc,
         unsigned _hit_latency )
@@ -19,14 +19,14 @@ WPLRU::WPLRU( unsigned _numSets,
 }
 
 CacheSet
-WPLRU::get_set( int setnum, uint64_t tid ){
+SPLRU::get_set( int setnum, uint64_t tid ){
     return LRU::get_set( setnum, tid );
     assert(sets[setnum][tid]);
     return sets[setnum][tid];
 }
 
 void
-WPLRU::init_sets(){
+SPLRU::init_sets(){
     sets = new CacheSet*[numSets];
     for( int i=0; i< numSets; ++i ) sets[i] = new CacheSet[num_sds];
     blks = new BlkType[numSets * num_sds * assoc];
@@ -67,7 +67,7 @@ WPLRU::init_sets(){
 }
 
 void
-WPLRU::cleanupRefs()
+SPLRU::cleanupRefs()
 {
     for (unsigned i = 0; i < numSets*num_sds*assoc; ++i) {
         if (blks[i].isValid()) {

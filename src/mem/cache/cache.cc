@@ -42,8 +42,8 @@
 #include "mem/cache/tags/lru.hh"
 #endif
 
-#if defined(USE_CACHE_WPLRU)
-#include "mem/cache/tags/wplru.hh"
+#if defined(USE_CACHE_SPLRU)
+#include "mem/cache/tags/splru.hh"
 #endif
 
 #if defined(USE_CACHE_FALRU)

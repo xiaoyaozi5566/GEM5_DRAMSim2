@@ -65,4 +65,4 @@ class BaseCache(MemObject):
     do_cache_trace = Param.Bool(False, "should a cache trace be saved?")
     l3_trace_file = Param.String("l3trace.txt", "l3 trace output file")
     save_traces = Param.Bool(False, "should any traces be saved?")
-    use_way_part = Param.Bool(False, "Use way partitioning in L3?")
+    use_set_part = Param.Bool(True, "Use way partitioning in L3?")

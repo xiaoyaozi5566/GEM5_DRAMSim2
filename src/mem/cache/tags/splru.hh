@@ -1,12 +1,12 @@
 #include "mem/cache/tags/lru.hh"
 
-class WPLRU : public LRU{
+class SPLRU : public LRU{
     private:
         CacheSet **sets;
         const int num_sds = 2;
 
     public:
-    WPLRU( unsigned _numSets, unsigned _blkSize, unsigned _assoc,
+    SPLRU( unsigned _numSets, unsigned _blkSize, unsigned _assoc,
             unsigned _hit_latency );
     protected:
     virtual void init_sets();
