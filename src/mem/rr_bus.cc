@@ -238,7 +238,7 @@ void
 RRBus::Layer<PortClass>::succeededTiming(Tick busy_time, int threadID)
 {
     Tick now = bus.nextCycle();
-	printf("enter succeededTiming %d at %llu\n", threadID, now/clock);
+	//printf("enter succeededTiming %d at %llu\n", threadID, now/clock);
 	// if a retrying port succeeded, also take it off the retry list
     if (state[threadID] == RETRY) {
         // DPRINTF(RRBus, "Remove retry from list %s\n",
