@@ -18,10 +18,17 @@ SPLRU::SPLRU( unsigned _numSets,
     warmupBound = numSets * num_sds * assoc;
 }
 
+
+int
+tid_from_addr( Addr addr ){
+    if( addr < pow( 1024, 3 ) ) return 0;
+    else return 1;
+}
+
 CacheSet
-SPLRU::get_set( int setnum, uint64_t tid ){
-    assert(sets[setnum][tid]);
-    return sets[setnum][tid];
+SPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
+    assert( &sets[setnum][tid_from_addr(addr)] != 0);
+    return sets[setnum][tid_from_addr(addr)];
 }
 
 void

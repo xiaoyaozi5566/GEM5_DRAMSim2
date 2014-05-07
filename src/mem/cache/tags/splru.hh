@@ -10,6 +10,6 @@ class SPLRU : public LRU{
             unsigned _hit_latency );
     protected:
     virtual void init_sets();
-    virtual CacheSet get_set( int setnum, uint64_t tid );
+    virtual CacheSet get_set( int setnum, uint64_t tid, Addr addr );
     virtual void cleanupRefs();
 };

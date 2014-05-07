@@ -76,8 +76,8 @@ LRU::LRU(unsigned _numSets, unsigned _blkSize, unsigned _assoc,
 }
 
 CacheSet
-LRU::get_set( int setnum, uint64_t tid ){
-    assert(tid!=NULL);
+LRU::get_set( int setnum, uint64_t tid, Addr addr ){
+    assert(tid!=0);
     return sets[setnum];
 }
 
@@ -133,11 +133,11 @@ LRU::accessBlock(Addr addr, int &lat, int master_id, uint64_t tid)
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
     // BlkType *blk = sets[set].findBlk(tag);
-    BlkType *blk = get_set(set,tid).findBlk(tag);
+    BlkType *blk = get_set(set,tid,addr).findBlk(tag);
     lat = hitLatency;
-    if (blk != NULL) {
+    if (blk != 0 ) {
         // move this block to head of the MRU list
-        get_set(set,tid).moveToHead(blk);
+        get_set(set,tid,addr).moveToHead(blk);
         DPRINTF(CacheRepl, "set %x: moving blk %x to MRU\n",
                 set, regenerateBlkAddr(tag, set));
         if (blk->whenReady > curTick()
@@ -156,7 +156,7 @@ LRU::findBlock(Addr addr, uint64_t tid)
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
-    BlkType *blk = get_set(set,tid).findBlk(tag);
+    BlkType *blk = get_set(set,tid,addr).findBlk(tag);
     return blk;
 }
 
@@ -165,7 +165,7 @@ LRU::findVictim(Addr addr, PacketList &writebacks, uint64_t tid)
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
-    BlkType *blk = get_set(set,tid).blks[assoc-1];
+    BlkType *blk = get_set(set,tid,addr).blks[assoc-1];
 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
@@ -210,7 +210,7 @@ LRU::insertBlock(Addr addr, BlkType *blk, int master_id, uint64_t tid)
     blk->srcMasterId = master_id;
 
     unsigned set = extractSet(addr);
-    get_set(set,tid).moveToHead(blk);
+    get_set(set,tid,addr).moveToHead(blk);
 }
 
 void
@@ -223,7 +223,7 @@ LRU::invalidateBlk(BlkType *blk, uint64_t tid)
             occupancies[blk->srcMasterId]--;
             blk->srcMasterId = Request::invldMasterId;
             unsigned set = blk->set;
-            get_set(set,tid).moveToTail(blk);
+            get_set(set,tid,blk->set).moveToTail(blk);
         }
         blk->status = 0;
         blk->isTouched = false;

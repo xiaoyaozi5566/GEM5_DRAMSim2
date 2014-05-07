@@ -188,7 +188,7 @@ public:
       * LRU cache has only one group of sets. The WPLRU cache will override 
       * this method and actually use the tid to do partitioning.
       */
-    virtual CacheSet get_set( int setnum, uint64_t tid );
+    virtual CacheSet get_set( int setnum, uint64_t tid, Addr addr );
 
     virtual void init_sets();
 
