@@ -135,7 +135,7 @@ def config_cache(options, system):
             ) 
             for i in xrange( options.num_cpus )
         ]
-    system.tol2bus = [NoncoherentBus() for i in xrange( options.num_cpus )]
+    system.tol2bus = [CoherentBus() for i in xrange( options.num_cpus )]
 
     for i in xrange(options.num_cpus):
         if options.l2cache:
