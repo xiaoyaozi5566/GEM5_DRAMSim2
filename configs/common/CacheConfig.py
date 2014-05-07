@@ -57,7 +57,7 @@ class L3Shared( L3Config ):
                             save_traces = options.savetraces,
                             l3_trace_file = options.l3tracefile)
 
-        system.tol3bus = CoherentBus()
+        system.tol3bus = NoncoherentBus()
         system.l3.cpu_side = system.tol3bus.master
         system.l3.mem_side = system.membus.slave
 
@@ -82,7 +82,7 @@ class L3Private( L3Config ):
                 for i in xrange( options.num_cpus )
             ]
 
-        system.tol3bus = [CoherentBus() for i in xrange( options.num_cpus ) ]
+        system.tol3bus = [NoncoherentBus() for i in xrange( options.num_cpus ) ]
 
         for i in xrange( options.num_cpus ):
             system.l3[i].cpu_side = system.tol3bus[i].master
