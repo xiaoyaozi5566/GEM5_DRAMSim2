@@ -10,7 +10,7 @@ module RunScripts
     def test_sanity
 
         cpus = $cpus
-        schemes = $schemes
+        schemes = %w[ none tp ]
         benchmarks = $specint
         opts = {
             maxinsts: 10**3,
