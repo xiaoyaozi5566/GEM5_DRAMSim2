@@ -1489,7 +1489,7 @@ Cache<TagStore>::getTimingPacket()
         return NULL;
     } else if (mshr->isForwardNoResponse()) {
         // no response expected, just forward packet as it is
-        assert(tags->findBlock(mshr->addr, pkt->threadID ) == NULL);
+        // assert(tags->findBlock(mshr->addr, pkt->threadID ) == NULL);
         pkt = tgt_pkt;
     } else {
         BlkType *blk = tags->findBlock( mshr->addr, tgt_pkt->threadID );
