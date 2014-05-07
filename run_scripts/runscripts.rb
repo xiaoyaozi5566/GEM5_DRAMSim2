@@ -70,7 +70,11 @@ def sav_script( cpu, scheme, p0, options = {} )
         runmode: :qsub,
         savetraces: false,
         maxinsts: $maxinsts,
-        fastforward: $fastforward
+        fastforward: $fastforward,
+        cacheDebug: false,
+        mmuDebug: false,
+        debug: false,
+        gdb: false,
     }.merge options
 
     cacheSize  = options[:cacheSize]
@@ -96,6 +100,13 @@ def sav_script( cpu, scheme, p0, options = {} )
     savetraces = options[:savetraces]
     # Determines l3 trace file output. nil by default to allow short-circuiting
     l3tracefile= options[:l3tracefile]
+    cacheDebug = options[:cacheDebug]
+    mmuDebug   = options[:mmuDebug]
+
+    debug = options[:debug] ||
+        options[:cacheDebug] ||
+        options[:gdb] ||
+        options[:mmuDebug]
     
 
     filename  = "#{scheme}_#{cpu}_#{p0}tl#{tl0}"
@@ -108,7 +119,10 @@ def sav_script( cpu, scheme, p0, options = {} )
 
     script = File.new($scriptgen_dir.path+"/run_#{filename}","w+")
     script.puts("#!/bin/bash")
-    script.puts("build/ARM/gem5.fast \\")
+    script.puts("build/ARM/gem5.fast \\") unless debug
+    script.puts("build/ARM/gem5.debug \\") if debug 
+    script.puts("--debug-flags=Cache \\") if cacheDebug
+    script.puts("--debug-flags=MMU \\") if mmuDebug
     script.puts("    --stats-file=#{filename}_stats.txt \\")
     script.puts("    configs/dramsim2/dramsim2_se.py \\")
     script.puts("    --cpu-type=#{cpu} \\")

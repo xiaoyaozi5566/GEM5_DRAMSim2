@@ -16,6 +16,7 @@ module RunScripts
             maxinsts: 10**3,
             fastforward: 100,
             runmode: :local,
+            debug: true,
         }
 
         cpus.product( schemes ).each do |cpu, scheme|
@@ -31,12 +32,13 @@ module RunScripts
     def test_sanity_deep
 
         cpus = %w[ detailed ]
-        schemes = $schemes 
+        schemes = %w[ none tp ]
         benchmarks = %w[ mcf sjeng ]
         opts = {
             maxinsts: 10**6,
             fastforward: 100,
             runmode: :local,
+            debug: true,
         }
 
         cpus.product( schemes ).each do |cpu, scheme|
