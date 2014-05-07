@@ -102,6 +102,10 @@ if '--dramsim2' in sys.argv:
             help="Output file for l3 cache traces")
     parser.add_option("--savetraces", action="store_true", default=False,
             help="Determines whether or not security traces should be saved")
+    parser.add_option("--use_set_part", action="store_true", default=False,
+            help="Determines if the L3 cache should be set partitioned")
+    parser.add_option("--use_way_part", action="store_true", default=False,
+            help="Determines if the L3 cache should be way partitioned")
 
 ######################################################################
 

@@ -55,6 +55,8 @@ class L3Shared( L3Config ):
                             assoc = options.l3_assoc,
                             block_size=options.cacheline_size,
                             save_traces = options.savetraces,
+                            use_set_part = options.use_set_part,
+                            use_way_part = options.use_way_part,
                             l3_trace_file = options.l3tracefile)
 
         system.tol3bus = NoncoherentBus()
@@ -77,6 +79,8 @@ class L3Private( L3Config ):
                     assoc = options.l3_assoc,
                     block_size = options.cacheline_size,
                     save_traces = options.savetraces,
+                    use_set_part = options.use_set_part,
+                    use_way_part = options.use_way_part,
                     l3_trace_file = options.l3tracefile
                 )
                 for i in xrange( options.num_cpus )
