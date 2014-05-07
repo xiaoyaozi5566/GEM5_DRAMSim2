@@ -237,7 +237,7 @@ template <typename PortClass>
 void
 RRBus::Layer<PortClass>::succeededTiming(Tick busy_time, int threadID)
 {
-    Tick now = bus.nextCycle();
+    // Tick now = bus.nextCycle();
 	//printf("enter succeededTiming %d at %llu\n", threadID, now/clock);
 	// if a retrying port succeeded, also take it off the retry list
     if (state[threadID] == RETRY) {
@@ -568,8 +568,8 @@ RRBus::Layer<PortClass>::drain(Event * de)
     //We should check that we're not "doing" anything, and that noone is
     //waiting. We might be idle but have someone waiting if the device we
     //contacted for a retry didn't actually retry.
-	Tick now = bus.nextCycle();
-	printf("enter drain at %llu\n", now);
+	// Tick now = bus.nextCycle();
+	// printf("enter drain at %llu\n", now);
     if (!retryList[0].empty() || state[0] != IDLE) {
         DPRINTF(Drain, "Bus not drained\n");
         drainEvent = de;
