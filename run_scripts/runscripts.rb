@@ -58,23 +58,14 @@ def sav_script( cpu, scheme, p0, options = {} )
 
     options = {
         cacheSize: 4,
-        p1: nil,
-        p2: nil,
-        p3: nil,
         tl0: 6,
         tl1: 6,
         tl2: 6,
         tl3: 6,
-        diffperiod: false,
         l3config: "shared",
         runmode: :qsub,
-        savetraces: false,
         maxinsts: $maxinsts,
         fastforward: $fastforward,
-        cacheDebug: false,
-        mmuDebug: false,
-        debug: false,
-        gdb: false,
     }.merge options
 
     cacheSize  = options[:cacheSize]
@@ -96,13 +87,19 @@ def sav_script( cpu, scheme, p0, options = {} )
     runmode    = options[:runmode]
     maxinsts   = options[:maxinsts]
     fastforward= options[:fastforward]
+    # Should L3 be set partitioned?
+    use_set_part = options[:setpart]
+    # Should L3 be way partitioned?
+    use_way_part = options[:waypart]
     # Determines if trace files for security should be saved
     savetraces = options[:savetraces]
-    # Determines l3 trace file output. nil by default to allow short-circuiting
+    # Determines l3 trace file output.
     l3tracefile= options[:l3tracefile]
+    # Produce Gem5 builtin cache traces
     cacheDebug = options[:cacheDebug]
+    # Produce Gem5 builtin MMU traces
     mmuDebug   = options[:mmuDebug]
-
+    # Use gem5.debug instead of gem5.fast
     debug = options[:debug] ||
         options[:cacheDebug] ||
         options[:gdb] ||
@@ -137,6 +134,8 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --fixaddr\\") if scheme == "fa"
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
+    script.puts("    --use_set_part\\" ) if use_set_part
+    script.puts("    --use_way_part\\" ) if use_way_part
     script.puts("    --dramsim2 \\")
     script.puts("    --savetraces \\") if savetraces
     l3tracefile = l3tracefile || "results/l3trace_#{filename}.txt"
@@ -163,9 +162,10 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    > results/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
+    success = system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
     puts "#{filename}".magenta if runmode == :local
-    system "sh #{script_abspath}" if runmode == :local
+    success = system "sh #{script_abspath}" if runmode == :local
+    [success,filename]
 
 end
 

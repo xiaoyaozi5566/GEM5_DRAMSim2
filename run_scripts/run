@@ -45,3 +45,5 @@ include RunScripts
 #------------------------------------------------------------------------------
 test_sanity
 test_sanity_deep
+# test_set_part
+# test_set_part_deep
