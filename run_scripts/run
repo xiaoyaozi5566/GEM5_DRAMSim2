@@ -43,7 +43,11 @@ include RunScripts
 #------------------------------------------------------------------------------
 # Functionality
 #------------------------------------------------------------------------------
-test_sanity
-test_sanity_deep
-# test_set_part
-# test_set_part_deep
+# sanity
+# sanity_deep
+# set_part
+# set_part_deep
+# rr_nc
+# rr_nc_deep
+secure
+secure_deep
