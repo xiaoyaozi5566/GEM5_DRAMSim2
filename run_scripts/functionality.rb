@@ -12,6 +12,7 @@ module RunScripts
             schemes: %w[ none ],
             maxinsts: 10**3,
             fastforward: 100,
+            debug: true,
         }.merge opts
 
         parallel_local opts
@@ -24,6 +25,7 @@ module RunScripts
             maxinsts: 10**6,
             fastforward: 100,
             runmode: :local,
+            debug: true,
         }.merge opts
 
         sanity_( opts )

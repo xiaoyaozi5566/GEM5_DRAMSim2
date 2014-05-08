@@ -23,7 +23,7 @@ module RunScripts
             schemes: %w[ none tp ],
             maxinsts: 10**6,
             fastforward: 100,
-        }.merge opts
+        }
 
         parallel_local opts
     end

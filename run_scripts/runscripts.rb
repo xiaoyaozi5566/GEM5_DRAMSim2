@@ -178,7 +178,6 @@ def parallel_local opts
         schemes: $schemes,
         benchmarks: $specint,
         runmode: :local,
-        debug: true,
     }.merge opts
 
     failed = []
