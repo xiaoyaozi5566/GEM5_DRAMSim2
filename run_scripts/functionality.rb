@@ -9,7 +9,7 @@ include RunScripts
 module RunScripts
     def sanity_ opts
         opts = {
-            schemes: %w[ none tp ],
+            schemes: %w[ none ],
             maxinsts: 10**3,
             fastforward: 100,
         }.merge opts
@@ -24,7 +24,6 @@ module RunScripts
             maxinsts: 10**6,
             fastforward: 100,
             runmode: :local,
-            debug: true,
         }.merge opts
 
         sanity_( opts )
@@ -55,11 +54,11 @@ module RunScripts
     end
 
     def secure
-        sanity_( { setpart: true, rr_nc: true } )
+        sanity_( { schemes: %w[tp], setpart: true, rr_nc: true } )
     end
 
     def secure_deep
-        sanity_deep_( { setpart: true, rr_nc: true } )
+        sanity_deep_( { schemes: %w[tp], setpart: true, rr_nc: true } )
     end
 
 end

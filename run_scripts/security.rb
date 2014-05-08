@@ -8,26 +8,24 @@ include RunScripts
 module RunScripts
 
     def cache_security
-
-        cpus = $cpus # %w[ timing ]
-        schemes = $schemes #w%w[ tp ]
-        l3configs = %w[ shared private ]
-        benchmarks = $specint #%w[ mcf sjeng ]
         opts = {
             maxinsts: 10**3,
             fastforward: 0,
-            runmode: :local,
-            savetraces: true
+            savetraces: true,
+            schemes: %w[ none tp ]
         }
+        parallel_local opts
 
-        cpus.product( schemes, l3configs ).each do |cpu, scheme, l3config|
-            Parallel.each( benchmarks.combination( 2 ),
-                          in_processes: 4 ) do |p0, p1|
-                iteropts = { p1: p1, l3config: l3config }
-                sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
-            end
-        end
+    end
 
+    def execution_time_compare
+        opts = {
+            schemes: %w[ none tp ],
+            maxinsts: 10**6,
+            fastforward: 100,
+        }.merge opts
+
+        parallel_local opts
     end
 
 end

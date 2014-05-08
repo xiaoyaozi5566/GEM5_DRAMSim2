@@ -13,6 +13,7 @@ include RunScripts
 # Security
 #------------------------------------------------------------------------------
 # cache_security
+# execution_time_compare
 
 #------------------------------------------------------------------------------
 # Unptimized Runs
@@ -43,11 +44,11 @@ include RunScripts
 #------------------------------------------------------------------------------
 # Functionality
 #------------------------------------------------------------------------------
-# sanity
+#  sanity
 # sanity_deep
 # set_part
 # set_part_deep
 # rr_nc
 # rr_nc_deep
-secure
-secure_deep
+  secure
+  secure_deep
