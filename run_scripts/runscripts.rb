@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'colored'
+require 'parallel'
 
 module RunScripts
 #directories
@@ -169,6 +170,44 @@ def sav_script( cpu, scheme, p0, options = {} )
     puts "#{filename}".magenta if runmode == :local
     success = system "sh #{script_abspath}" if runmode == :local
     [success,filename]
+end
+
+def parallel_local opts
+    opts = {
+        cpus: $cpus,
+        schemes: $schemes,
+        benchmarks: $specint,
+        runmode: :local,
+        debug: true,
+    }.merge opts
+
+    failed = []
+
+    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
+        Parallel.each( opts[:benchmarks].product( opts[:benchmarks] ),
+                      in_threads: 4 ) do |p0, p1|
+            iteropts = { p1: p1 }
+            r = sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
+            failed << r[1] unless r[0] 
+        end
+    end
+    failed.each{|f| puts f.red}
+end
+
+def qsub_fast opts
+    opts = {
+        cpus: $cpus,
+        schemes: $schemes,
+        benchmarks: $specint,
+        runmode: :qsub,
+    }.merge opts
+
+    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
+        opts[:benchmarks].product( opts[:benchmarks] ).each do |p0, p1|
+            iteropts = { p1: p1 }
+            sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
+        end
+    end
 
 end
 
