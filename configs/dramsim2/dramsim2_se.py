@@ -106,6 +106,8 @@ if '--dramsim2' in sys.argv:
             help="Determines if the L3 cache should be set partitioned")
     parser.add_option("--use_way_part", action="store_true", default=False,
             help="Determines if the L3 cache should be way partitioned")
+    parser.add_option("--rr_nc", action="store_true", default=False,
+            help="Should a round robin noncoherent bus be used?" )
 
 ######################################################################
 
@@ -286,7 +288,8 @@ CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
-                membus = RR_NoncoherentBus(), 
+                membus = ( RR_NoncoherentBus() if options.rr_nc
+                    else NoncoherentBus() ),
                 mem_mode = test_mem_mode,
                 numPids = options.numpids,
                 fast_forward = (options.fast_forward != None),

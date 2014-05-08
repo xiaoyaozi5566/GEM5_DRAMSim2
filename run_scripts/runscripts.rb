@@ -91,6 +91,8 @@ def sav_script( cpu, scheme, p0, options = {} )
     use_set_part = options[:setpart]
     # Should L3 be way partitioned?
     use_way_part = options[:waypart]
+    # Use a round robin noncoherent bus
+    rr_nc        = options[:rr_nc]
     # Determines if trace files for security should be saved
     savetraces = options[:savetraces]
     # Determines l3 trace file output.
@@ -134,6 +136,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --fixaddr\\") if scheme == "fa"
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
+    script.puts("    --rr_nc\\" ) if rr_nc
     script.puts("    --use_set_part\\" ) if use_set_part
     script.puts("    --use_way_part\\" ) if use_way_part
     script.puts("    --dramsim2 \\")
