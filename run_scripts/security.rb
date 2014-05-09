@@ -36,4 +36,22 @@ module RunScripts
         parallel_local opts
     end
 
+    def execution_time_compare_qsub
+        opts = {
+            schemes: %w[ none ],
+            maxinsts: 10**6,
+            fastforward: 100,
+        }
+        qsub_fast opts
+
+        opts = {
+            schemes: %w[ tp ],
+            maxinsts: 10**6,
+            fastforward: 100,
+            setpart: true,
+            rr_nc: true,
+        }
+        qsub_fast opts
+    end
+
 end
