@@ -20,7 +20,7 @@ module RunScripts
 
     def execution_time_compare
         opts = {
-            benchmarks: $specint - w[ bzip2 ],
+            benchmarks: $specint - %w[ bzip2 ],
             schemes: %w[ none ],
             maxinsts: 10**6,
             fastforward: 100,
