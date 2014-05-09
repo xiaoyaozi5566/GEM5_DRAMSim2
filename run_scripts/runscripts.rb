@@ -131,6 +131,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     unless cacheSize == 0
         script.puts("    --l3cache \\")
         script.puts("    --l3_size=#{cacheSize}MB\\")
+        script.puts("    --l3config=#{l3config} \\")
     end
     script.puts("   --fixaddr\\") if scheme == "fa"
     script.puts("    --fast-forward=#{fastforward} \\") unless fastforward == 0

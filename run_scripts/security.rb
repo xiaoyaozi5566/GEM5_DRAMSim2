@@ -20,6 +20,7 @@ module RunScripts
 
     def execution_time_compare
         opts = {
+            benchmarks: $specint - w[ bzip2 ],
             schemes: %w[ none ],
             maxinsts: 10**6,
             fastforward: 100,
@@ -27,9 +28,11 @@ module RunScripts
         parallel_local opts
 
         opts = {
+            benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ tp ],
             maxinsts: 10**6,
             fastforward: 100,
+            l3config: "private",
             setpart: true,
             rr_nc: true,
         }
@@ -38,6 +41,7 @@ module RunScripts
 
     def execution_time_compare_qsub
         opts = {
+            benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ none ],
             maxinsts: 10**6,
             fastforward: 100,
@@ -45,6 +49,7 @@ module RunScripts
         qsub_fast opts
 
         opts = {
+            benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ tp ],
             maxinsts: 10**6,
             fastforward: 100,
