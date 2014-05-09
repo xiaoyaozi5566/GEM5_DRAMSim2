@@ -20,11 +20,19 @@ module RunScripts
 
     def execution_time_compare
         opts = {
-            schemes: %w[ none tp ],
+            schemes: %w[ none ],
             maxinsts: 10**6,
             fastforward: 100,
         }
+        parallel_local opts
 
+        opts = {
+            schemes: %w[ tp ],
+            maxinsts: 10**6,
+            fastforward: 100,
+            setpart: true,
+            rr_nc: true,
+        }
         parallel_local opts
     end
 
