@@ -59,4 +59,21 @@ module RunScripts
         qsub_fast opts
     end
 
+    def security_debug
+        opts = {
+            p1: "astar",
+            maxinsts: 10**6,
+            fastforward: 100,
+            l3config: "private",
+            rr_nc: true,
+            memdebug: true,
+            runmode: :local
+        }
+        sav_script( "detailed", "tp", "mcf", opts )
+
+        opts = opts.merge( { p1: "sjeng" } )
+        sav_script( "detailed", "tp", "mcf", opts )
+
+    end
+
 end

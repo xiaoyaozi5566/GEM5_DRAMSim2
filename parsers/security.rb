@@ -32,7 +32,9 @@ if __FILE__ == $0
     result_dir = ARGV[0].to_s
 
     %w[ none tp ].each do |scheme|
-        differing = compare_etime( { schemes: [scheme] } )
+        differing = compare_etime( {
+            schemes: [scheme],
+            bench: $specint-%w[bzip2] } )
         f = File.new( result_dir+"/etime_diff_#{scheme}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}
         f.close()

@@ -106,6 +106,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     debug = options[:debug] ||
         options[:cacheDebug] ||
         options[:gdb] ||
+        options[:memdebug] ||
         options[:mmuDebug]
     
 
@@ -123,6 +124,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("build/ARM/gem5.debug \\") if debug 
     script.puts("--debug-flags=Cache \\") if cacheDebug
     script.puts("--debug-flags=MMU \\") if mmuDebug
+    script.puts("--debug-flags=Bus,MMU,TLB \\") if options[:memdebug]
     script.puts("    --stats-file=#{filename}_stats.txt \\")
     script.puts("    configs/dramsim2/dramsim2_se.py \\")
     script.puts("    --cpu-type=#{cpu} \\")
