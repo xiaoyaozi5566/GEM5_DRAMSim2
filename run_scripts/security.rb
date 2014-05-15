@@ -69,11 +69,14 @@ module RunScripts
             memdebug: true,
             runmode: :local
         }
-        sav_script( "detailed", "tp", "mcf", opts )
-
-        opts = opts.merge( { p1: "sjeng" } )
-        sav_script( "detailed", "tp", "mcf", opts )
-
+        Parallel.each(1..2, :in_threads=>2) do |i|
+            if i==1
+                sav_script( "detailed", "tp", "mcf", opts )
+            else
+                opts = opts.merge( { p1: "sjeng" } )
+                sav_script( "detailed", "tp", "mcf", opts )
+            end
+        end
     end
 
 end
