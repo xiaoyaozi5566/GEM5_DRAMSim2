@@ -80,14 +80,14 @@ if __FILE__ == $0
         conf = {
             schemes: [scheme],
             cpus: [cpu],
-            bench: %w[mcf astar sjeng] }
+            bench: $specint - %w[bzip2] }
         differing = compare_etime conf
         f = File.new( result_dir+"/etime_diff_#{scheme}_#{cpu}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}
-        puts "#{scheme} Avg Cycle Difference:   " + ("%E" % (avg_difference conf) ).magenta
-        puts "#{scheme} Avg Percent Difference: " + (avg_percent conf).to_s.magenta
-        puts "#{scheme} Number of Differences:  " + (count_differences conf).to_s.magenta
-        puts "#{scheme} distribution:           " + (percent_diff_dist conf).to_s.magenta
+        puts "#{cpu} #{scheme} Avg Cycle Difference:   " + ("%E" % (avg_difference conf) ).magenta
+        puts "#{cpu} #{scheme} Avg Percent Difference: " + (avg_percent conf).to_s.magenta
+        puts "#{cpu} #{scheme} Number of Differences:  " + (count_differences conf).to_s.magenta
+        puts "#{cpu} #{scheme} distribution:           " + (percent_diff_dist conf).to_s.magenta
         f.close()
     end
 
