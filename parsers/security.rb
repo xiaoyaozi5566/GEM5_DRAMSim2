@@ -76,12 +76,13 @@ end
 if __FILE__ == $0
     result_dir = ARGV[0].to_s
 
-    %w[ none tp ].each do |scheme|
+    %w[ tp ].product($cpus).each do |scheme,cpu|
         conf = {
             schemes: [scheme],
-            bench: $specint-%w[bzip2] }
+            cpus: [cpu],
+            bench: %w[mcf astar sjeng] }
         differing = compare_etime conf
-        f = File.new( result_dir+"/etime_diff_#{scheme}.out", 'w' )
+        f = File.new( result_dir+"/etime_diff_#{scheme}_#{cpu}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}
         puts "#{scheme} Avg Cycle Difference:   " + ("%E" % (avg_difference conf) ).magenta
         puts "#{scheme} Avg Percent Difference: " + (avg_percent conf).to_s.magenta
@@ -89,6 +90,5 @@ if __FILE__ == $0
         puts "#{scheme} distribution:           " + (percent_diff_dist conf).to_s.magenta
         f.close()
     end
-
 
 end
