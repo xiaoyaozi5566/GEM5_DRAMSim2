@@ -14,7 +14,8 @@ def compare_etime( conf = {} )
     config.each do |cpu, scheme, p0|
         p = {cpu: cpu, scheme: scheme, p0: p0}
         times = conf[:bench].inject({}) do |hsh,p1|
-            time, found = findTime( stdo_file( p.merge({p1:p1}) ) )
+            time, found = findTime( stdo_file( p.merge({p1:p1}) ),
+                                   no_ff: true )
             hsh[p1] = time if found
             hsh
         end
