@@ -135,9 +135,8 @@ def sav_script( cpu, scheme, p0, options = {} )
         script.puts("    --l3_size=#{cacheSize}MB\\")
         script.puts("    --l3config=#{l3config} \\")
     end
-    script.puts("   --fixaddr\\") if scheme == "fa"
+    script.puts("   --fixaddr\\") if scheme == "fa" || options[:addrpar]
     script.puts("    --fast-forward=#{fastforward} \\") unless fastforward == 0
-    script.puts("    --fixaddr\\") if scheme == "fa"
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
     script.puts("    --rr_nc\\" ) if rr_nc
