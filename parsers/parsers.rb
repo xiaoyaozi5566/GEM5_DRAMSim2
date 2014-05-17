@@ -21,19 +21,19 @@ $specint = [
 ]
 $schemes = %w[ none tp ]
 
-def findTime(filename)
+def findTime(filename, opts = {} )
     return [nil, false] unless File.exists? filename
     time = nil
-    foundtime = false
+    foundtime = false 
     File.open(filename,'r'){|f|
         switchregex = /Switched CPUS/
         timingregex = /Exiting @ tick (\d*)\w* because a\w*/
-        foundcpuswitch = false
+        foundcpuswitch = (true && opts[:no_ff]) || false 
         f.each_line do |line|
             if !foundcpuswitch && line.match(switchregex)!=nil
                 foundcpuswitch = true
             end
-            unless line.match(timingregex)== nil || !foundcpuswitch
+            if line.match(timingregex)!= nil && foundcpuswitch
                 time =(line.match timingregex)[1]
                 time = time.to_f
                 foundtime=true

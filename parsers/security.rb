@@ -14,7 +14,8 @@ def compare_etime( conf = {} )
     config.each do |cpu, scheme, p0|
         p = {cpu: cpu, scheme: scheme, p0: p0}
         times = conf[:bench].inject({}) do |hsh,p1|
-            time, found = findTime( stdo_file( p.merge({p1:p1}) ) )
+            time, found = findTime( stdo_file( p.merge({p1:p1}) ),
+                                   no_ff: true )
             hsh[p1] = time if found
             hsh
         end
@@ -76,19 +77,19 @@ end
 if __FILE__ == $0
     result_dir = ARGV[0].to_s
 
-    %w[ none tp ].each do |scheme|
+    %w[ tp ].product($cpus).each do |scheme,cpu|
         conf = {
             schemes: [scheme],
-            bench: $specint-%w[bzip2] }
+            cpus: [cpu],
+            bench: $specint - %w[bzip2] }
         differing = compare_etime conf
-        f = File.new( result_dir+"/etime_diff_#{scheme}.out", 'w' )
+        f = File.new( result_dir+"/etime_diff_#{scheme}_#{cpu}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}
-        puts "#{scheme} Avg Cycle Difference:   " + ("%E" % (avg_difference conf) ).magenta
-        puts "#{scheme} Avg Percent Difference: " + (avg_percent conf).to_s.magenta
-        puts "#{scheme} Number of Differences:  " + (count_differences conf).to_s.magenta
-        puts "#{scheme} distribution:           " + (percent_diff_dist conf).to_s.magenta
+        puts "#{cpu} #{scheme} Avg Cycle Difference:   " + ("%E" % (avg_difference conf) ).magenta
+        puts "#{cpu} #{scheme} Avg Percent Difference: " + (avg_percent conf).to_s.magenta
+        puts "#{cpu} #{scheme} Number of Differences:  " + (count_differences conf).to_s.magenta
+        puts "#{cpu} #{scheme} distribution:           " + (percent_diff_dist conf).to_s.magenta
         f.close()
     end
-
 
 end

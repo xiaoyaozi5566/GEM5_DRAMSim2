@@ -1,0 +1,68 @@
+#!/usr/bin/ruby
+require 'fileutils'
+
+MODELS = %w[timing detailed]
+SCHEMES = %w[none tp open]
+CACHESIZES = [0,1,2,4]
+SPECINT = [
+    'astar',
+    'bzip2',
+    'gcc',
+    'gobmk',
+    'h264ref',
+    'hmmer',
+    'libquantum',
+    'mcf',
+    #    'omnetpp',
+    #    'perlbench',
+    'sjeng',
+    'xalan',
+].sort
+BENCHMARKS = SPECINT
+INSTRUCTIONS = 10**8
+DATAREGEXES = {
+    'instructions' => /sim_insts\s*(\d*)/,
+    'memir' => /system\.physmem\.num_reads::cpu0\.inst\s*(\d*)/,
+    'memdr' => /system\.physmem\.num_reads::cpu0\.data\s*(\d*)/
+}
+STATS =%w[ mpki ]
+
+def getStats( expname, stat )
+    filename = "m5out/" + expname + "_stats.txt"
+    statsfile = File.open filename
+    regex = DATAREGEXES[stat]
+    datum = -1
+    statsfile.each_line do |line|
+        if line =~ regex
+            datum = line.match( regex )[1].to_f
+        end
+    end
+
+    datum
+end
+
+def getParsedStats( indir )
+    Dir.chdir(indir)
+    parsed_stats = REGEXES.keys
+
+    data = SCHEMES.inject({}){|i,sc|
+        i[sc] = MODELS.inject({}){|j,mo|
+            j[mo] = CACHES.inject({}){|k,ca|
+                k[ca] = BENCHMARKS.inject({}){|l,be|
+                    l[ca]= parsed_stats.inject({}){|m,st|
+                        m[st]=[]
+                        m }
+                    l}
+                k } 
+            j } 
+        i }
+
+    SCHEMES.product( MODELS, CACHESIZES, BENCHMARKS, parsed_stats ).
+        each do |scheme, model, cacheSize, bench, stat|
+        
+        expname = "#{scheme}_#{model}_#{bench}_c#{cacheSize}MB_tl6"
+        data[scheme][model][cacgeSize][bench][stat] = getStats( expname, stat )
+    end
+
+end
+
