@@ -23,7 +23,7 @@ module RunScripts
             benchmarks: $specint - %w[ bzip2 ],
             schemes: %w[ none ],
             maxinsts: 10**6,
-            fastforward: 100,
+            fastforward: 0,
         }
         parallel_local opts
 
@@ -31,11 +31,35 @@ module RunScripts
             benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ tp ],
             maxinsts: 10**6,
-            fastforward: 100,
+            fastforward: 0,
             l3config: "private",
-            setpart: true,
+            addrpar: true,
             rr_nc: true,
+            cpus: %w[detailed],
         }
+        parallel_local opts
+    end
+
+    def setpart_vs_private
+        opts = {
+            benchmarks:$specint - %w[ bzip2 ],
+            schemes: %w[ tp ],
+            maxinsts: 10**6,
+            fastforward: 0,
+            l3config: "private",
+            addrpar: true,
+            rr_nc: true,
+            cpus: %w[detailed],
+            result_dir: "results_private"
+        }
+        parallel_local opts
+
+        opts = opts.merge({
+            l3config: "shared",
+            setpart: true,
+            result_dir: "results_setpart"
+        })
+
         parallel_local opts
     end
 
@@ -63,8 +87,8 @@ module RunScripts
         opts = {
             p1: "astar",
             maxinsts: 10**6,
-            fastforward: 100,
-            l3config: "private",
+            fastforward: 0,
+            setpart: true,
             rr_nc: true,
             memdebug: true,
             runmode: :local
@@ -73,7 +97,7 @@ module RunScripts
             if i==1
                 sav_script( "detailed", "tp", "mcf", opts )
             else
-                opts = opts.merge( { p1: "sjeng" } )
+                opts = opts.merge( { p1: "hmmer" } )
                 sav_script( "detailed", "tp", "mcf", opts )
             end
         end
