@@ -53,6 +53,7 @@
 #include "debug/BusAddrRanges.hh"
 #include "debug/Drain.hh"
 #include "mem/rr_bus.hh"
+#include "stdio.h"
 
 RRBus::RRBus(const RRBusParams *p)
     : MemObject(p),
