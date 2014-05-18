@@ -58,6 +58,7 @@
 #include "mem/cache/mshr.hh"
 #include "sim/eventq.hh"
 #include "mem/cache/cache_trace.hh"
+#include "stdio.h"
 
 //Forward decleration
 class BasePrefetcher;

@@ -1,5 +1,6 @@
 #include <list>
 #include "mem/cache/base.hh"
+#include "stdio.h"
 
 class TraceNode {
     uint64_t address;
