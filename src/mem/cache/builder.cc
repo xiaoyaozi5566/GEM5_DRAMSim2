@@ -86,7 +86,7 @@ using namespace std;
         if( use_way_part )                                              \
             tags = new WPLRU( numSets, block_size, assoc, latency );     \
         else if( use_set_part )                                               \
-            tags = new SPLRU( numSets, block_size, assoc, latency );     \
+            tags = new SPLRU( numSets, block_size, assoc, latency, num_tcs );     \
         else                                                            \
             tags = new LRU(numSets, block_size, assoc, latency);        \
         BUILD_CACHE(LRU, tags);                                         \

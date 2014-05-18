@@ -56,6 +56,7 @@ class L3Shared( L3Config ):
                             block_size=options.cacheline_size,
                             save_traces = options.savetraces,
                             use_set_part = options.use_set_part,
+                            num_tcs = options.numpids,
                             use_way_part = options.use_way_part,
                             l3_trace_file = options.l3tracefile)
 

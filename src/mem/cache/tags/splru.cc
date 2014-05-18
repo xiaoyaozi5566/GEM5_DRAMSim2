@@ -7,11 +7,13 @@
 #include "sim/core.hh"
 #include <typeinfo>
 
+
 SPLRU::SPLRU( unsigned _numSets,
         unsigned _blkSize,
         unsigned _assoc,
-        unsigned _hit_latency )
-    : LRU(_numSets/2, _blkSize, _assoc, _hit_latency )
+        unsigned _hit_latency,
+        unsigned num_tcs )
+    : LRU(_numSets/num_tcs, _blkSize, _assoc, _hit_latency )
 {
     init_sets();
     assert( ( numSets % num_sds ) == 0 );
@@ -27,8 +29,9 @@ tid_from_addr( Addr addr ){
 
 CacheSet
 SPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
-    assert( &sets[setnum][tid_from_addr(addr)] != 0);
-    return sets[setnum][tid_from_addr(addr)];
+    // assert( &sets[setnum][tid_from_addr(addr)] != 0);
+    // return sets[setnum][tid_from_addr(addr)];
+    return LRU::get_set( setnum, tid, addr );
 }
 
 void

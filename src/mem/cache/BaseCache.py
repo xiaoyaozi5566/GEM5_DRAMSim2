@@ -63,7 +63,8 @@ class BaseCache(MemObject):
     addr_ranges = VectorParam.AddrRange([AllMemory], "The address range for the CPU-side port")
     system = Param.System(Parent.any, "System we belong to")
     do_cache_trace = Param.Bool(False, "should a cache trace be saved?")
-    l3_trace_file = Param.String("l3trace.txt", "l3 trace output file")
-    save_traces = Param.Bool(False, "should any traces be saved?")
-    use_set_part = Param.Bool(False, "Use set partitioning in L3?")
-    use_way_part = Param.Bool(False, "Use way partitioning in L3?")
+    l3_trace_file  = Param.String("l3trace.txt", "l3 trace output file")
+    num_tcs        = Param.Unsigned(2, "number of timing compartments" );
+    save_traces    = Param.Bool(False, "should any traces be saved?")
+    use_set_part   = Param.Bool(False, "Use set partitioning in L3?")
+    use_way_part   = Param.Bool(False, "Use way partitioning in L3?")
