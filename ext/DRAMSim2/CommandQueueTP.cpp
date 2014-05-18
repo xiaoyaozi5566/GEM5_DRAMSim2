@@ -311,10 +311,10 @@ bool CommandQueueTP::isBufferTime(){
     		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
     }
     uint64_t dead_time;
-    if ( fixAddr )
-		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
-    else
+    // if ( fixAddr )
+	// 	dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
+	// 			int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
+    // else
 		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
 				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
     if ( diffPeriod )
