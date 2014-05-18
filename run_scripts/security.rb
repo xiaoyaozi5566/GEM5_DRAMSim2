@@ -20,33 +20,30 @@ module RunScripts
 
     def execution_time_compare
         opts = {
-            benchmarks: $specint - %w[ bzip2 ],
             schemes: %w[ none ],
+            benchmarks: $specint - %w[ bzip2 ],
+            cpus: %w[detailed],
             maxinsts: 10**6,
             fastforward: 0,
         }
         parallel_local opts
 
-        opts = {
-            benchmarks:$specint - %w[ bzip2 ],
+        opts = opts.merge({
             schemes: %w[ tp ],
-            maxinsts: 10**6,
-            fastforward: 0,
-            l3config: "private",
+            setpart: true,
             addrpar: true,
             rr_nc: true,
-            cpus: %w[detailed],
-        }
+        })
         parallel_local opts
     end
 
     def setpart_vs_private
         opts = {
+            l3config: "private",
             benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ tp ],
             maxinsts: 10**6,
             fastforward: 0,
-            l3config: "private",
             addrpar: true,
             rr_nc: true,
             cpus: %w[detailed],
@@ -67,19 +64,18 @@ module RunScripts
         opts = {
             benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ none ],
+            cpus: %w[detailed],
             maxinsts: 10**6,
-            fastforward: 100,
+            fastforward: 0,
         }
         qsub_fast opts
 
-        opts = {
-            benchmarks:$specint - %w[ bzip2 ],
+        opts = opts.merge({
             schemes: %w[ tp ],
-            maxinsts: 10**6,
-            fastforward: 100,
             setpart: true,
+            addrpar: true,
             rr_nc: true,
-        }
+        })
         qsub_fast opts
     end
 

@@ -14,8 +14,9 @@ include RunScripts
 #------------------------------------------------------------------------------
 # cache_security
 # execution_time_compare
-# execution_time_compare_qsub
-  security_debug
+  execution_time_compare_qsub
+# security_debug
+# setpart_vs_private
 
 #------------------------------------------------------------------------------
 # Unptimized Runs
