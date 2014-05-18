@@ -60,7 +60,8 @@ def filename( p={} )
 end
 
 def stdo_file( p={} )
-    "results/stdout_#{filename p}.out"
+    p={dir: "results"}.merge p
+    "#{p[:dir]}/stdout_#{filename p}.out"
 end
 
 def bench_swap_file( p={} )
