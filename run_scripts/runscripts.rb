@@ -67,6 +67,7 @@ def sav_script( cpu, scheme, p0, options = {} )
         runmode: :qsub,
         maxinsts: $maxinsts,
         fastforward: $fastforward,
+        result_dir: "results"
     }.merge options
 
     cacheSize  = options[:cacheSize]
@@ -80,13 +81,19 @@ def sav_script( cpu, scheme, p0, options = {} )
     tl1        = options[:tl1]
     tl2        = options[:tl2]
     tl3        = options[:tl3]
+    # Results directory
+    result_dir = options[:result_dir]
     # allows the turn lengths for p0-p3 to differ
     diffperiod = options[:diffperiod]
+    # shared or private l3
     l3config   = options[:l3config]
     # runmode can be qsub: to submit jobs, local: to run the test locally, or 
     # none: to generate the scripts without running them
     runmode    = options[:runmode]
+    # maximum number of instructions
     maxinsts   = options[:maxinsts]
+    # number of instructions to fastforward,
+    # 0 removes --fastforward from the script
     fastforward= options[:fastforward]
     # Should L3 be set partitioned?
     use_set_part = options[:setpart]
@@ -118,6 +125,8 @@ def sav_script( cpu, scheme, p0, options = {} )
    
     numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
 
+    FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
+
     script = File.new($scriptgen_dir.path+"/run_#{filename}","w+")
     script.puts("#!/bin/bash")
     script.puts("build/ARM/gem5.fast \\") unless debug
@@ -144,7 +153,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --use_way_part\\" ) if use_way_part
     script.puts("    --dramsim2 \\")
     script.puts("    --savetraces \\") if savetraces
-    l3tracefile = l3tracefile || "results/l3trace_#{filename}.txt"
+    l3tracefile = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"
     script.puts("    --l3tracefile #{l3tracefile}\\") if savetraces
     script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
     script.puts("    --devicecfg="+
@@ -165,7 +174,7 @@ def sav_script( cpu, scheme, p0, options = {} )
         script.puts("    --p0period=#{tl0} \\")
         script.puts("    --p1period=#{tl1} \\")
     end
-    script.puts("    > results/stdout_#{filename}.out")
+    script.puts("    > #{result_dir}/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
     success = system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
