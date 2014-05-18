@@ -13,17 +13,18 @@ SPLRU::SPLRU( unsigned _numSets,
         unsigned _assoc,
         unsigned _hit_latency,
         unsigned num_tcs )
-    : LRU(_numSets/num_tcs, _blkSize, _assoc, _hit_latency )
+    : LRU(_numSets/num_tcs, _blkSize, _assoc, _hit_latency ),
+    num_tcs(num_tcs)
 {
     init_sets();
-    assert( ( numSets % num_sds ) == 0 );
-    warmupBound = numSets * num_sds * assoc;
+    assert( ( numSets % num_tcs ) == 0 );
+    warmupBound = numSets * num_tcs * assoc;
 }
 
 
 int
 tid_from_addr( Addr addr ){
-    if( addr < pow( 1024, 3 ) ) return 0;
+    if( addr < 2 * pow( 1024, 3 ) ) return 0;
     else return 1;
 }
 
@@ -37,15 +38,15 @@ SPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
 void
 SPLRU::init_sets(){
     sets = new CacheSet*[numSets];
-    for( int i=0; i< numSets; ++i ) sets[i] = new CacheSet[num_sds];
-    blks = new BlkType[numSets * num_sds * assoc];
+    for( int i=0; i< numSets; ++i ) sets[i] = new CacheSet[num_tcs];
+    blks = new BlkType[numSets * num_tcs * assoc];
     // allocate data storage in one big chunk
-    numBlocks = numSets * num_sds * assoc;
+    numBlocks = numSets * num_tcs * assoc;
     dataBlks = new uint8_t[numBlocks * blkSize];
 
     unsigned blkIndex = 0;       // index into blks array
     for (unsigned i = 0; i < numSets; ++i) {
-        for( unsigned k=0; k < num_sds; k++ ){
+        for( unsigned k=0; k < num_tcs; k++ ){
             sets[i][k].assoc = assoc;
 
             sets[i][k].blks = new BlkType*[assoc];
@@ -78,7 +79,7 @@ SPLRU::init_sets(){
 void
 SPLRU::cleanupRefs()
 {
-    for (unsigned i = 0; i < numSets*num_sds*assoc; ++i) {
+    for (unsigned i = 0; i < numSets*num_tcs*assoc; ++i) {
         if (blks[i].isValid()) {
             totalRefs += blks[i].refCount;
             ++sampledRefs;
