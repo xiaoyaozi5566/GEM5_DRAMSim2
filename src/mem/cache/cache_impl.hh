@@ -520,7 +520,7 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
         // miss
 
         Addr blk_addr = blockAlign(pkt->getAddr());
-        MSHR *mshr = mshrQueue.findMatch(blk_addr);
+        MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch(blk_addr);
 
         if (mshr) {
             // MSHR hit
@@ -762,7 +762,7 @@ Cache<TagStore>::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 {
     Addr blk_addr = blockAlign(pkt->getAddr());
     BlkType *blk = tags->findBlock( pkt->getAddr(), pkt->threadID );
-    MSHR *mshr = mshrQueue.findMatch(blk_addr);
+    MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch(blk_addr);
 
     pkt->pushLabel(name());
 
@@ -785,8 +785,8 @@ Cache<TagStore>::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 
     bool done = have_dirty
         || cpuSidePort->checkFunctional(pkt)
-        || mshrQueue.checkFunctional(pkt, blk_addr)
-        || writeBuffer.checkFunctional(pkt, blk_addr)
+        || getMSHRQueue( pkt->threadID   )->checkFunctional(pkt, blk_addr)
+        || getWriteBuffer( pkt->threadID )->checkFunctional(pkt, blk_addr)
         || memSidePort->checkFunctional(pkt);
 
     DPRINTF(Cache, "functional %s %x %s%s%s\n",
@@ -1038,7 +1038,8 @@ Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks, uint64_t tid)
 
     if (blk->isValid()) {
         Addr repl_addr = tags->regenerateBlkAddr(blk->tag, blk->set);
-        MSHR *repl_mshr = mshrQueue.findMatch(repl_addr);
+        MSHR *repl_mshr = getMSHRQueue(
+                tid_from_addr( addr ) )->findMatch(repl_addr);
         if (repl_mshr) {
             // must be an outstanding upgrade request on block
             // we're about to replace...
@@ -1289,7 +1290,7 @@ Cache<TagStore>::snoopTiming(PacketPtr pkt)
     BlkType *blk = tags->findBlock( pkt->getAddr(), pkt->threadID );
 
     Addr blk_addr = blockAlign(pkt->getAddr());
-    MSHR *mshr = mshrQueue.findMatch(blk_addr);
+    MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch(blk_addr);
 
     // Let the MSHR itself track the snoop and decide whether we want
     // to go ahead and do the regular cache snoop
@@ -1303,7 +1304,7 @@ Cache<TagStore>::snoopTiming(PacketPtr pkt)
 
     //We also need to check the writeback buffers and handle those
     std::vector<MSHR *> writebacks;
-    if (writeBuffer.findMatches(blk_addr, writebacks)) {
+    if (getWriteBuffer(pkt->threadID)->findMatches(blk_addr, writebacks)) {
         DPRINTF(Cache, "Snoop hit in writeback to addr: %x\n",
                 pkt->getAddr());
 
@@ -1378,10 +1379,10 @@ Cache<TagStore>::snoopAtomic(PacketPtr pkt)
 
 template<class TagStore>
 MSHR *
-Cache<TagStore>::getNextMSHR()
+Cache<TagStore>::getNextMSHR( int threadID )
 {
     // Check both MSHR queue and write buffer for potential requests
-    MSHR *miss_mshr  = mshrQueue.getNextMSHR();
+    MSHR *miss_mshr  = getMSHRQueue( threadID )->getNextMSHR();
     MSHR *write_mshr = writeBuffer.getNextMSHR();
 
     // Now figure out which one to send... some cases are easy
@@ -1399,7 +1400,7 @@ Cache<TagStore>::getNextMSHR()
             // Write buffer is full, so we'd like to issue a write;
             // need to search MSHR queue for conflicting earlier miss.
             MSHR *conflict_mshr =
-                mshrQueue.findPending(write_mshr->addr, write_mshr->size);
+                getMSHRQueue( threadID )->findPending(write_mshr->addr, write_mshr->size);
 
             if (conflict_mshr && conflict_mshr->order < write_mshr->order) {
                 // Service misses in order until conflict is cleared.
@@ -1436,13 +1437,13 @@ Cache<TagStore>::getNextMSHR()
 
     // fall through... no pending requests.  Try a prefetch.
     assert(!miss_mshr && !write_mshr);
-    if (prefetcher && !mshrQueue.isFull()) {
+    if (prefetcher && !getMSHRQueue( threadID )->isFull()) {
         // If we have a miss queue slot, we can try a prefetch
         PacketPtr pkt = prefetcher->getPacket();
         if (pkt) {
             Addr pf_addr = blockAlign(pkt->getAddr());
             if (!tags->findBlock( pf_addr, pkt->threadID )
-                    && !mshrQueue.findMatch(pf_addr)
+                    && !getMSHRQueue( threadID )->findMatch(pf_addr)
                     && !writeBuffer.findMatch(pf_addr)) {
                 // Update statistic on number of prefetches issued
                 // (hwpf_mshr_misses)
@@ -1464,9 +1465,9 @@ Cache<TagStore>::getNextMSHR()
 
 template<class TagStore>
 PacketPtr
-Cache<TagStore>::getTimingPacket()
+Cache<TagStore>::getTimingPacket( int threadID )
 {
-    MSHR *mshr = getNextMSHR();
+    MSHR *mshr = getNextMSHR( threadID );
 
     if (mshr == NULL) {
         return NULL;
@@ -1544,10 +1545,10 @@ Cache<TagStore>::getTimingPacket()
 
 template<class TagStore>
 Tick
-Cache<TagStore>::nextMSHRReadyTime()
+Cache<TagStore>::nextMSHRReadyTime( int threadID )
 {
-    Tick nextReady = std::min(mshrQueue.nextMSHRReadyTime(),
-                              writeBuffer.nextMSHRReadyTime());
+    Tick nextReady = std::min(getMSHRQueue( threadID )->nextMSHRReadyTime(),
+                              getWriteBuffer( threadID )->nextMSHRReadyTime());
 
     if (prefetcher) {
         nextReady = std::min(nextReady,
@@ -1694,12 +1695,12 @@ void
 Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
     // if we have a response packet waiting we have to start with that
+    PacketPtr pkt = cache.getTimingPacket();
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
         trySendTiming();
     } else {
         // check for request packets (requests & writebacks)
-        PacketPtr pkt = cache.getTimingPacket();
         if (pkt == NULL) {
             // can happen if e.g. we attempt a writeback and fail, but
             // before the retry, the writeback is eliminated because
@@ -1733,7 +1734,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
     // next send, not only looking at the response transmit list, but
     // also considering when the next MSHR is ready
     if (!waitingOnRetry) {
-        scheduleSend(cache.nextMSHRReadyTime());
+        scheduleSend(cache.nextMSHRReadyTime(pkt->threadID));
     }
 }
 

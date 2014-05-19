@@ -71,6 +71,13 @@ class BasePrefetcher;
 template <class TagStore>
 class Cache : public BaseCache
 {
+  private:
+    int
+    tid_from_addr( Addr addr ){
+        if( addr < 2 * pow( 1024, 3 ) ) return 0;
+        else return 1;
+    }
+
   public:
     /** Define the type of cache block to use. */
     typedef typename TagStore::BlkType BlkType;
@@ -336,14 +343,17 @@ class Cache : public BaseCache
      * from the prefetcher.  This function is responsible for
      * prioritizing among those sources on the fly.
      */
-    MSHR *getNextMSHR();
+    MSHR *getNextMSHR( int threadID );
 
     /**
      * Selects an outstanding request to service.  Called when the
      * cache gets granted the downstream bus in timing mode.
      * @return The request to service, NULL if none found.
      */
-    PacketPtr getTimingPacket();
+    PacketPtr getTimingPacket( int threadID );
+    PacketPtr getTimingPacket(){
+        return getTimingPacket( 0 );
+    }
 
     /**
      * Marks a request as in service (sent on the bus). This can have side
@@ -380,7 +390,7 @@ class Cache : public BaseCache
     /**
      * Find next request ready time from among possible sources.
      */
-    Tick nextMSHRReadyTime();
+    Tick nextMSHRReadyTime( int threadID );
 
     /** serialize the state of the caches
      * We currently don't support checkpointing cache state, so this panics.

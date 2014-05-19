@@ -108,6 +108,12 @@ class BaseCache : public MemObject
     };
 
   protected:
+    virtual MSHRQueue* getMSHRQueue( int threadID ){
+        return &mshrQueue;
+    }
+    virtual MSHRQueue* getWriteBuffer( int threadID ){
+        return &writeBuffer;
+    }
 
     /**
      * A cache master port is used for the memory-side port of the
@@ -452,7 +458,7 @@ class BaseCache : public MemObject
     MSHR *allocateWriteBuffer(PacketPtr pkt, Tick time, bool requestBus)
     {
         assert(pkt->isWrite() && !pkt->isRead());
-        return allocateBufferInternal(&writeBuffer,
+        return allocateBufferInternal(getWriteBuffer( pkt->threadID ),
                                       pkt->getAddr(), pkt->getSize(),
                                       pkt, time, requestBus);
     }
@@ -461,7 +467,7 @@ class BaseCache : public MemObject
     {
         assert(pkt->req->isUncacheable());
         assert(pkt->isRead());
-        return allocateBufferInternal(&mshrQueue,
+        return allocateBufferInternal(getMSHRQueue( pkt->threadID ),
                                       pkt->getAddr(), pkt->getSize(),
                                       pkt, time, requestBus);
     }
