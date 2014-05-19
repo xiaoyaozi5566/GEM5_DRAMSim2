@@ -8,8 +8,8 @@ template <class TagStore>
 class SplitMSHRCache : public Cache<TagStore>
 {
     private:
-        MSHRQueue* mshrQueues;
-        MSHRQueue* writeBuffers;
+        MSHRQueue** mshrQueues;
+        MSHRQueue** writeBuffers;
 
     public:
     SplitMSHRCache( const Params *p, TagStore *tags );

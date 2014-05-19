@@ -59,6 +59,7 @@
 #include "mem/cache/blk.hh"
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
+#include "mem/cache/split_mshr_cache.hh"
 #include "sim/sim_exit.hh"
 
 template<class TagStore>
@@ -1747,4 +1748,19 @@ MemSidePort::MemSidePort(const std::string &_name, Cache<TagStore> *_cache,
     : BaseCache::CacheMasterPort(_name, _cache, _queue),
       _queue(*_cache, *this, _label), cache(_cache)
 {
+}
+
+template<class TagStore>
+SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
+    : Cache<TagStore>( p, tags )
+ {
+          mshrQueues = new MSHRQueue*[p->num_tcs];
+          writeBuffers = new MSHRQueue*[p->num_tcs];
+          for( int i=0; i < (p->num_tcs); i++ ){
+              mshrQueues[i] = new MSHRQueue( "MSHRs", p->mshrs,
+                      4, 0 );
+              writeBuffers[i] =new MSHRQueue("write buffer",
+                  p->write_buffers, p->mshrs+1000,
+                  1);
+          }
 }

@@ -38,6 +38,7 @@
 
 #include "config/the_isa.hh"
 #include "mem/cache/base.hh"
+#include "mem/cache/split_mshr_cache.hh"
 #include "mem/cache/cache.hh"
 #include "mem/config/cache.hh"
 #include "params/BaseCache.hh"

@@ -66,22 +66,27 @@
 
 #if defined(USE_CACHE_FALRU)
 template class Cache<FALRU>;
+template class SplitMSHRCache<FALRU>;
 #endif
 
 #if defined(USE_CACHE_IIC)
 template class Cache<IIC>;
+template class SplitMSHRCache<IIC>;
 #endif
 
 #if defined(USE_CACHE_LRU)
 template class Cache<LRU>;
+template class SplitMSHRCache<LRU>;
 #endif
 
 #if defined(USE_CACHE_WPLRU)
 template class Cache<WPLRU>;
+template class SplitMSHRCache<WPLRU>;
 #endif
 
 #if defined(USE_CACHE_SPLRU)
 template class Cache<SPLRU>;
+template class SplitMSHRCache<SPLRU>;
 #endif
 
 #endif //DOXYGEN_SHOULD_SKIP_THIS
