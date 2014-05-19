@@ -37,6 +37,7 @@ SimObject('BaseCache.py')
 
 Source('base.cc')
 Source('cache.cc')
+Source('split_mshr_cache.cc')
 Source('blk.cc')
 Source('builder.cc')
 Source('mshr.cc')
