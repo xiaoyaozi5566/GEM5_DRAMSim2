@@ -254,6 +254,7 @@ template<class TagStore>
 void
 Cache<TagStore>::squash(int threadNum)
 {
+    fprintf( stderr, "\x1B[33m called getTimingPacket() \x1B[0m\n" );
     bool unblock = false;
     BlockedCause cause = NUM_BLOCKED_CAUSES;
 
@@ -1695,6 +1696,7 @@ void
 Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
     // if we have a response packet waiting we have to start with that
+    //TODO This shouild get a TID based on the bus turn
     PacketPtr pkt = cache.getTimingPacket();
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
