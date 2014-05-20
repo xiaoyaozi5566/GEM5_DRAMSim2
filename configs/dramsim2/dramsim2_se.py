@@ -108,7 +108,7 @@ if '--dramsim2' in sys.argv:
             help="Determines if the L3 cache should be way partitioned")
     parser.add_option("--rr_nc", action="store_true", default=False,
             help="Should a round robin noncoherent bus be used?" )
-    parsers.add_option("--split_mshr", action="store_true", default=False,
+    parser.add_option("--split_mshr", action="store_true", default=False,
             help="Determines if L3 has separate MSHR Queues per TC")
 
 ######################################################################
