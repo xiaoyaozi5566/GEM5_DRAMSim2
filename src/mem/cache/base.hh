@@ -450,7 +450,7 @@ class BaseCache : public MemObject
     MSHR *allocateMissBuffer(PacketPtr pkt, Tick time, bool requestBus)
     {
         assert(!pkt->req->isUncacheable());
-        return allocateBufferInternal(&mshrQueue,
+        return allocateBufferInternal(getMSHRQueue(pkt->threadID),
                                       blockAlign(pkt->getAddr()), blkSize,
                                       pkt, time, requestBus);
     }

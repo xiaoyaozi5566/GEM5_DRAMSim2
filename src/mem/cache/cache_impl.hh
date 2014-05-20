@@ -522,7 +522,7 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
         // miss
 
         Addr blk_addr = blockAlign(pkt->getAddr());
-        MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch(blk_addr);
+        MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch( blk_addr );
 
         if (mshr) {
             // MSHR hit
@@ -1698,12 +1698,12 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
     // if we have a response packet waiting we have to start with that
     //TODO This shouild get a TID based on the bus turn
-    PacketPtr pkt = cache.getTimingPacket();
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
         trySendTiming();
     } else {
         // check for request packets (requests & writebacks)
+        PacketPtr pkt = cache.getTimingPacket();
         if (pkt == NULL) {
             // can happen if e.g. we attempt a writeback and fail, but
             // before the retry, the writeback is eliminated because
@@ -1737,7 +1737,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
     // next send, not only looking at the response transmit list, but
     // also considering when the next MSHR is ready
     if (!waitingOnRetry) {
-        scheduleSend(cache.nextMSHRReadyTime(pkt->threadID));
+        scheduleSend(cache.nextMSHRReadyTime(0));
     }
 }
 
@@ -1757,10 +1757,8 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
           mshrQueues = new MSHRQueue*[p->num_tcs];
           writeBuffers = new MSHRQueue*[p->num_tcs];
           for( int i=0; i < (p->num_tcs); i++ ){
-              mshrQueues[i] = new MSHRQueue( "MSHRs", p->mshrs,
-                      4, 0 );
+              mshrQueues[i] = new MSHRQueue( "MSHRs", p->mshrs, 4, 0 );
               writeBuffers[i] =new MSHRQueue("write buffer",
-                  p->write_buffers, p->mshrs+1000,
-                  1);
+                  p->write_buffers, p->mshrs+1000, 1);
           }
 }

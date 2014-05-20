@@ -384,7 +384,8 @@ class Cache : public BaseCache
     }
 
     bool inMissQueue(Addr addr) {
-        return (mshrQueue.findMatch(addr) != 0);
+        return ( getMSHRQueue( tid_from_addr( addr ) )->
+                findMatch(addr) != 0 );
     }
 
     /**
