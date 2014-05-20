@@ -9,9 +9,10 @@ include RunScripts
 module RunScripts
     def sanity_ opts
         opts = {
+            cpus: %w[ detailed ],
             schemes: %w[ none ],
             maxinsts: 10**3,
-            fastforward: 100,
+            fastforward: 0,
             debug: true,
         }.merge opts
 
@@ -23,9 +24,9 @@ module RunScripts
             cpus: %w[ detailed ],
             benchmarks: %w[ mcf sjeng ],
             maxinsts: 10**6,
-            fastforward: 100,
+            fastforward: 0,
             runmode: :local,
-            debug: true,
+            debug: true
         }.merge opts
 
         sanity_( opts )
@@ -61,6 +62,34 @@ module RunScripts
 
     def secure_deep
         sanity_deep_( { schemes: %w[tp], setpart: true, rr_nc: true } )
+    end
+
+    def split_mshr
+        sanity_( {split_mshr: true, result_dir:"results_split"} )
+    end
+
+    def split_mshr_deep
+        sanity_deep_( {split_mshr: true, result_dir:"results_split"} )
+    end
+
+    def split_mshr_secure
+        sanity_( {
+            split_mshr: true,
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+            result_dir:"results_split"
+        } )
+    end
+
+    def split_mshr_secure_deep
+        sanity_deep_( {
+            split_mshr: true,
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+            result_dir:"results_split"
+        } )
     end
 
 end

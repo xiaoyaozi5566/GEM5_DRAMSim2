@@ -61,8 +61,9 @@ class L3Shared( L3Config ):
                             split_mshrq = options.split_mshr,
                             l3_trace_file = options.l3tracefile)
 
-        system.tol3bus = ( RR_NoncoherentBus() if options.rr_nc
-                else NoncoherentBus() )
+        # system.tol3bus = ( RR_NoncoherentBus() if options.rr_nc
+        #         else NoncoherentBus() )
+        system.tol3bus = NoncoherentBus()
         system.l3.cpu_side = system.tol3bus.master
         system.l3.mem_side = system.membus.slave
 
