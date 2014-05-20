@@ -58,6 +58,7 @@ class L3Shared( L3Config ):
                             use_set_part = options.use_set_part,
                             num_tcs = options.numpids,
                             use_way_part = options.use_way_part,
+                            split_mshrq = False,
                             l3_trace_file = options.l3tracefile)
 
         system.tol3bus = ( RR_NoncoherentBus() if options.rr_nc

@@ -61,11 +61,14 @@
 
 using namespace std;
 
-#define BUILD_CACHE(TAGS, tags)                         \
-    do {                                                \
-        Cache<TAGS> *retval =                           \
-            new Cache<TAGS>(this, tags);            \
-        return retval;                                  \
+#define BUILD_CACHE(TAGS, tags)                               \
+    do {                                                      \
+        Cache<TAGS> *retval;                                  \
+        if( split_mshrq )                                     \
+            retval = new SplitMSHRCache<TAGS>(this, tags);    \
+        else                                                  \
+            retval = new Cache<TAGS>(this, tags);             \
+        return retval;                                        \
     } while (0)
 
 #define BUILD_CACHE_PANIC(x) do {                       \
