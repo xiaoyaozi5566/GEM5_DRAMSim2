@@ -13,8 +13,7 @@
  *
  * Copyright (c) 2002-2005 The Regents of The University of Michigan
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
+ * * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met: redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer;
@@ -58,6 +57,7 @@
 #include "mem/cache/mshr.hh"
 #include "sim/eventq.hh"
 #include "mem/cache/cache_trace.hh"
+#include "params/BaseCache.hh"
 #include "stdio.h"
 
 //Forward decleration
@@ -76,6 +76,14 @@ class Cache : public BaseCache
     tid_from_addr( Addr addr ){
         if( addr < 2 * pow( 1024, 3 ) ) return 0;
         else return 1;
+    }
+
+    int
+    tid_with_bus_quantum(){
+        // WARNING this assumes the bus clock is 1Ghz (the default option)
+        // TODO 1000 caused starvation, should find something more sensible
+        return 0;
+        return (nextCycle() / 1000) % params->num_tcs;
     }
 
   public:

@@ -1703,7 +1703,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
         trySendTiming();
     } else {
         // check for request packets (requests & writebacks)
-        PacketPtr pkt = cache.getTimingPacket();
+        PacketPtr pkt = cache.getTimingPacket( cache.tid_with_bus_quantum() );
         if (pkt == NULL) {
             // can happen if e.g. we attempt a writeback and fail, but
             // before the retry, the writeback is eliminated because
@@ -1737,7 +1737,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
     // next send, not only looking at the response transmit list, but
     // also considering when the next MSHR is ready
     if (!waitingOnRetry) {
-        scheduleSend(cache.nextMSHRReadyTime(0));
+        scheduleSend(cache.nextMSHRReadyTime( cache.tid_with_bus_quantum() ));
     }
 }
 

@@ -55,7 +55,7 @@ include RunScripts
 # rr_nc_deep
 # secure
 # secure_deep
-  split_mshr
-  split_mshr_deep
-  split_mshr_secure
-  split_mshr_secure_deep
+# split_mshr
+# split_mshr_deep
+# split_mshr_secure
+split_mshr_secure_deep
