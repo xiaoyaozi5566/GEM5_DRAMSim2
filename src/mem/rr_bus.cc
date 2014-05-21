@@ -210,9 +210,9 @@ RRBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
 		Tick retryTime = now - (now / clock) % num_pids * clock + threadID * clock;
 		if (retryTime < now)
 			retryTime = retryTime + clock*num_pids;
-		if(threadID == 0)
+		if(threadID == 0 && !(*retryEvent[0]).scheduled())
 			bus.schedule(retryEvent[0], retryTime);
-		else
+		else if(threadID == 1 && !(*retryEvent[1].scheduled()))
 			bus.schedule(retryEvent[1], retryTime);
 		//printf("schedule retry at %llu %d\n", retryTime/clock, threadID);
         return false;
@@ -356,7 +356,7 @@ RRBus::Layer<PortClass>::retryWaiting()
         // clock edge
         Tick now = bus.nextCycle();
 
-        occupyLayer(now + clock, threadID);
+        occupyLayer(now + num_pids*clock, threadID);
     }
 	//printf("finish retryWaiting %d at %llu\n", threadID, now/clock);
 }
