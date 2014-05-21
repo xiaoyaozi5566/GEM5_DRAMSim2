@@ -212,7 +212,7 @@ RRBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
 			retryTime = retryTime + clock*num_pids;
 		if(threadID == 0 && !(*retryEvent[0]).scheduled())
 			bus.schedule(retryEvent[0], retryTime);
-		else if(threadID == 1 && !(*retryEvent[1].scheduled()))
+		else if(threadID == 1 && !(*retryEvent[1]).scheduled())
 			bus.schedule(retryEvent[1], retryTime);
 		//printf("schedule retry at %llu %d\n", retryTime/clock, threadID);
         return false;
