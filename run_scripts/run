@@ -1,12 +1,13 @@
 #!/usr/bin/ruby
 
 require_relative 'runscripts'
-require_relative 'unoptimized'
-require_relative 'optimized'
-require_relative 'scheduler'
-require_relative 'synthetic'
 require_relative 'security'
 require_relative 'functionality'
+require_relative 'performance'
+require_relative 'memctl_unoptimized'
+require_relative 'memctl_optimized'
+require_relative 'memctl_scheduler'
+require_relative 'memctl_synthetic'
 include RunScripts
 
 #------------------------------------------------------------------------------
@@ -14,35 +15,9 @@ include RunScripts
 #------------------------------------------------------------------------------
 # cache_security
 # execution_time_compare
-  execution_time_compare_qsub
+# execution_time_compare_qsub
 # security_debug
 # setpart_vs_private
-
-#------------------------------------------------------------------------------
-# Unptimized Runs
-#------------------------------------------------------------------------------
-# single_benchmark
-# cache_sweeping
-# turn_length_sweeping
-# thread_scaling
-
-#------------------------------------------------------------------------------
-# Optimized Runs
-#------------------------------------------------------------------------------
-# optimized_thread_scaling
-# fa_thread_scaling
-
-
-#------------------------------------------------------------------------------
-# Scheduler Policy
-#------------------------------------------------------------------------------
-# fcfs_vs_frfcfs
-
-#------------------------------------------------------------------------------
-# Synthetic Benchmarks
-#------------------------------------------------------------------------------
-# synthetic_asym_period
-
 
 #------------------------------------------------------------------------------
 # Functionality
@@ -59,3 +34,37 @@ include RunScripts
 # split_mshr_deep
 # split_mshr_secure
 # split_mshr_secure_deep
+
+#------------------------------------------------------------------------------
+# Performance
+#------------------------------------------------------------------------------
+# prelim_local
+  prelim_qsub
+
+
+###############################################################################
+# Memory Controller Tests
+###############################################################################
+#------------------------------------------------------------------------------
+# Unptimized Runs
+#------------------------------------------------------------------------------
+# single_benchmark
+# cache_sweeping
+# turn_length_sweeping
+# thread_scaling
+
+#------------------------------------------------------------------------------
+# Optimized Runs
+#------------------------------------------------------------------------------
+# optimized_thread_scaling
+# fa_thread_scaling
+
+#------------------------------------------------------------------------------
+# Scheduler Policy
+#------------------------------------------------------------------------------
+# fcfs_vs_frfcfs
+
+#------------------------------------------------------------------------------
+# Synthetic Benchmarks
+#------------------------------------------------------------------------------
+# synthetic_asym_period
