@@ -32,6 +32,7 @@ module RunScripts
             schemes: %w[ tp ],
             setpart: true,
             addrpar: true,
+            split_mshr: true,
             rr_nc: true,
         })
         parallel_local opts
@@ -53,6 +54,7 @@ module RunScripts
 
         opts = opts.merge({
             l3config: "shared",
+            split_mshr: true,
             setpart: true,
             result_dir: "results_setpart"
         })
@@ -74,6 +76,7 @@ module RunScripts
             schemes: %w[ tp ],
             setpart: true,
             addrpar: true,
+            split_mshr: true,
             rr_nc: true,
         })
         qsub_fast opts
@@ -86,6 +89,7 @@ module RunScripts
             fastforward: 0,
             setpart: true,
             rr_nc: true,
+            split_mshr: true,
             memdebug: true,
             runmode: :local
         }

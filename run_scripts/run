@@ -14,7 +14,7 @@ include RunScripts
 #------------------------------------------------------------------------------
 # cache_security
 # execution_time_compare
-# execution_time_compare_qsub
+  execution_time_compare_qsub
 # security_debug
 # setpart_vs_private
 
@@ -58,4 +58,4 @@ include RunScripts
 # split_mshr
 # split_mshr_deep
 # split_mshr_secure
-split_mshr_secure_deep
+# split_mshr_secure_deep
