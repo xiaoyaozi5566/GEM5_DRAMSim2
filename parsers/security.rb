@@ -69,7 +69,7 @@ def percent_diff_dist conf
     compare_etime( conf ){|fi,t1,fj,t2|
         diff = method(:percent_diff).call(t1,t2)
         unless diff.nil?
-            big_diff << [fi,fj] if tests.map{|l| l.call( diff )}.index(true) == 6
+            big_diff << [fi,fj] if tests.map{|l| l.call( diff )}.index(true) >0 
         end
         dist[tests.map{|l| l.call( diff ) }.index(true)]+=1 unless diff.nil?
     }
@@ -107,7 +107,7 @@ if __FILE__ == $0
         puts "#{cpu} #{scheme} distribution:           " +
             dist.to_s.magenta
         puts "#{cpu} #{scheme} big difference files:"
-        big_diff.each{|f1,f2| puts "#{f1} != #{f2}"}
+        # big_diff.each{|f1,f2| puts "#{f1} != #{f2}"}
         f.close()
     end
 
