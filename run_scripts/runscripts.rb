@@ -152,6 +152,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --use_set_part\\" ) if use_set_part
     script.puts("    --use_way_part\\" ) if use_way_part
     script.puts("    --split_mshr\\"   ) if options[:split_mshr]
+    script.puts("    --split_rport\\"   ) if options[:split_rport]
     script.puts("    --dramsim2 \\")
     script.puts("    --savetraces \\") if savetraces
     l3tracefile = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"

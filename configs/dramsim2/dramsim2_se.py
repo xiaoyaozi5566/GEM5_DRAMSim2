@@ -110,6 +110,8 @@ if '--dramsim2' in sys.argv:
             help="Should a round robin noncoherent bus be used?" )
     parser.add_option("--split_mshr", action="store_true", default=False,
             help="Determines if L3 has separate MSHR Queues per TC")
+    parser.add_option("--split_rport", action="store_true", default=False,
+            help="Determines if L3 has separate Response Port Queues per TC")
 
 ######################################################################
 

@@ -34,12 +34,16 @@ include RunScripts
 # split_mshr_deep
 # split_mshr_secure
 # split_mshr_secure_deep
+split_rport
+split_rport_deep
+split_rport_secure
+split_rport_secure_deep
 
 #------------------------------------------------------------------------------
 # Performance
 #------------------------------------------------------------------------------
 # prelim_local
-  prelim_qsub
+#  prelim_qsub
 
 
 ###############################################################################

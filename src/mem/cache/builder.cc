@@ -39,6 +39,7 @@
 #include "config/the_isa.hh"
 #include "mem/cache/base.hh"
 #include "mem/cache/split_mshr_cache.hh"
+#include "mem/cache/split_rport_cache.hh"
 #include "mem/cache/cache.hh"
 #include "mem/config/cache.hh"
 #include "params/BaseCache.hh"
@@ -64,7 +65,9 @@ using namespace std;
 #define BUILD_CACHE(TAGS, tags)                               \
     do {                                                      \
         Cache<TAGS> *retval;                                  \
-        if( split_mshrq )                                     \
+        if( split_rport )                                     \
+            retval = new SplitRPortCache<TAGS>(this, tags);   \
+        else if( split_mshrq )                                \
             retval = new SplitMSHRCache<TAGS>(this, tags);    \
         else                                                  \
             retval = new Cache<TAGS>(this, tags);             \

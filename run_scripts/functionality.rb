@@ -92,4 +92,30 @@ module RunScripts
         } )
     end
 
+    def split_rport
+        sanity_({split_rport: true })
+    end
+
+    def split_rport_deep
+        sanity_deep_({split_rport: true })
+    end
+
+    def split_rport_secure
+        sanity_( {
+            split_rport: true,
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+        } )
+    end
+
+    def split_rport_secure_deep
+        sanity_deep_( {
+            split_rport: true,
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+        } )
+    end
+
 end
