@@ -83,14 +83,17 @@ def count_differences conf
 end
 
 if __FILE__ == $0
-    result_dir = ARGV[0].to_s
+    input_dir  = ARGV[0].to_s
+    result_dir = ARGV[1].to_s
 
-    %w[ tp ].product($cpus).each do |scheme,cpu|
+    FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
+
+    %w[ tp none ].product($cpus).each do |scheme,cpu|
         conf = {
-            dir: "results_private",
+            dir: input_dir ,
             schemes: [scheme],
             cpus: [cpu],
-            bench: $specint - %w[bzip2] }
+            bench: $specint }
         differing = compare_etime conf
         f = File.new( result_dir+"/etime_diff_#{scheme}_#{cpu}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}

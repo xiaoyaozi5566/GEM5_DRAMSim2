@@ -17,7 +17,7 @@ module RunScripts
         }
         yield opts
 
-        #Naieve Secure Scheme
+        #Naive Secure Scheme
         opts = opts.merge({
             schemes: %w[ tp ],
             rr_nc: true,
