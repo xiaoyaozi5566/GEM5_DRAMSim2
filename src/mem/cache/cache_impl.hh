@@ -60,6 +60,7 @@
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
 #include "mem/cache/split_mshr_cache.hh"
+#include "mem/cache/split_rport_cache.hh"
 #include "sim/sim_exit.hh"
 
 template<class TagStore>
@@ -1750,6 +1751,9 @@ MemSidePort::MemSidePort(const std::string &_name, Cache<TagStore> *_cache,
 {
 }
 
+//-----------------------------------------------------------------------------
+// Split MSHR Cache
+//-----------------------------------------------------------------------------
 template<class TagStore>
 SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
     : Cache<TagStore>( p, tags )
@@ -1761,4 +1765,33 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
               writeBuffers[i] =new MSHRQueue("write buffer",
                   p->write_buffers, p->mshrs+1000, 1);
           }
+}
+
+//-----------------------------------------------------------------------------
+// Split Response Port Cache
+//-----------------------------------------------------------------------------
+template<class TagStore>
+SplitRPortCache<TagStore>::SplitRPortCache( const Params *p, TagStore *tags )
+    : SplitMSHRCache<TagStore>( p, tags ),
+    num_tcs( p->num_tcs )
+{
+    // Calls constructor of Split MSHR Cache which calls the constructor of 
+    // Cache.
+    // Saves num_tcs from p
+    // Prints to prove that the correct module was used
+    fprintf( stderr, "\x1B[33mA SplitRPortCache was made\x1B[0m\n" );
+    //TODO delete line above
+}
+
+// Example overridden method. Notice that the inhereted sendDeferredPacket()
+// from Cache will correctly call this overridden version of getTimingPacket
+// without needing to copy over sendDeferred() to this class.
+// TODO: Delete this if not needed
+template<class TagStore>
+PacketPtr
+SplitRPortCache<TagStore>::getTimingPacket( int threadID ){
+    //print to prove that the overridden version was called TODO delete
+    fprintf( stderr, "\x1B[33mA SplitRPortCache called getTimingPacket()\x1B[0m\n" );
+    // Call parent version of this method.
+    return Cache<TagStore>::getTimingPacket(threadID );
 }

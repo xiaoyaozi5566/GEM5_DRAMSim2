@@ -358,8 +358,8 @@ class Cache : public BaseCache
      * cache gets granted the downstream bus in timing mode.
      * @return The request to service, NULL if none found.
      */
-    PacketPtr getTimingPacket( int threadID );
-    PacketPtr getTimingPacket(){
+    virtual PacketPtr getTimingPacket( int threadID );
+    virtual PacketPtr getTimingPacket(){
         return getTimingPacket( 0 );
     }
 
