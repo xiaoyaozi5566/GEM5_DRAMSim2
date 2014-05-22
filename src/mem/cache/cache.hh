@@ -82,7 +82,6 @@ class Cache : public BaseCache
     tid_with_bus_quantum(){
         // WARNING this assumes the bus clock is 1Ghz (the default option)
         // TODO 1000 caused starvation, should find something more sensible
-        return 0;
         return (nextCycle() / 1000) % params->num_tcs;
     }
 
