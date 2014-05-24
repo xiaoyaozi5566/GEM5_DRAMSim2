@@ -9,6 +9,7 @@ class RRBus(MemObject):
     # Override the default clock
     clock = '1GHz'
     num_pids = Param.Int(2, "number of security domains")
+    turn_length = Param.Int(8, "number of cycles per turn length")
     header_cycles = Param.Cycles(1, "cycles of overhead per transaction")
     width = Param.Int(8, "bus width (bytes)")
     block_size = Param.Int(64, "The default block size if not set by " \

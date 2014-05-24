@@ -57,7 +57,7 @@
 
 RRBus::RRBus(const RRBusParams *p)
     : MemObject(p),
-      num_pids(p->num_pids), headerCycles(p->header_cycles), width(p->width), 
+      num_pids(p->num_pids), tl(p->turn_length), headerCycles(p->header_cycles), width(p->width), 
       defaultPortID(InvalidPortID),
       useDefaultRange(p->use_default_range),
       defaultBlockSize(p->block_size),
@@ -109,17 +109,45 @@ RRBus::getSlavePort(const std::string &if_name, int idx)
     }
 }
 
+int
+RRBus::active_id()
+{
+	Tick now = nextCycle();
+	return ((now/clock) % (num_pids*tl)) / tl;
+}
+
+Tick
+RRBus::turn_begin(int threadID)
+{
+	Tick now = nextCycle();
+	return now - (now / clock) % (num_pids*tl) * clock + threadID * tl * clock;
+}
+
+Tick
+RRBus::calcFinishTime(int threadID, int data_size)
+{
+	Tick now = nextCycle();
+	int remaining_cycles = tl - 1 - (now / clock) % (num_pids*tl) + (threadID*tl);
+	if (remaining_cycles >= data_size)
+		return now+data_size*clock;
+	int num_turns = ( data_size - remaining_cycles ) / tl;
+	int remaining_data = ( data_size - remaining_cycles ) % tl;
+	if (remaining_data == 0)
+		return now + remaining_cycles * clock + num_pids * num_turns * tl * clock;
+	else
+		return now + remaining_cycles * clock + num_pids * num_turns * tl * clock + 
+			(num_pids-1) * tl *clock + remaining_data*clock;
+}
+
 Tick
 RRBus::calcPacketTiming(PacketPtr pkt, int threadID)
 {
     // determine the current time rounded to the closest following
     // clock edge
-	Tick now = nextCycle();
 	//printf("enter calcPacketTiming %d at %llu\n", threadID, now/clock);
 
     // DONE: is now aligned with threadID?
-	now = now - (now / clock) % num_pids * clock + threadID * clock;
-	Tick headerTime = now + headerCycles * clock * num_pids;
+	Tick headerTime = calcFinishTime(threadID, headerCycles);
 
     // The packet will be sent. Figure out how long it occupies the bus, and
     // how much of that time is for the first "word", aka bus width.
@@ -131,12 +159,14 @@ RRBus::calcPacketTiming(PacketPtr pkt, int threadID)
         if (dataSize % width)
             numCycles++;
     }
-
+	//printf("%d header size %d\n", threadID, headerCycles);
+	//printf("%d packet size %d\n", threadID, numCycles);
     // The first word will be delivered after the current tick, the delivery
     // of the address if any, and one bus cycle to deliver the data
-    pkt->firstWordTime = headerTime + clock * num_pids;
+    pkt->firstWordTime = calcFinishTime(threadID, headerCycles+1);
 
-    pkt->finishTime = headerTime + numCycles * clock * num_pids;
+    pkt->finishTime = calcFinishTime(threadID, headerCycles+numCycles);
+	//printf("%d packet finish time %llu\n", threadID, pkt->finishTime);
 
     return headerTime;
 }
@@ -148,6 +178,7 @@ RRBus::Layer<PortClass>::Layer(RRBus& _bus, const std::string& _name,
 {
 	printf("initialize the layer %d\n", _bus.num_pids);
 	num_pids = _bus.num_pids;
+	tl = _bus.tl;
 	state = new State[num_pids];
 	for (int i = 0; i < num_pids; i++)
 		state[i] = IDLE;
@@ -182,6 +213,7 @@ void RRBus::Layer<PortClass>::occupyLayer(Tick until, int threadID)
     // decided to forward the packet to prevent any follow-on calls to
     // sendTiming seeing an unoccupied bus
     assert(state[threadID] != IDLE);
+	//printf("%d occupy layer until %llu\n", threadID, until);
 
     // note that we do not change the bus state here, if we are going
     // from idle to busy it is handled by tryTiming, and if we
@@ -205,11 +237,11 @@ RRBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
 {
     Tick now = bus.nextCycle();
 	//printf("enter tryTiming %d at %llu\n", threadID, now/clock);
-	if ( (now / clock) % num_pids != threadID ) {
+	if ( bus.active_id() != threadID ) {
         retryList[threadID].push_back(port);
-		Tick retryTime = now - (now / clock) % num_pids * clock + threadID * clock;
+		Tick retryTime = bus.turn_begin(threadID);
 		if (retryTime < now)
-			retryTime = retryTime + clock*num_pids;
+			retryTime = retryTime + clock * num_pids * tl;
 		if(threadID == 0 && !(*retryEvent[0]).scheduled())
 			bus.schedule(retryEvent[0], retryTime);
 		else if(threadID == 1 && !(*retryEvent[1]).scheduled())
@@ -282,8 +314,8 @@ void
 RRBus::Layer<PortClass>::releaseLayer()
 {	
 	// TODO: make sure nextCycle() is doing the expected thing
-	Tick now = bus.nextCycle();
-	int threadID = (now / clock+num_pids)%num_pids;
+	// Tick now = bus.nextCycle();
+	int threadID = bus.active_id();
 	//printf("enter releaseLayer %d at %llu\n", threadID, now/clock);
 	//printf("bus state %d %d\n", state[threadID], (*releaseEvent[0]).scheduled());
     // releasing the bus means we should now be idle
@@ -319,8 +351,8 @@ template <typename PortClass>
 void
 RRBus::Layer<PortClass>::retryWaiting()
 {
-    Tick now = bus.nextCycle();
-	int threadID = now/clock % num_pids;
+    // Tick now = bus.nextCycle();
+	int threadID = bus.active_id();
 	//printf("enter retryWaiting %d at %llu\n", threadID, now/clock);
 	// this should never be called with an empty retry list
     assert(!retryList[threadID].empty());
@@ -354,9 +386,10 @@ RRBus::Layer<PortClass>::retryWaiting()
 
         // determine the current time rounded to the closest following
         // clock edge
-        Tick now = bus.nextCycle();
+        // Tick now = bus.nextCycle();
 
-        occupyLayer(now + num_pids*clock, threadID);
+        Tick finishTime = bus.calcFinishTime(threadID, 1);
+		occupyLayer(finishTime, threadID);
     }
 	//printf("finish retryWaiting %d at %llu\n", threadID, now/clock);
 }

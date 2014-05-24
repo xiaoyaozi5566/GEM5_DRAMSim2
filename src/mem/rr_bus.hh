@@ -129,6 +129,9 @@ class RRBus : public MemObject
 		/** number of security domains */
 		int num_pids;
 		
+		/** number of cycles per turn length */
+		int tl;
+		
 		/** the clock speed for the bus layer */
         Tick clock;
 
@@ -159,6 +162,8 @@ class RRBus : public MemObject
 
 	/** number of security domains */
 	int num_pids;
+	/** number of cycles per turn length */
+	int tl;
 	/** cycles of overhead per transaction */
     int headerCycles;
     /** the width of the bus in bytes */
@@ -245,7 +250,13 @@ class RRBus : public MemObject
      */
     AddrRangeList getAddrRanges() const;
 
-    /** Calculate the timing parameters for the packet.  Updates the
+    /** get the threadID of current bus cycle**/
+	int active_id();
+	
+	Tick turn_begin(int threadID);
+	
+	Tick calcFinishTime(int threadID, int data_size);
+	/** Calculate the timing parameters for the packet.  Updates the
      * firstWordTime and finishTime fields of the packet object.
      * Returns the tick at which the packet header is completed (which
      * will be all that is sent if the target rejects the packet).
