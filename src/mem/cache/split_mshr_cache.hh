@@ -7,10 +7,10 @@ typedef BaseCacheParams Params;
 template <class TagStore>
 class SplitMSHRCache : public Cache<TagStore>
 {
-    typedef typename Cache<TagStore>::MemSidePort MemSidePort;
     private:
         MSHRQueue** mshrQueues;
         MSHRQueue** writeBuffers;
+		int num_tcs;
 
     public:
     SplitMSHRCache( const Params *p, TagStore *tags );
@@ -22,4 +22,8 @@ class SplitMSHRCache : public Cache<TagStore>
     virtual MSHRQueue* getWriteBuffer( int threadID ){
         return writeBuffers[threadID];
     }
+	
+	virtual bool isSplitMSHR() {return true;}
+	
+	virtual int get_num_tcs() {return num_tcs;}
 };

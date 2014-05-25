@@ -96,7 +96,8 @@ RR_NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
     // we should never see express snoops on a non-coherent bus
     assert(!pkt->isExpressSnoop());
 
-    // test if the bus should be considered occupied for the current
+    //printf("receive timing request %llx from %llu\n", pkt->getAddr(), pkt->threadID);
+	// test if the bus should be considered occupied for the current
     // port
     if (!reqLayer.tryTiming(src_port, pkt->threadID)) {
         DPRINTF(NoncoherentBus, "recvTimingReq: src %s %s 0x%x BUSY\n",

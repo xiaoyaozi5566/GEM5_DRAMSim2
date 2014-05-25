@@ -23,10 +23,10 @@ module RunScripts
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
             cpus: %w[detailed],
-            maxinsts: 10**6,
+            maxinsts: 10**5,
             fastforward: 0,
         }
-        parallel_local opts
+        #parallel_local opts
 
         opts = opts.merge({
             schemes: %w[ tp ],
@@ -34,6 +34,7 @@ module RunScripts
             addrpar: true,
             split_mshr: true,
             rr_nc: true,
+            debug: true,
         })
         parallel_local opts
     end

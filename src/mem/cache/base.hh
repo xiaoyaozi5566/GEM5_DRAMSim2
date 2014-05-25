@@ -114,8 +114,12 @@ class BaseCache : public MemObject
     virtual MSHRQueue* getWriteBuffer( int threadID ){
         return &writeBuffer;
     }
+	
+	virtual bool isSplitMSHR() {return false;}
+	
+	virtual int get_num_tcs() {return 1;}
 
-    /**
+    /** g
      * A cache master port is used for the memory-side port of the
      * cache, and in addition to the basic timing port that only sends
      * response packets through a transmit list, it also offers the
