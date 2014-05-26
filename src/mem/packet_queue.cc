@@ -51,6 +51,8 @@ PacketQueue::PacketQueue(EventManager& _em, const std::string& _label)
     : em(_em), sendEvent(this), drainEvent(NULL), label(_label),
       waitingOnRetry(false)
 {
+	//printf("SendEvent initialized %d\n", sendEvent.initialized());
+	//cout<< _label << endl;
 }
 
 PacketQueue::~PacketQueue()
@@ -62,7 +64,8 @@ PacketQueue::retry()
 {
     DPRINTF(PacketQueue, "Queue %s received retry\n", name());
     //assert(waitingOnRetry);
-    sendDeferredPacket();
+    //printf("Queue %s received retry @ %llu\n", name().c_str(), curTick());
+	sendDeferredPacket();
 }
 
 bool
@@ -109,7 +112,8 @@ PacketQueue::schedSendEvent(Tick when)
 void
 PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
 {
-    // we can still send a packet before the end of this tick
+    //printf("schedu send Timing %llx @ cycle %llu\n", pkt->getAddr(), when);
+	// we can still send a packet before the end of this tick
     assert(when >= curTick());
 
     // express snoops should never be queued
@@ -142,7 +146,8 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
 
 void PacketQueue::trySendTiming()
 {
-    assert(deferredPacketReady());
+    //printf("trySendTiming @ cycle %llu\n", curTick());
+	assert(deferredPacketReady());
 
     // take the next packet off the list here, as we might return to
     // ourselves through the sendTiming call below

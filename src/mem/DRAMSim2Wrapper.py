@@ -47,3 +47,4 @@ class DRAMSim2Wrapper(AbstractMemory):
     port = SlavePort("Slave ports")
     latency = Param.Latency('30ns', "Request to response latency")
     latency_var = Param.Latency('0ns', "Request to response latency variance")
+    numPids = Param.Int(2, "Number of PIDs")

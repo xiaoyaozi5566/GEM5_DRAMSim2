@@ -117,6 +117,8 @@ class BaseCache : public MemObject
 	
 	virtual bool isSplitMSHR() {return false;}
 	
+	virtual bool isSplitRPort() {return false;}
+	
 	virtual int get_num_tcs() {return 1;}
 
     /** g

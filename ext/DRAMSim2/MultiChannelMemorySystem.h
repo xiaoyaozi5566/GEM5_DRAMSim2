@@ -71,11 +71,11 @@ namespace DRAMSim {
             //output file
             std::ofstream visDataOut;
             ofstream dramsim_log; 
+			vector<MemorySystem*> channels; 
 
         private:
             unsigned findChannelNumber(uint64_t addr);
             void actual_update(); 
-            vector<MemorySystem*> channels; 
             unsigned megsOfMemory; 
             string deviceIniFilename;
             string systemIniFilename;

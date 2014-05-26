@@ -48,7 +48,7 @@
 using namespace std;
 
 DRAMSim2Wrapper::DRAMSim2Wrapper(const Params* p) :
-    AbstractMemory(p), port(name() + ".port", this), 
+    AbstractMemory(p), numPids(p->numPids), port(name() + ".port", this, p->numPids), 
     lat(p->latency), lat_var(p->latency_var)
 {
 }
@@ -112,9 +112,15 @@ DRAMSim2Wrapper::drain(Event *de)
 }
 
 DRAMSim2Wrapper::MemoryPort::MemoryPort(const std::string& _name,
-                                     DRAMSim2Wrapper* _memory)
+                                     DRAMSim2Wrapper* _memory, int numPids)
     : SimpleTimingPort(_name, _memory), memory(_memory)
-{ }
+{ 	respQueues = new SlavePacketQueue*[2];
+	printf("num pids is %d\n", numPids);
+    for( int i=0; i < 2; i++ ){
+        respQueues[i] = new SlavePacketQueue( *_memory, *this);
+    }
+	printf("memory port is called\n");
+}
 
 AddrRangeList
 DRAMSim2Wrapper::MemoryPort::getAddrRanges() const

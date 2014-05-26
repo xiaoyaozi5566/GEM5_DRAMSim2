@@ -70,7 +70,7 @@ class DRAMSim2Wrapper : public AbstractMemory
       public:
 
         DRAMSim2Wrapper* memory;
-        MemoryPort(const std::string& _name, DRAMSim2Wrapper* _memory);
+        MemoryPort(const std::string& _name, DRAMSim2Wrapper* _memory, int numPids);
         void removePendingDelete()
         {
             for (int x = 0; x < pendingDelete.size(); x++)
@@ -91,13 +91,17 @@ class DRAMSim2Wrapper : public AbstractMemory
         virtual bool recvTimingReq(PacketPtr pkt);
 
         virtual AddrRangeList getAddrRanges() const;
+		
+		virtual void recvRetry(int threadID);
 
     };
 
-    MemoryPort port;
+    int numPids;
+	MemoryPort port;
 
     Tick lat;
     Tick lat_var;
+
 
   public:
 

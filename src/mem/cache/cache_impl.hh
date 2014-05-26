@@ -512,7 +512,10 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
 
         if (needsResponse) {
             pkt->makeTimingResponse();
-            cpuSidePort->schedTimingResp(pkt, curTick()+lat);
+			if(isSplitRPort())
+            	cpuSidePort->schedTimingResp(pkt, curTick()+lat, pkt->threadID);
+			else
+				cpuSidePort->schedTimingResp(pkt, curTick()+lat);
         } else {
             /// @todo nominally we should just delete the packet here,
             /// however, until 4-phase stuff we can't because sending
@@ -834,7 +837,8 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
 
     assert(mshr);
 
-    if (is_error) {
+    //printf("handle response %llx @ cycle %llu\n", pkt->getAddr(), curTick());
+	if (is_error) {
         DPRINTF(Cache, "Cache received packet with error for address %x, "
                 "cmd: %s\n", pkt->getAddr(), pkt->cmdString());
     }
@@ -938,7 +942,12 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
                 // isInvalidate() set otherwise.
                 target->pkt->cmd = MemCmd::ReadRespWithInvalidate;
             }
-            cpuSidePort->schedTimingResp(target->pkt, completion_time);
+            if(isSplitRPort()) {
+				//printf("schedTimingResp called @ cycle %llu\n", curTick());
+				cpuSidePort->schedTimingResp(target->pkt, completion_time, target->pkt->threadID);
+			}
+			else
+				cpuSidePort->schedTimingResp(target->pkt, completion_time);
             break;
 
           case MSHR::Target::FromPrefetcher:
@@ -1757,12 +1766,12 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 		        trySendTiming();
 		    } else {
 		        // check for request packets (requests & writebacks)
-				// printf("tid %d\n", i);
+				//printf("tid %d\n", i);
 		        PacketPtr pkt = cache.getTimingPacket( i );
-				// if(pkt != NULL) {
-				// 	printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
-				// 	std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
-				// }
+				if(pkt != NULL) {
+					//printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
+					//std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
+				}
 		        if (pkt == NULL) {
 		            // can happen if e.g. we attempt a writeback and fail, but
 		            // before the retry, the writeback is eliminated because
@@ -1834,8 +1843,7 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
 //-----------------------------------------------------------------------------
 template<class TagStore>
 SplitRPortCache<TagStore>::SplitRPortCache( const Params *p, TagStore *tags )
-    : SplitMSHRCache<TagStore>( p, tags ),
-    num_tcs( p->num_tcs )
+    : SplitMSHRCache<TagStore>( p, tags )
 {
     // Calls constructor of Split MSHR Cache which calls the constructor of 
     // Cache.
@@ -1843,17 +1851,9 @@ SplitRPortCache<TagStore>::SplitRPortCache( const Params *p, TagStore *tags )
     // Prints to prove that the correct module was used
     fprintf( stderr, "\x1B[33mA SplitRPortCache was made\x1B[0m\n" );
     //TODO delete line above
+	this->cpuSidePort->respQueues = new SlavePacketQueue*[p->num_tcs];
+    for( int i=0; i < (p->num_tcs); i++ ){
+        this->cpuSidePort->respQueues[i] = new SlavePacketQueue( *this, *(this->cpuSidePort));
+    }
 }
 
-// Example overridden method. Notice that the inhereted sendDeferredPacket()
-// from Cache will correctly call this overridden version of getTimingPacket
-// without needing to copy over sendDeferred() to this class.
-// TODO: Delete this if not needed
-template<class TagStore>
-PacketPtr
-SplitRPortCache<TagStore>::getTimingPacket( int threadID ){
-    //print to prove that the overridden version was called TODO delete
-    fprintf( stderr, "\x1B[33mA SplitRPortCache called getTimingPacket()\x1B[0m\n" );
-    // Call parent version of this method.
-    return Cache<TagStore>::getTimingPacket(threadID );
-}

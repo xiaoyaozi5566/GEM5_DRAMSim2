@@ -203,6 +203,8 @@ class MasterPort : public Port
      * sendTimingResp to this master port and failed.
      */
     void sendRetry();
+	
+	void sendRetry(int threadID);
 
     /**
      * Determine if this master port is snooping or not. The default
@@ -275,6 +277,8 @@ class MasterPort : public Port
      * slave port) and was unsuccesful.
      */
     virtual void recvRetry() = 0;
+	
+	virtual void recvRetry(int threadID) {}
 
     /**
      * Called to receive an address range change from the peer slave
@@ -358,6 +362,8 @@ class SlavePort : public Port
      * failed.
      */
     void sendRetry();
+	
+	void sendRetry(int threadID);
 
     /**
      * Called by a peer port in order to determine the block size of
@@ -434,6 +440,8 @@ class SlavePort : public Port
      * port) and was unsuccesful.
      */
     virtual void recvRetry() = 0;
+	
+	virtual void recvRetry(int threadID) {}
 
 };
 

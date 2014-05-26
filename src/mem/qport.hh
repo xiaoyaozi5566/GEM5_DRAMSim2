@@ -67,10 +67,13 @@ class QueuedSlavePort : public SlavePort
      /** This function is notification that the device should attempt to send a
       * packet again. */
     virtual void recvRetry() { queue.retry(); }
+	
+	virtual void recvRetry(int threadID) { respQueues[threadID]->retry();}
 
   public:
 
-    /**
+	SlavePacketQueue** respQueues;
+	/**
      * Create a QueuedPort with a given name, owner, and a supplied
      * implementation of a packet queue. The external definition of
      * the queue enables e.g. the cache to implement a specific queue
@@ -90,8 +93,11 @@ class QueuedSlavePort : public SlavePort
      * @param pkt Packet to send
      * @param when Absolute time (in ticks) to send packet
      */
-    void schedTimingResp(PacketPtr pkt, Tick when)
-    { queue.schedSendTiming(pkt, when); }
+    virtual void schedTimingResp(PacketPtr pkt, Tick when)
+	{ queue.schedSendTiming(pkt, when); }
+	
+    virtual void schedTimingResp(PacketPtr pkt, Tick when, int threadID)
+    { respQueues[threadID]->schedSendTiming(pkt, when); }
 
     /** Check the list of buffered packets against the supplied
      * functional request. */
@@ -117,6 +123,8 @@ class QueuedMasterPort : public MasterPort
      /** This function is notification that the device should attempt to send a
       * packet again. */
     virtual void recvRetry() { queue.retry(); }
+	
+	virtual void recvRetry(int threadID) { queue.retry(); }
 
   public:
 

@@ -371,7 +371,8 @@ RRBus::Layer<PortClass>::retryWaiting()
     // note that we might have blocked on the receiving port being
     // busy (rather than the bus itself) and now call retry before the
     // destination called retry on the bus
-    retryList[threadID].front()->sendRetry();
+	//printf("sendRetry %d @ %llu\n", threadID, curTick());
+    retryList[threadID].front()->sendRetry(threadID);
 
     // If the bus is still in the retry state, sendTiming wasn't
     // called in zero time (e.g. the cache does this)

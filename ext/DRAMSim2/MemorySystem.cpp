@@ -134,11 +134,13 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
 	DEBUG("CH. " <<systemID<<" TOTAL_STORAGE : "<< TOTAL_STORAGE << "MB | "<<NUM_RANKS<<" Ranks | "<< NUM_DEVICES <<" Devices per rank");
 
 
-    if(timingProtection == FixedTiming){
+    use_TP = false;
+	if(timingProtection == FixedTiming){
         memoryController = 
             new MemoryControllerFT(this, csvOut, dramsim_log, 
                     outputFilename, genTrace, traceFilename, num_pids, fixAddr);
     } else if(timingProtection == TimingPartitioning){
+		use_TP = true;
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, 
                     outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period);

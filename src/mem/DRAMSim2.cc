@@ -161,9 +161,16 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
     return retVal;
 }
 
+void
+DRAMSim2::MemoryPort::recvRetry(int threadID)
+{
+	if(dramsim2->channels[0]->use_TP) respQueues[threadID]->retry();
+	else queue.retry();
+}
+
 void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle, uint64_t threadID)
 {
-
+	//printf("read complete for %llx @ cycle %llu\n", address, clock_cycle);
     uint64_t index = address << 1;
     if (ongoingAccess.count(index)) {
         AccessMetaInfo meta = ongoingAccess.find(index)->second;
@@ -182,7 +189,10 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
-            my_port->schedTimingResp(pkt, toSchedule);
+			if (dramsim2->channels[0]->use_TP)
+				my_port->schedTimingResp(pkt, toSchedule, threadID);
+			else 
+				my_port->schedTimingResp(pkt, toSchedule);
         } else {
             my_port->addPendingDelete(pkt);
         }
