@@ -94,10 +94,10 @@ PacketQueue::schedSendEvent(Tick when)
 {
     // if we are waiting on a retry, do not schedule a send event, and
     // instead rely on retry being called
-    if (waitingOnRetry) {
-        //assert(!sendEvent.scheduled());
-        return;
-    }
+    // if (waitingOnRetry) {
+    //     //assert(!sendEvent.scheduled());
+    //     return;
+    // }
 
     //printf("schedule send Event @ cycle %llu\n", when);
 	//if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
@@ -208,6 +208,7 @@ void
 PacketQueue::processSendEvent()
 {
     //assert(!waitingOnRetry);
+	//printf("processSendEvent called @ %llu\n", curTick());
     sendDeferredPacket();
 }
 
