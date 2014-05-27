@@ -32,14 +32,13 @@ end
 def base_avg( conf = {} )
     conf = {
         cpu: "detailed",
-        scheme: "tp",
         bench: $specint - %w[ bzip2 ]
     }.merge conf
 
     conf[:otherbench] = conf[:bench] if conf[:otherbench].nil?
 
     conf[:bench].inject({}){|h,p0|
-        overheads = conf[:otherbench].inject([]){|o,other|
+        times = conf[:otherbench].inject([]){|o,other|
             yieldopts = conf.merge( ( block_given? && yield(p0,other) ) ||
                 {p0: p0, p1: other}
             )
@@ -48,7 +47,7 @@ def base_avg( conf = {} )
             puts "#{stdo_file fopts} time not found!" unless found
             o << time if found; o
         }
-        h[p0] = avg_arr overheads; h
+        h[p0] = avg_arr times; h
     }
 end
 
@@ -80,6 +79,31 @@ def perf_compare_scalability opts
     ]
 end
 
+def perf_compare_breakdown opts
+    rr_bus    = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "rrbus" }
+    }
+    setpart   = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "setpart" }
+    }
+    splitmshr = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "splitmshr" }
+    }
+    splitrport = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "splitrport" }
+    }
+    tp = perf_compare( opts ){|p0,other|
+        { p0: p0, p1: other }
+    }
+    {
+        "rr_bus      " => rr_bus,
+        "setpart     " => setpart,
+        "splitmshr   " => splitmshr,
+        "splitrport  " => splitrport,
+        "tp          " => tp,
+    }
+end
+
 def results_to_stdout results
     results.each do |k,v|
         puts "#{k}, #{v}"
@@ -88,12 +112,14 @@ end
 
 
 if __FILE__ == $0
+    # Preliminary Results
     results_to_stdout perf_compare_prelim(
         dir: "results_preliminary",
         otherbench: %w[ astar ],
         use_base_avg: true,
     )
 
+    # Scalability
     (1..4).each do |num_tcs|
         puts "#{num_tcs} TCs"
         opts = {
@@ -105,5 +131,11 @@ if __FILE__ == $0
             perf_compare_scalability( opts )[num_tcs-1]
         )
     end
-    
+
+    # Performance Breakdown 
+    results_to_tdout perf_compare_breakdown(
+       dir: "results_breakdown",
+       otherbench: %w[ astar ],
+       use_base_avg: true,
+    )
 end

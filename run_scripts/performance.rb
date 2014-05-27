@@ -56,13 +56,13 @@ module RunScripts
         }
     end
 
-    def perf_breakdown
+    def breakdown
         # Baseline
         opts = {
             cpus: %w[ detailed ],
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
-            result_dir: "results_perf_breakdown"
+            result_dir: "results_breakdown"
         }
         yield opts
 
@@ -87,13 +87,13 @@ module RunScripts
 
     end
 
-    def perf_breakdown_qsub
-        perf_breakdown{|opts| qsub_fast opts}
+    def breakdown_qsub
+        breakdown{|opts| qsub_fast opts}
     end
 
-    def perf_breakdown_local
-        perf_breakdown{|opts|
-            parallel_local opts.merge(maxinsts: 10**5)
+    def breakdown_local
+        breakdown{|opts|
+            parallel_local opts.merge(maxinsts: 10**5, fastforward: 10)
         }
     end
 
