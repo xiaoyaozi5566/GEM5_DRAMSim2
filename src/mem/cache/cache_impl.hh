@@ -1793,7 +1793,8 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
 		  num_tcs = p->num_tcs;
 		  this->memSidePort->reqQueues = new MasterPacketQueue*[p->num_tcs];
 		  for( int i=0; i < (p->num_tcs); i++){
-			  this->memSidePort->reqQueues[i] = new MemSidePacketQueue( *this, *(this->memSidePort), "MasterPacketQueue", i);
+			  this->memSidePort->reqQueues[i] = new MemSidePacketQueue(
+                      *this, *(this->memSidePort), "MasterPacketQueue", i);
 		  }
 }
 
@@ -1808,11 +1809,10 @@ SplitRPortCache<TagStore>::SplitRPortCache( const Params *p, TagStore *tags )
     // Cache.
     // Saves num_tcs from p
     // Prints to prove that the correct module was used
-    fprintf( stderr, "\x1B[33mA SplitRPortCache was made\x1B[0m\n" );
-    //TODO delete line above
 	this->cpuSidePort->respQueues = new SlavePacketQueue*[p->num_tcs];
     for( int i=0; i < (p->num_tcs); i++ ){
-        this->cpuSidePort->respQueues[i] = new SlavePacketQueue( *this, *(this->cpuSidePort));
+        this->cpuSidePort->respQueues[i] = new SlavePacketQueue(
+                *this, *(this->cpuSidePort));
     }
 }
 
