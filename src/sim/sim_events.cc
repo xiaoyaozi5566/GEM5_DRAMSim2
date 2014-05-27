@@ -110,7 +110,7 @@ exitSimLoop(const std::string &message, int exit_code, Tick when, Tick repeat)
     int count = ExitCounter::get();
     if( count > 0 ){
         cout << message << " @ " << curTick() << endl;
-        if( !isExitFF(     message ) ){
+        if( !isExitNormal(     message ) ){
             return;
         }
     } else {
