@@ -181,7 +181,9 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    > #{result_dir}/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    success = system "qsub -wd #{$gem5home.path} #{script_abspath}"if runmode == :qsub
+    if runmode == :qsub
+        success = system "qsub -wd #{$gem5home.path} -e stderr/ -o stdout/ #{script_abspath}"
+    end
     puts "#{filename}".magenta if runmode == :local
     success = system "sh #{script_abspath}" if runmode == :local
     [success,filename]
