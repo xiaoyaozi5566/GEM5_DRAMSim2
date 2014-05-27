@@ -115,11 +115,11 @@ DRAMSim2Wrapper::MemoryPort::MemoryPort(const std::string& _name,
                                      DRAMSim2Wrapper* _memory, int numPids)
     : SimpleTimingPort(_name, _memory), memory(_memory)
 { 	respQueues = new SlavePacketQueue*[2];
-	printf("num pids is %d\n", numPids);
+	//printf("num pids is %d\n", numPids);
     for( int i=0; i < 2; i++ ){
         respQueues[i] = new SlavePacketQueue( *_memory, *this);
     }
-	printf("memory port is called\n");
+	//printf("memory port is called\n");
 }
 
 AddrRangeList
