@@ -1396,7 +1396,7 @@ Cache<TagStore>::getNextMSHR( int threadID )
 {
     // Check both MSHR queue and write buffer for potential requests
     MSHR *miss_mshr  = getMSHRQueue( threadID )->getNextMSHR();
-    MSHR *write_mshr = writeBuffer.getNextMSHR();
+    MSHR *write_mshr = getWriteBuffer( threadID )->getNextMSHR();
 
     // Now figure out which one to send... some cases are easy
     if (miss_mshr && !write_mshr) {
@@ -1409,7 +1409,7 @@ Cache<TagStore>::getNextMSHR( int threadID )
     if (miss_mshr && write_mshr) {
         // We have one of each... normally we favor the miss request
         // unless the write buffer is full
-        if (writeBuffer.isFull() && writeBuffer.inServiceEntries == 0) {
+        if (getWriteBuffer( threadID )->isFull() && getWriteBuffer( threadID )->inServiceEntries == 0) {
             // Write buffer is full, so we'd like to issue a write;
             // need to search MSHR queue for conflicting earlier miss.
             MSHR *conflict_mshr =
@@ -1427,7 +1427,7 @@ Cache<TagStore>::getNextMSHR( int threadID )
         // Write buffer isn't full, but need to check it for
         // conflicting earlier writeback
         MSHR *conflict_mshr =
-            writeBuffer.findPending(miss_mshr->addr, miss_mshr->size);
+            getWriteBuffer( threadID )->findPending(miss_mshr->addr, miss_mshr->size);
         if (conflict_mshr) {
             // not sure why we don't check order here... it was in the
             // original code but commented out.
@@ -1457,7 +1457,7 @@ Cache<TagStore>::getNextMSHR( int threadID )
             Addr pf_addr = blockAlign(pkt->getAddr());
             if (!tags->findBlock( pf_addr, pkt->threadID )
                     && !getMSHRQueue( threadID )->findMatch(pf_addr)
-                    && !writeBuffer.findMatch(pf_addr)) {
+                    && !getWriteBuffer( threadID )->findMatch(pf_addr)) {
                 // Update statistic on number of prefetches issued
                 // (hwpf_mshr_misses)
                 assert(pkt->req->masterId() < system->maxMasters());
