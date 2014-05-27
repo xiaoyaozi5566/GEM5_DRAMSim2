@@ -43,9 +43,10 @@ include RunScripts
 # Performance
 #------------------------------------------------------------------------------
 # prelim_local
+# scalability_local
 # prelim_qsub
-# scalability_qsub
-# per_breakdown_qsub
+  scalability_qsub
+  per_breakdown_qsub
 # multicore_tc_qsub
 
 ###############################################################################

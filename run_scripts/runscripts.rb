@@ -195,10 +195,12 @@ def parallel_local opts
         runmode: :local,
     }.merge opts
 
+    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
+
     failed = []
 
     opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        Parallel.each( opts[:benchmarks].product( opts[:benchmarks] ),
+        Parallel.each( opts[:benchmarks].product( opts[:otherbench] ),
                       in_threads: 4 ) do |p0, p1|
             iteropts = { p1: p1 }
             r = sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
@@ -215,9 +217,10 @@ def qsub_fast opts
         benchmarks: $specint,
         runmode: :qsub,
     }.merge opts
+    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
 
     opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        opts[:benchmarks].product( opts[:benchmarks] ).each do |p0, p1|
+        opts[:benchmarks].product( opts[:otherbench] ).each do |p0, p1|
             iteropts = { p1: p1 }
             sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
         end
@@ -233,17 +236,54 @@ def qsub_fast_scaling opts
         runmode: :qsub,
     }.merge opts
 
+    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
+
+
     opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        opts[:benchmarks].product( opts[:benchmarks] ).each do |p0, other|
-            sav_script( cpu, scheme, p0, runmode: :qsub )
-            sav_script( cpu, scheme, p0, runmode: :qsub,
-                       p1: other )
-            sav_script( cpu, scheme, p0, runmode: :qsub,
-                       p1: other, p2: other )
-            sav_script( cpu, scheme, p0, runmode: :qsub,
-                       p1: other, p2: other, p3: other )
+        opts[:benchmarks].each do |p0|
+            sav_script( cpu, scheme, p0, opts )
+        end
+        opts[:benchmarks].product( opts[:otherbench] ).each do |p0, other|
+            sav_script( cpu, scheme, p0, 
+                        opts.merge(p1: other)  )
+            sav_script( cpu, scheme, p0,
+                        opts.merge( p1: other, p2: other ) )
+            sav_script( cpu, scheme, p0,
+                        opts.merge( p1: other, p2: other, p3: other ) )
         end
     end
+end
+
+
+def parallel_local_scaling opts
+    opts = {
+        cpus: $cpus,
+        schemes: $schemes,
+        benchmarks: $specint,
+        runmode: :local,
+    }.merge opts
+
+    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
+
+    failed = []
+
+    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
+        Parallel.each( opts[:benchmarks].product( opts[:otherbench] ),
+                      in_threads: 4 ) do |p0, other|
+            r = sav_script( cpu, scheme, p0, opts )
+            failed << r[1] unless r[0] 
+            r = sav_script( cpu, scheme, p0,
+                           opts.merge( p1: other ) )
+            failed << r[1] unless r[0] 
+            r = sav_script( cpu, scheme, p0,
+                           opts.merge( p1: other, p2: other) )
+            failed << r[1] unless r[0] 
+            r = sav_script( cpu, scheme, p0,
+                           opts.merge( p1: other, p2: other, p3:other ) )
+            failed << r[1] unless r[0] 
+        end
+    end
+    failed.each{|f| puts f.red}
 end
 
 end

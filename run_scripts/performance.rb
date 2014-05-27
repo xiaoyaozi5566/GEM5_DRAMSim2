@@ -9,8 +9,6 @@ module RunScripts
         # Baseline
         opts = {
             cpus: %w[ detailed ],
-            fastforward: 0,
-            maxinsts: 10**8,
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
             result_dir: "results_preliminary"
@@ -19,6 +17,7 @@ module RunScripts
 
         #Naive Secure Scheme
         opts = opts.merge({
+            otherbench: %w[ astar ],
             schemes: %w[ tp ],
             rr_nc: true,
             addprar: true,
@@ -34,50 +33,42 @@ module RunScripts
     end
 
     def prelim_local
-        preliminary_results{|opts| parallel_local opts}
-    end
-
-    def scalability
-        # Baseline
-        opts = {
-            cpus: %w[ detailed ],
-            fastforward: 10**9,
-            maxinsts: 10**8,
-            schemes: %w[ none ],
-            benchmarks: $specint - %w[ bzip2 ],
-            result_dir: "results_scalability"
+        preliminary_results{|opts|
+            parallel_local opts.merge(maxinsts: 10**5, fastforward: 10)
         }
-        yield opts
-
-        #Naive Secure Scheme
-        opts = opts.merge({
-            schemes: %w[ tp ],
-            rr_nc: true,
-            addprar: true,
-            setpart: true,
-            split_rport: true,
-            split_mshr: true,
-        })
-        yield opts
     end
 
     def scalability_qsub
-        perf_breakdown{|opts| qsub_fast opts}
+        preliminary_results{|opts|
+            qsub_fast_scaling opts.merge(
+                result_dir: "results_scalability"
+            )
+        }
+    end
+
+    def scalability_local
+        preliminary_results{|opts|
+            parallel_local_scaling opts.merge(
+                maxinsts: 10**5,
+                fastforward: 10,
+                result_dir: "results_scalability"
+            )
+        }
     end
 
     def perf_breakdown
         # Baseline
         opts = {
             cpus: %w[ detailed ],
-            fastforward: 10**9,
-            maxinsts: 10**8,
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
             result_dir: "results_perf_breakdown"
         }
         yield opts
 
-        opts = opts.merge({ addrpar: true })
+        opts = opts.merge({
+            addrpar: true,
+        })
 
         # RR Bus
         yield opts.merge({ nametag: "rrbus", rr_nc: true })
@@ -98,6 +89,12 @@ module RunScripts
 
     def perf_breakdown_qsub
         perf_breakdown{|opts| qsub_fast opts}
+    end
+
+    def perf_breakdown_local
+        perf_breakdown{|opts|
+            parallel_local opts.merge(maxinsts: 10**5)
+        }
     end
 
     def multicore_tc_qsub
