@@ -78,6 +78,7 @@ module RunScripts
             setpart: true,
             addrpar: true,
             split_mshr: true,
+            split_rport: true,
             rr_nc: true,
         })
         qsub_fast opts

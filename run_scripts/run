@@ -14,7 +14,7 @@ include RunScripts
 # Security
 #------------------------------------------------------------------------------
 # cache_security
- execution_time_compare
+# execution_time_compare
 # execution_time_compare_qsub
 # security_debug
 # setpart_vs_private
@@ -43,8 +43,10 @@ include RunScripts
 # Performance
 #------------------------------------------------------------------------------
 # prelim_local
-#  prelim_qsub
-
+# prelim_qsub
+# scalability_qsub
+# per_breakdown_qsub
+# multicore_tc_qsub
 
 ###############################################################################
 # Memory Controller Tests

@@ -122,6 +122,8 @@ def sav_script( cpu, scheme, p0, options = {} )
     filename += "_#{p2}tl#{tl2}" unless p2.nil?
     filename += "_#{p3}tl#{tl3}" unless p3.nil?
     filename += "_c#{cacheSize}MB"
+
+    filename = "#{options[:nametag]}_"+filename if options[:nametag]
    
     numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
 
@@ -179,7 +181,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    > #{result_dir}/stdout_#{filename}.out")
     script_abspath = File.expand_path(script.path)
     script.close
-    success = system "qsub -wd #{$gem5home.path} #{script_abspath}" if runmode == :qsub
+    success = system "qsub -wd #{$gem5home.path} #{script_abspath}"if runmode == :qsub
     puts "#{filename}".magenta if runmode == :local
     success = system "sh #{script_abspath}" if runmode == :local
     [success,filename]
@@ -221,6 +223,27 @@ def qsub_fast opts
         end
     end
 
+end
+
+def qsub_fast_scaling opts
+    opts = {
+        cpus: $cpus,
+        schemes: $schemes,
+        benchmarks: $specint,
+        runmode: :qsub,
+    }.merge opts
+
+    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
+        opts[:benchmarks].product( opts[:benchmarks] ).each do |p0, other|
+            sav_script( cpu, scheme, p0, runmode: :qsub )
+            sav_script( cpu, scheme, p0, runmode: :qsub,
+                       p1: other )
+            sav_script( cpu, scheme, p0, runmode: :qsub,
+                       p1: other, p2: other )
+            sav_script( cpu, scheme, p0, runmode: :qsub,
+                       p1: other, p2: other, p3: other )
+        end
+    end
 end
 
 end
