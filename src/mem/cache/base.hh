@@ -145,6 +145,12 @@ class BaseCache : public MemObject
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
             queue.schedSendEvent(time);
         }
+		
+		void requestBus(RequestCause cause, Tick time, int threadID)
+        {
+            DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
+            reqQueues[threadID]->schedSendEvent(time);
+        }
 
       protected:
 
@@ -219,7 +225,7 @@ class BaseCache : public MemObject
         }
 
         if (requestBus) {
-            requestMemSideBus((RequestCause)mq->index, time);
+            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
         }
 
         return mshr;
@@ -526,9 +532,10 @@ class BaseCache : public MemObject
      * @param cause The reason for the request.
      * @param time The time to make the request.
      */
-    void requestMemSideBus(RequestCause cause, Tick time)
+    void requestMemSideBus(RequestCause cause, Tick time, int threadID)
     {
-        memSidePort->requestBus(cause, time);
+        if(isSplitMSHR()) memSidePort->requestBus(cause, time, threadID);
+		else memSidePort->requestBus(cause, time);
     }
 
     /**

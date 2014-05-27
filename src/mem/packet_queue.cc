@@ -63,7 +63,7 @@ void
 PacketQueue::retry()
 {
     DPRINTF(PacketQueue, "Queue %s received retry\n", name());
-    //assert(waitingOnRetry);
+    assert(waitingOnRetry);
     //printf("Queue %s received retry @ %llu\n", name().c_str(), curTick());
 	sendDeferredPacket();
 }
@@ -94,10 +94,10 @@ PacketQueue::schedSendEvent(Tick when)
 {
     // if we are waiting on a retry, do not schedule a send event, and
     // instead rely on retry being called
-    // if (waitingOnRetry) {
-    //     //assert(!sendEvent.scheduled());
-    //     return;
-    // }
+    if (waitingOnRetry) {
+        assert(!sendEvent.scheduled());
+        return;
+    }
 
     //printf("schedule send Event @ cycle %llu\n", when);
 	//if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
@@ -207,7 +207,7 @@ PacketQueue::sendDeferredPacket()
 void
 PacketQueue::processSendEvent()
 {
-    //assert(!waitingOnRetry);
+    assert(!waitingOnRetry);
 	//printf("processSendEvent called @ %llu\n", curTick());
     sendDeferredPacket();
 }

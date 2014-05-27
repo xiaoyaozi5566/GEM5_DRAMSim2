@@ -7,7 +7,8 @@ typedef BaseCacheParams Params;
 template <class TagStore>
 class SplitMSHRCache : public Cache<TagStore>
 {
-    private:
+    typedef typename Cache<TagStore>::MemSidePacketQueue MemSidePacketQueue;
+	private:
         MSHRQueue** mshrQueues;
         MSHRQueue** writeBuffers;
 		int num_tcs;

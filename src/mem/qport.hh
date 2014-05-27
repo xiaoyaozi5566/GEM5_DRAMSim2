@@ -124,11 +124,12 @@ class QueuedMasterPort : public MasterPort
       * packet again. */
     virtual void recvRetry() { queue.retry(); }
 	
-	virtual void recvRetry(int threadID) { queue.retry(); }
+	virtual void recvRetry(int threadID) { reqQueues[threadID]->retry(); }
 
   public:
 
-    /**
+    MasterPacketQueue** reqQueues;
+	/**
      * Create a QueuedPort with a given name, owner, and a supplied
      * implementation of a packet queue. The external definition of
      * the queue enables e.g. the cache to implement a specific queue

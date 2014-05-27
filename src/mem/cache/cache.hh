@@ -142,12 +142,13 @@ class Cache : public BaseCache
       protected:
 
         Cache<TagStore> &cache;
+		int ID;
 
       public:
 
         MemSidePacketQueue(Cache<TagStore> &cache, MasterPort &port,
-                           const std::string &label) :
-            MasterPacketQueue(cache, port, label), cache(cache) { }
+                           const std::string &label, int ID) :
+            MasterPacketQueue(cache, port, label), cache(cache), ID(ID){ }
 
         /**
          * Override the normal sendDeferredPacket and do not only
@@ -184,6 +185,8 @@ class Cache : public BaseCache
 
         virtual unsigned deviceBlockSize() const
         { return cache->getBlockSize(); }
+		
+		virtual void recvRetry(int threadID);
 
       public:
 

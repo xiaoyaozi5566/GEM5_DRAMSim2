@@ -575,7 +575,7 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
                     blk->status &= ~BlkReadable;
                 }
 
-                //printf("store miss %llx from thread %llu to MSHR @ cycle %llu\n", pkt->getAddr(), pkt->threadID, nextCycle());
+                //printf("store miss %llx from thread %llu to MSHR @ cycle %llu\n", pkt->getAddr(), pkt->threadID, time);
 				allocateMissBuffer(pkt, time, true);
             }
 
@@ -586,7 +586,7 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
     }
 
     if (next_pf_time != 0)
-        requestMemSideBus(Request_PF, std::max(time, next_pf_time));
+        requestMemSideBus(Request_PF, std::max(time, next_pf_time), pkt->threadID);
 
     // copy writebacks to write buffer
     while (!writebacks.empty()) {
@@ -991,7 +991,7 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
         }
         MSHRQueue *mq = mshr->queue;
         mq->markPending(mshr);
-        requestMemSideBus((RequestCause)mq->index, pkt->finishTime);
+        requestMemSideBus((RequestCause)mq->index, pkt->finishTime, pkt->threadID);
     } else {
         mq->deallocate(mshr);
         if (wasFull && !mq->isFull()) {
@@ -1707,108 +1707,61 @@ template<class TagStore>
 void
 Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
-    if(cache.isSplitMSHR() == false) {
-		// if we have a response packet waiting we have to start with that
-	    //TODO This shouild get a TID based on the bus turn
-	    if (deferredPacketReady()) {
-	        // use the normal approach from the timing port
-	        trySendTiming();
-	    } else {
-	        // check for request packets (requests & writebacks)
-	        PacketPtr pkt = cache.getTimingPacket( 0 );
-			// if(pkt != NULL) {
-			// 	printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
-			// 	std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
-			// }
-	        if (pkt == NULL) {
-	            // can happen if e.g. we attempt a writeback and fail, but
-	            // before the retry, the writeback is eliminated because
-	            // we snoop another cache's ReadEx.
-	            waitingOnRetry = false;
-	        } else {
-	            MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
+	// if we have a response packet waiting we have to start with that
+    //TODO This shouild get a TID based on the bus turn
+    if (deferredPacketReady()) {
+        // use the normal approach from the timing port
+        trySendTiming();
+    } else {
+        // check for request packets (requests & writebacks)
+        PacketPtr pkt = cache.getTimingPacket( ID );
+		// if(pkt != NULL) {
+		// 	printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
+		// 	std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
+		// }
+        if (pkt == NULL) {
+            // can happen if e.g. we attempt a writeback and fail, but
+            // before the retry, the writeback is eliminated because
+            // we snoop another cache's ReadEx.
+            waitingOnRetry = false;
+        } else {
+            MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
 
-	            waitingOnRetry = !masterPort.sendTimingReq(pkt);
+            waitingOnRetry = !masterPort.sendTimingReq(pkt);
 
-	            if (waitingOnRetry) {
-	                DPRINTF(CachePort, "now waiting on a retry\n");
-	                if (!mshr->isForwardNoResponse()) {
-	                    // we are awaiting a retry, but we
-	                    // delete the packet and will be creating a new packet
-	                    // when we get the opportunity
-	                    delete pkt;
-	                }
-	                // note that we have now masked any requestBus and
-	                // schedSendEvent (we will wait for a retry before
-	                // doing anything), and this is so even if we do not
-	                // care about this packet and might override it before
-	                // it gets retried
-	            } else {
-	                cache.markInService(mshr, pkt);
-	            }
-	        }
-	    }
+            if (waitingOnRetry) {
+                DPRINTF(CachePort, "now waiting on a retry\n");
+                if (!mshr->isForwardNoResponse()) {
+                    // we are awaiting a retry, but we
+                    // delete the packet and will be creating a new packet
+                    // when we get the opportunity
+                    delete pkt;
+                }
+                // note that we have now masked any requestBus and
+                // schedSendEvent (we will wait for a retry before
+                // doing anything), and this is so even if we do not
+                // care about this packet and might override it before
+                // it gets retried
+            } else {
+                cache.markInService(mshr, pkt);
+            }
+        }
+    }
 
-	    // if we succeeded and are not waiting for a retry, schedule the
-	    // next send, not only looking at the response transmit list, but
-	    // also considering when the next MSHR is ready
-	    if (!waitingOnRetry) {
-	        scheduleSend(cache.nextMSHRReadyTime( cache.tid_with_bus_quantum() ));
-	    }
-	}
-	else {
-		for(int i = 0; i < cache.get_num_tcs(); i++)
-		{
-			// if we have a response packet waiting we have to start with that
-		    //TODO This shouild get a TID based on the bus turn
-		    if (deferredPacketReady()) {
-		        // use the normal approach from the timing port
-		        trySendTiming();
-		    } else {
-		        // check for request packets (requests & writebacks)
-				//printf("tid %d\n", i);
-		        PacketPtr pkt = cache.getTimingPacket( i );
-				if(pkt != NULL) {
-					//printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
-					//std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
-				}
-		        if (pkt == NULL) {
-		            // can happen if e.g. we attempt a writeback and fail, but
-		            // before the retry, the writeback is eliminated because
-		            // we snoop another cache's ReadEx.
-		            waitingOnRetry = false;
-		        } else {
-		            MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
+    // if we succeeded and are not waiting for a retry, schedule the
+    // next send, not only looking at the response transmit list, but
+    // also considering when the next MSHR is ready
+    if (!waitingOnRetry) {
+        scheduleSend(cache.nextMSHRReadyTime( ID ));
+    }
+}
 
-		            waitingOnRetry = !masterPort.sendTimingReq(pkt);
-
-		            if (waitingOnRetry) {
-		                DPRINTF(CachePort, "now waiting on a retry\n");
-		                if (!mshr->isForwardNoResponse()) {
-		                    // we are awaiting a retry, but we
-		                    // delete the packet and will be creating a new packet
-		                    // when we get the opportunity
-		                    delete pkt;
-		                }
-		                // note that we have now masked any requestBus and
-		                // schedSendEvent (we will wait for a retry before
-		                // doing anything), and this is so even if we do not
-		                // care about this packet and might override it before
-		                // it gets retried
-		            } else {
-		                cache.markInService(mshr, pkt);
-		            }
-		        }
-		    }
-
-		    // if we succeeded and are not waiting for a retry, schedule the
-		    // next send, not only looking at the response transmit list, but
-		    // also considering when the next MSHR is ready
-		    if (!waitingOnRetry) {
-		        scheduleSend(cache.nextMSHRReadyTime( i ));
-		    }		
-		}
-	}
+template<class TagStore>
+void
+Cache<TagStore>::MemSidePort::recvRetry(int threadID)
+{
+	if(cache->isSplitMSHR()) reqQueues[threadID]->retry();
+	else queue.retry();
 }
 
 template<class TagStore>
@@ -1816,8 +1769,11 @@ Cache<TagStore>::
 MemSidePort::MemSidePort(const std::string &_name, Cache<TagStore> *_cache,
                          const std::string &_label)
     : BaseCache::CacheMasterPort(_name, _cache, _queue),
-      _queue(*_cache, *this, _label), cache(_cache)
+      _queue(*_cache, *this, _label, 5), cache(_cache)
 {
+	// reqQueues = new MasterPacketQueue*[2];
+	// for( int i=0; i < 2; i++)
+	// 	reqQueues[i] = new MemSidePacketQueue(*cache, *this, "MemSidePacketQueue", i);
 }
 
 //-----------------------------------------------------------------------------
@@ -1835,7 +1791,10 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
                   p->write_buffers, p->mshrs+1000, 1);
           }
 		  num_tcs = p->num_tcs;
-
+		  this->memSidePort->reqQueues = new MasterPacketQueue*[p->num_tcs];
+		  for( int i=0; i < (p->num_tcs); i++){
+			  this->memSidePort->reqQueues[i] = new MemSidePacketQueue( *this, *(this->memSidePort), "MasterPacketQueue", i);
+		  }
 }
 
 //-----------------------------------------------------------------------------
