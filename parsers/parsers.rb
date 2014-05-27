@@ -44,6 +44,28 @@ def findTime(filename, opts = {} )
     [time,foundtime]
 end
 
+def percent_overhead( opts = {} )
+    time, found = findTime(
+        stdo_file( opts ), opts )
+    baseopts = opts.merge({ nametag: nil, scheme: "none" })
+    basetime, basefound = findTime(
+        stdo_file( baseopts ), baseopts )
+    return nil if !found || !basefound
+    (time-basetime)/(basetime) * 100
+end
+
+def percent_diff(t1,t2)
+        unless t1.nil? || t2.nil?
+            high = ( t1>=t2 && t1 ) || ( true && t2 )
+            low  = ( t1>=t2 && t2 ) || ( true && t1 )
+            (high-low)/((high+low)/2) * 100
+        end
+end
+
+def avg_arr arr
+    (arr.length != 0 && arr.inject(:+)/arr.length) || 0
+end
+
 def filename( p={} )
     p = { 
         tl0: 6,
@@ -57,6 +79,8 @@ def filename( p={} )
     filename += "_#{p[:p2]}tl#{p[:tl2]}" unless p[:p2].nil?
     filename += "_#{p[:p3]}tl#{p[:tl3]}" unless p[:p3].nil?
     filename += "_c#{p[:cacheSize]}MB"
+    filename = "#{p[:nametag]}_" + filename unless p[:nametag].nil?
+    filename
 end
 
 def stdo_file( p={} )

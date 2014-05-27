@@ -31,9 +31,6 @@ def compare_etime( conf = {} )
     differing
 end
 
-def avg_arr arr
-    (arr.length != 0 && arr.inject(:+)/arr.length) || 0
-end
 
 def avg_difference conf
     differences = []
@@ -41,14 +38,6 @@ def avg_difference conf
         differences << (t1-t2).abs unless t1.nil? || t2.nil?
     }
     avg_arr differences
-end
-
-def percent_diff(t1,t2)
-        unless t1.nil? || t2.nil?
-            high = ( t1>=t2 && t1 ) || ( true && t2 ) 
-            low  = ( t1>=t2 && t2 ) || ( true && t1 )
-            (high-low)/((high+low)/2) * 100
-        end
 end
 
 def avg_percent conf
