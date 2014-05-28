@@ -30,7 +30,7 @@ class RRBus : public MemObject
          * @param _name the layer's name
          * @param _clock clock period in ticks
          */
-        Layer(RRBus& _bus, const std::string& _name, Tick _clock);
+        Layer(RRBus& _bus, const std::string& _name, Tick _clock, int _tl, int _offset);
 
         /**
          * Drain according to the normal semantics, so that the bus
@@ -132,6 +132,9 @@ class RRBus : public MemObject
 		/** number of cycles per turn length */
 		int tl;
 		
+		/** offset of turn length*/
+		int offset;
+		
 		/** the clock speed for the bus layer */
         Tick clock;
 
@@ -162,8 +165,6 @@ class RRBus : public MemObject
 
 	/** number of security domains */
 	int num_pids;
-	/** number of cycles per turn length */
-	int tl;
 	/** cycles of overhead per transaction */
     int headerCycles;
     /** the width of the bus in bytes */
@@ -251,17 +252,17 @@ class RRBus : public MemObject
     AddrRangeList getAddrRanges() const;
 
     /** get the threadID of current bus cycle**/
-	int active_id();
+	int active_id(int tl, int offset);
 	
-	Tick turn_begin(int threadID);
+	Tick turn_begin(int threadID, int tl, int offset);
 	
-	Tick calcFinishTime(int threadID, int data_size);
+	Tick calcFinishTime(int threadID, int data_size, int tl, int offset);
 	/** Calculate the timing parameters for the packet.  Updates the
      * firstWordTime and finishTime fields of the packet object.
      * Returns the tick at which the packet header is completed (which
      * will be all that is sent if the target rejects the packet).
      */
-    Tick calcPacketTiming(PacketPtr pkt, int threadID);
+    Tick calcPacketTiming(PacketPtr pkt, int threadID, int tl, int offset);
 
     /**
      * Ask everyone on the bus what their size is

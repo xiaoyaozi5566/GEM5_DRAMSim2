@@ -78,6 +78,10 @@ class RR_NoncoherentBus : public RRBus
      */
     Layer<SlavePort> reqLayer;
     Layer<MasterPort> respLayer;
+	int req_tl;
+	int req_offset;
+	int resp_tl;
+	int resp_offset;
 
     /**
      * Declaration of the non-coherent bus slave port type, one will
