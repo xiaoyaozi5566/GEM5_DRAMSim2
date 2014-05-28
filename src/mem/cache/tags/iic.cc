@@ -46,6 +46,7 @@
 #include "mem/cache/tags/iic.hh"
 #include "mem/cache/base.hh"
 #include "sim/core.hh"
+#include "stdio.h"
 
 using namespace std;
 

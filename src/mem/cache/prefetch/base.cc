@@ -43,6 +43,7 @@
 #include "mem/cache/base.hh"
 #include "mem/request.hh"
 #include "sim/system.hh"
+#include "stdio.h"
 
 BasePrefetcher::BasePrefetcher(const Params *p)
     : SimObject(p), size(p->size), latency(p->latency), degree(p->degree),
