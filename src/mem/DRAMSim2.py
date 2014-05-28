@@ -13,7 +13,6 @@ class DRAMSim2(DRAMSim2Wrapper):
     systemConfigFile = Param.String("/home/mdl/tzz106/Simulator/GEM5/gem5_9196/ext/DRAMSim2/system.ini.example", "Memory system configuration file")
     tpTurnLength = Param.String("12", "Turn Length for Timing Partitioning")
     genTrace = Param.Bool(False, "Generate trace for benchmark")
-    numPids = Param.Int(2, "Number of PIDs")
     fixAddr = Param.Bool(False, "Use fixed address mapping")
     cwd = Param.String("", "current work directory");
     traceFile = Param.String("./results/DRAMSim.trc", "output file for trace generation");
