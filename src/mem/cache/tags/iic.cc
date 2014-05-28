@@ -351,6 +351,7 @@ IIC::freeReplacementBlock(PacketList & writebacks)
     IICTag *tag_ptr;
     unsigned long data_ptr;
     /* consult replacement policy */
+	printf("iic called\n");
     tag_ptr = &tagStore[repl->getRepl()];
     assert(tag_ptr->isValid());
 

@@ -32,7 +32,8 @@ CacheSet
 SPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
     // assert( &sets[setnum][tid_from_addr(addr)] != 0);
     // return sets[setnum][tid_from_addr(addr)];
-    return LRU::get_set( setnum, tid, addr );
+	return sets[setnum][tid];
+    //return LRU::get_set( setnum, tid, addr );
 }
 
 void
