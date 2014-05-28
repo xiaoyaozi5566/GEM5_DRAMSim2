@@ -235,7 +235,8 @@ BasePrefetcher::notify(PacketPtr &pkt, Tick time)
 
             // create a prefetch memreq
             Request *prefetchReq = new Request(*addrIter, blkSize, 0, masterId);
-            PacketPtr prefetch =
+            printf("prefetch called\n");
+			PacketPtr prefetch =
                 new Packet(prefetchReq, MemCmd::HardPFReq);
             prefetch->allocate();
             prefetch->req->setThreadContext(pkt->req->contextId(),

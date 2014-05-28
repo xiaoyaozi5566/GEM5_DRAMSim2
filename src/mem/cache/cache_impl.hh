@@ -1028,10 +1028,11 @@ Cache<TagStore>::writebackBlk(BlkType *blk, int threadID)
 
     writebacks[Request::wbMasterId]++;
 
-    Request *writebackReq =
+	Request *writebackReq =
         new Request(tags->regenerateBlkAddr(blk->tag, blk->set), blkSize, 0,
                 Request::wbMasterId);
-    PacketPtr writeback = new Packet(writebackReq, MemCmd::Writeback, threadID, threadID, threadID);
+    //if(threadID == 0) printf("replacing blk %llx\n", writebackReq->getPaddr());
+	PacketPtr writeback = new Packet(writebackReq, MemCmd::Writeback, threadID, threadID, threadID);
     if (blk->isWritable()) {
         writeback->setSupplyExclusive();
     }
@@ -1051,8 +1052,7 @@ Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks, uint64_t tid)
 
     if (blk->isValid()) {
         Addr repl_addr = tags->regenerateBlkAddr(blk->tag, blk->set);
-        MSHR *repl_mshr = getMSHRQueue(
-                tid_from_addr( addr ) )->findMatch(repl_addr);
+        MSHR *repl_mshr = getMSHRQueue( tid )->findMatch(repl_addr);
         if (repl_mshr) {
             // must be an outstanding upgrade request on block
             // we're about to replace...
