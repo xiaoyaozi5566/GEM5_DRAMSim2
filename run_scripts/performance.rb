@@ -20,7 +20,7 @@ module RunScripts
             otherbench: %w[ astar ],
             schemes: %w[ tp ],
             rr_nc: true,
-            addprar: true,
+            addrpar: true,
             setpart: true,
             split_rport: true,
             split_mshr: true,
