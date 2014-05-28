@@ -47,6 +47,7 @@
 #include "debug/TLB.hh"
 #include "debug/TLBVerbose.hh"
 #include "sim/system.hh"
+#include "stdio.h"
 
 using namespace ArmISA;
 
@@ -194,7 +195,8 @@ TableWalker::processWalk()
 {
     Addr ttbr = 0;
 
-    // If translation isn't enabled, we shouldn't be here
+    printf("table walker called\n");
+	// If translation isn't enabled, we shouldn't be here
     assert(currState->sctlr.m);
 
     DPRINTF(TLB, "Begining table walk for address %#x, TTBCR: %#x, bits:%#x\n",
@@ -504,7 +506,8 @@ TableWalker::doL1Descriptor()
             currState->vaddr, currState->l1Desc.data);
     TlbEntry te;
 
-    switch (currState->l1Desc.type()) {
+    printf("doL1Descriptor called\n");
+	switch (currState->l1Desc.type()) {
       case L1Descriptor::Ignore:
       case L1Descriptor::Reserved:
         if (!currState->timing) {

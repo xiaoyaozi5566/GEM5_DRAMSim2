@@ -277,7 +277,7 @@ class Cache : public BaseCache
      * @param blk The block to writeback.
      * @return The writeback request for the block.
      */
-    PacketPtr writebackBlk(BlkType *blk);
+    PacketPtr writebackBlk(BlkType *blk, int threadID);
 
   public:
     /** Instantiates a basic cache object. */

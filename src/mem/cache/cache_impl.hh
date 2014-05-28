@@ -1008,7 +1008,7 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
     // if we used temp block, clear it out
     if (blk == tempBlock) {
         if (blk->isDirty()) {
-            allocateWriteBuffer(writebackBlk(blk), time, true);
+            allocateWriteBuffer(writebackBlk(blk, pkt->threadID), time, true);
         }
         blk->status &= ~BlkValid;
         tags->invalidateBlk( blk, pkt->threadID );
@@ -1022,7 +1022,7 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
 
 template<class TagStore>
 PacketPtr
-Cache<TagStore>::writebackBlk(BlkType *blk)
+Cache<TagStore>::writebackBlk(BlkType *blk, int threadID)
 {
     assert(blk && blk->isValid() && blk->isDirty());
 
@@ -1031,7 +1031,7 @@ Cache<TagStore>::writebackBlk(BlkType *blk)
     Request *writebackReq =
         new Request(tags->regenerateBlkAddr(blk->tag, blk->set), blkSize, 0,
                 Request::wbMasterId);
-    PacketPtr writeback = new Packet(writebackReq, MemCmd::Writeback);
+    PacketPtr writeback = new Packet(writebackReq, MemCmd::Writeback, threadID, threadID, threadID);
     if (blk->isWritable()) {
         writeback->setSupplyExclusive();
     }
@@ -1068,7 +1068,7 @@ Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks, uint64_t tid)
 
             if (blk->isDirty()) {
                 // Save writeback packet for handling by caller
-                writebacks.push_back(writebackBlk(blk));
+                writebacks.push_back(writebackBlk(blk, tid));
             }
         }
     }
