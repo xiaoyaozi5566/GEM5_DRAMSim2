@@ -55,8 +55,9 @@
 #include "mem/rr_noncoherent_bus.hh"
 
 RR_NoncoherentBus::RR_NoncoherentBus(const RR_NoncoherentBusParams *p)
-    : RRBus(p), reqLayer(*this, ".reqLayer", p->clock),
-      respLayer(*this, ".respLayer", p->clock)
+    : RRBus(p), reqLayer(*this, ".reqLayer", p->clock, p->req_tl, p->req_offset),
+      respLayer(*this, ".respLayer", p->clock, p->resp_tl, p->resp_offset),
+	  req_tl(p->req_tl), req_offset(p->req_offset), resp_tl(p->resp_tl), resp_offset(p->resp_offset)
 {
     // create the ports based on the size of the master and slave
     // vector ports, and the presence of the default port, the ports
@@ -111,7 +112,7 @@ RR_NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
     // set the source port for routing of the response
     pkt->setSrc(slave_port_id);
 
-    Tick headerFinishTime = calcPacketTiming(pkt, pkt->threadID);
+    Tick headerFinishTime = calcPacketTiming(pkt, pkt->threadID, req_tl, req_offset);
     Tick packetFinishTime = pkt->finishTime;
 
     // since it is a normal request, determine the destination
@@ -153,7 +154,7 @@ RR_NoncoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     DPRINTF(NoncoherentBus, "recvTimingResp: src %s %s 0x%x\n",
             src_port->name(), pkt->cmdString(), pkt->getAddr());
 
-    calcPacketTiming(pkt, pkt->threadID);
+    calcPacketTiming(pkt, pkt->threadID, resp_tl, resp_offset);
     Tick packetFinishTime = pkt->finishTime;
 
     // send the packet to the destination through one of our slave
