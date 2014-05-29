@@ -10,7 +10,7 @@ using namespace DRAMSim;
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
         ostream &dramsim_log_, unsigned tpTurnLength_,
         int num_pids_, bool fixAddr_,
-        bool diffPeriod_, int p0Period_, int p1Period_):
+        bool diffPeriod_, int p0Period_, int p1Period_, int offset_):
     CommandQueue(states,dramsim_log_,num_pids_)
 {
     fixAddr = fixAddr_;
@@ -18,6 +18,7 @@ CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states,
     diffPeriod = diffPeriod_;
     p0Period = p0Period_;
     p1Period = p1Period_;
+	offset = offset_;
 #ifdef DEBUG_TP
     cout << "TP Debugging is on." <<endl;
 #endif
@@ -213,6 +214,7 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
                         continue;
 
                     *busPacket = queue[i];
+					//cout << "popped " << queue[i]->physicalAddress << " @ " << currentClockCycle << endl;
 
                     queue.erase(queue.begin()+i);
                     foundIssuable = true;
@@ -276,17 +278,18 @@ void CommandQueueTP::print()
 }
 
 unsigned CommandQueueTP::getCurrentPID(){
-    if ( diffPeriod ) {
+    int _currentClockCycle = currentClockCycle - offset;
+	if ( diffPeriod ) {
     	if(num_pids == 2)
-    		return (currentClockCycle%(p0Period+p1Period)/p0Period);
+    		return (_currentClockCycle%(p0Period+p1Period)/p0Period);
     	else if (num_pids == 3) {
-    		uint64_t remainder = currentClockCycle%(p0Period+2*p1Period);
+    		uint64_t remainder = _currentClockCycle%(p0Period+2*p1Period);
     		if( remainder < p0Period ) return 0;
     		else if (remainder < p0Period + p1Period ) return 1;
     		else return 2;
     	}
     	else if (num_pids == 4) {
-    		uint64_t remainder = currentClockCycle%(p0Period+3*p1Period);
+    		uint64_t remainder = _currentClockCycle%(p0Period+3*p1Period);
     		if( remainder < p0Period ) return 0;
     		else if (remainder < p0Period + p1Period ) return 1;
     		else if (remainder < p0Period + 2*p1Period ) return 2;
@@ -294,33 +297,35 @@ unsigned CommandQueueTP::getCurrentPID(){
     	}
     }
     else {
-    	return (currentClockCycle >> tpTurnLength) % num_pids;
+    	return (_currentClockCycle >> tpTurnLength) % num_pids;
     }
 }
 
 bool CommandQueueTP::isBufferTime(){
+	int _currentClockCycle = currentClockCycle - offset;
     unsigned tlength = 1<<tpTurnLength;
-    uint64_t turnBegin = currentClockCycle & (-1<<tpTurnLength);
+    uint64_t turnBegin = _currentClockCycle & (-1<<tpTurnLength);
     if ( diffPeriod ) {
     	unsigned pid = getCurrentPID();
     	if ( pid == 0 ) tlength = p0Period;
     	else tlength = p1Period;
     	if (pid == 0 )
-    		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period));
+    		turnBegin = _currentClockCycle - (_currentClockCycle%(p0Period+(num_pids-1)*p1Period));
     	else
-    		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
+    		turnBegin = _currentClockCycle - (_currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
     }
     uint64_t dead_time;
     // if ( fixAddr )
 	// 	dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
 	// 			int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
     // else
-		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
+	uint64_t _turnBegin = turnBegin + offset;
+		dead_time = (int(_turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
+				int((_turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
     if ( diffPeriod )
-    	return (tlength - (currentClockCycle - turnBegin)) <= dead_time;
+    	return (tlength - (_currentClockCycle - turnBegin)) <= dead_time;
     else
-    	return (tlength - (currentClockCycle & (tlength - 1))) <= dead_time;
+    	return (tlength - (_currentClockCycle & (tlength - 1))) <= dead_time;
 }
 
 #ifdef DEBUG_TP

@@ -56,7 +56,7 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
         CSVWriter &csvOut_, ostream &dramsim_log_, 
         const string &outputFilename_, unsigned tpTurnLength, bool genTrace, 
         const string &traceFilename_, int num_pids, bool fixAddr,
-        bool diffPeriod, int p0Period, int p1Period) :
+        bool diffPeriod, int p0Period, int p1Period, int offset) :
 		dramsim_log(dramsim_log_),
 		ReturnReadData(NULL),
 		WriteDataDone(NULL),
@@ -143,7 +143,7 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
 		use_TP = true;
         memoryController = 
             new MemoryControllerTP(this, csvOut, dramsim_log, 
-                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period);
+                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period, offset);
     } else if(timingProtection == FixedAddress){
     	memoryController = 
             new MemoryControllerFA(this, csvOut, dramsim_log, 

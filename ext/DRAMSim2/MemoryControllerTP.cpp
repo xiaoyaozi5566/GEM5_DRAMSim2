@@ -15,11 +15,12 @@ MemoryControllerTP::MemoryControllerTP(MemorySystem *parent,
         bool fixAddr,
         bool diffPeriod,
         int p0Period,
-        int p1Period) :
+        int p1Period,
+		int offset) :
     MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, genTrace_, traceFilename_, num_pids_, fixAddr)
 {
 
-    commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_, fixAddr, diffPeriod, p0Period, p1Period); 
+    commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_, fixAddr, diffPeriod, p0Period, p1Period, offset); 
 
     // reserve for each process
     for (int i=0;i<num_pids;i++){

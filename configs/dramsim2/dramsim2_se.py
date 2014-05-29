@@ -86,6 +86,8 @@ if '--dramsim2' in sys.argv:
     		help="period for security domain 0")
     parser.add_option("--p1period", type="int", default=64,
     		help="period for security domain 1")
+    parser.add_option("--dramoffset", type="int", default=0,
+    		help="dram offset")
     parser.add_option("--p0", type="string", 
             help="workload for processor 0."),
     parser.add_option("--p1", type="string",
@@ -172,7 +174,9 @@ if options.dramsim2 :
                         #Period for thread 0
                         p0Period=options.p0period,
                         #Period for thread 1
-                        p1Period=options.p1period
+                        p1Period=options.p1period,
+                        #Offset for DRAM turn length
+                        offset=options.dramoffset
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

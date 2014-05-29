@@ -20,3 +20,4 @@ class DRAMSim2(DRAMSim2Wrapper):
     diffPeriod = Param.Bool(False, "Use different periods for different threads")
     p0Period = Param.Int(64, "Period for thread 0")
     p1Period = Param.Int(64, "Period for thread 1")
+    offset = Param.Int(0, "offset for turn length")

@@ -14,7 +14,7 @@ namespace DRAMSim
 		    bool genTrace_,
                     const string &traceFilename_,
                     int num_pids_, bool fixAddr,
-                    bool diffPeriod, int p0Period, int p1Period);
+                    bool diffPeriod, int p0Period, int p1Period, int offset);
 
             virtual bool addTransaction(Transaction *trans);
             virtual void receiveFromBus(BusPacket *bpacket);
