@@ -292,7 +292,7 @@ CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
-                membus = ( RR_NoncoherentBus() if options.rr_nc
+                membus = ( RR_NoncoherentBus(num_pids = options.numpids) if options.rr_nc
                     else NoncoherentBus() ),
                 mem_mode = test_mem_mode,
                 numPids = options.numpids,

@@ -62,7 +62,7 @@ class L3Shared( L3Config ):
                             split_rport = options.split_rport,
                             l3_trace_file = options.l3tracefile)
 
-        system.tol3bus = ( RR_NoncoherentBus() if options.rr_nc
+        system.tol3bus = ( RR_NoncoherentBus(num_pids=options.numpids) if options.rr_nc
                 else NoncoherentBus() )
         # system.tol3bus = NoncoherentBus()
         system.l3.cpu_side = system.tol3bus.master

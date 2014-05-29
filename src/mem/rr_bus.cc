@@ -226,10 +226,7 @@ void RRBus::Layer<PortClass>::occupyLayer(Tick until, int threadID)
 
     // until should never be 0 as express snoops never occupy the bus
     assert(until != 0);
-	if(threadID == 0)
-    	bus.schedule(*releaseEvent[0], until);
-	else
-		bus.schedule(*releaseEvent[1], until);
+    bus.schedule(*releaseEvent[threadID], until);
 
     //DPRINTF(RRBus, "The bus is now busy from tick %d to %d\n",
     //        curTick(), until);
@@ -246,10 +243,8 @@ RRBus::Layer<PortClass>::tryTiming(PortClass* port, int threadID)
 		Tick retryTime = bus.turn_begin(threadID, tl, offset);
 		if (retryTime < now)
 			retryTime = retryTime + clock * num_pids * tl;
-		if(threadID == 0 && !(*retryEvent[0]).scheduled())
-			bus.schedule(retryEvent[0], retryTime);
-		else if(threadID == 1 && !(*retryEvent[1]).scheduled())
-			bus.schedule(retryEvent[1], retryTime);
+		if(!(*retryEvent[threadID]).scheduled())
+			bus.schedule(retryEvent[threadID], retryTime);
 		//printf("schedule retry at %llu %d\n", retryTime/clock, threadID);
         return false;
 	}
@@ -324,10 +319,7 @@ RRBus::Layer<PortClass>::releaseLayer()
 	//printf("bus state %d %d\n", state[threadID], (*releaseEvent[0]).scheduled());
     // releasing the bus means we should now be idle
     assert(state[threadID] == BUSY);
-	if (threadID == 0)
-    	assert(!(*releaseEvent[0]).scheduled());
-	else
-		assert(!(*releaseEvent[1]).scheduled());
+    assert(!(*releaseEvent[threadID]).scheduled());
 
     // update the state
     state[threadID] = IDLE;
