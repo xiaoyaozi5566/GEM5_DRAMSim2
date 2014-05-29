@@ -30,8 +30,8 @@ class RRBus(MemObject):
 
 class RR_NoncoherentBus(RRBus):
     type = 'RR_NoncoherentBus'
-    req_tl = Param.Int(10, "requst layer turn length")
+    req_tl = Param.Int(1, "requst layer turn length")
     req_offset = Param.Int(0, "request layer turn length offset")
-    resp_tl = Param.Int(10, "response layer turn length")
+    resp_tl = Param.Int(1, "response layer turn length")
     resp_offset = Param.Int(0, "response layer turn length offset")
     

@@ -88,6 +88,24 @@ if '--dramsim2' in sys.argv:
     		help="period for security domain 1")
     parser.add_option("--dramoffset", type="int", default=0,
     		help="dram offset")
+    # bus turn length and offset
+    parser.add_option("--l2l3req_tl", type="int", default=1,
+            help="l2l3 bus request layer turn length")
+    parser.add_option("--l2l3req_offset", type="int", default=0,
+            help="l2l3 bus request layer offset")
+    parser.add_option("--l2l3resp_tl", type="int", default=1,
+            help="l2l3 bus response layer turn length")
+    parser.add_option("--l2l3resp_offset", type="int", default=0,
+            help="l2l3 bus response layer offset")
+    parser.add_option("--membusreq_tl", type="int", default=1,
+            help="membus request layer turn length")
+    parser.add_option("--membusreq_offset", type="int", default=0,
+            help="membus request layer offset")
+    parser.add_option("--membusresp_tl", type="int", default=1,
+            help="membus response layer turn length")
+    parser.add_option("--membusresp_offset", type="int", default=0,
+            help="membus response layer offset")
+            
     parser.add_option("--p0", type="string", 
             help="workload for processor 0."),
     parser.add_option("--p1", type="string",
@@ -296,7 +314,11 @@ CPUClass.numThreads = numThreads;
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
-                membus = ( RR_NoncoherentBus(num_pids = options.numpids) if options.rr_nc
+                membus = ( RR_NoncoherentBus(num_pids = options.numpids,
+                                             req_tl = options.membusreq_tl,
+                                             req_offset = options.membusreq_offset,
+                                             resp_tl = options.membusresp_tl,
+                                             resp_offset = options.membusresp_offset) if options.rr_nc
                     else NoncoherentBus() ),
                 mem_mode = test_mem_mode,
                 numPids = options.numpids,
