@@ -146,15 +146,32 @@ def sav_script( cpu, scheme, p0, options = {} )
         script.puts("    --l3_size=#{cacheSize}MB\\")
         script.puts("    --l3config=#{l3config} \\")
     end
-    script.puts("   --fixaddr\\") if scheme == "fa" || options[:addrpar]
     script.puts("    --fast-forward=#{fastforward} \\") unless fastforward == 0
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
+
+    #Protection Mechanisms
+    script.puts("   --fixaddr\\") if scheme == "fa" || options[:addrpar]
     script.puts("    --rr_nc\\" ) if rr_nc
     script.puts("    --use_set_part\\" ) if use_set_part
     script.puts("    --use_way_part\\" ) if use_way_part
     script.puts("    --split_mshr\\"   ) if options[:split_mshr]
     script.puts("    --split_rport\\"   ) if options[:split_rport]
+
+    #Time Quanta and Offsets
+    # Assumes all or none are passed. Default if none are passed.
+    unless options[:l2l3req_tl].nil?
+        script.puts("    --l2l3req_tl #{options[:l2l3req_tl]}\\")
+        script.puts("    --l2l3req_offset #{options[:l2l3req_offset]}\\")
+        script.puts("    --l2l3resp_tl #{options[:l2l3resp_tl]}\\")
+        script.puts("    --l2l3resp_offset #{options[:l2l3resp_offset]}\\")
+        script.puts("    --membusreq_tl #{options[:membusreq_tl]}\\")
+        script.puts("    --membusreq_offset #{options[:membusreq_offset]}\\")
+        script.puts("    --membusresp_tl #{options[:membusresp_tl]}\\")
+        script.puts("    --membusresp_offset #{options[:membusresp_offset]}\\")
+        script.puts("    --dramoffset #{options[:dramoffset]}\\")
+    end
+
     script.puts("    --dramsim2 \\")
     script.puts("    --savetraces \\") if savetraces
     l3tracefile = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"

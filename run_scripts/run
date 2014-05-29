@@ -44,10 +44,14 @@ include RunScripts
 #------------------------------------------------------------------------------
 # prelim_local
 # scalability_local
+# breakdown_local
 # prelim_qsub
-  scalability_qsub
-  per_breakdown_qsub
+# scalability_qsub
+# per_breakdown_qsub
 # multicore_tc_qsub
+# coordination_qsub
+coordination_local
+
 
 ###############################################################################
 # Memory Controller Tests

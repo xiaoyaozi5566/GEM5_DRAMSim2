@@ -11,19 +11,18 @@ module RunScripts
             cpus: %w[ detailed ],
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
+            otherbench: %w[ astar ],
             result_dir: "results_preliminary"
         }
         yield opts
 
         #Naive Secure Scheme
         opts = opts.merge({
-            otherbench: %w[ astar ],
             schemes: %w[ tp ],
             rr_nc: true,
             addrpar: true,
             setpart: true,
-            split_rport: true,
-            split_mshr: true,
+            split_rport: true, split_mshr: true,
         })
         yield opts
     end
@@ -53,6 +52,66 @@ module RunScripts
                 fastforward: 10,
                 result_dir: "results_scalability"
             )
+        }
+    end
+
+    def coordination
+        # Naive Secure Scheme
+        opts = {
+            cpus: %w[ detailed ],
+            schemes: %w[ none ],
+            benchmarks: $specint - %w[ bzip2 ],
+            otherbench: %w[ astar ],
+            result_dir: "results_coordination",
+            schemes: %w[ tp ],
+            rr_nc: true,
+            addrpar: true,
+            setpart: true,
+            split_rport: true,
+            split_mshr: true,
+        }
+        # yield opts
+
+        # Better Baseline
+        opts = opts.merge({
+            nametag: "better_base",
+            l2l3req_tl:        1,
+            l2l3req_offset:    0,
+            l2l3resp_tl:      10,
+            l2l3resp_offset:   0,
+            membusreq_tl:      1,
+            membusreq_offset:  0,
+            membusresp_tl:    10,
+            membusresp_offset: 0,
+            dramoffset:        0
+        })
+        yield opts
+
+        #Coordinated Scheme
+        opts = opts.merge({
+            nametag: "coordinated",
+            l2l3req_tl:        12,
+            l2l3req_offset:     0,
+            l2l3resp_tl:       12,
+            l2l3resp_offset:   12,
+            membusreq_tl:       1,
+            membusreq_offset:   0,
+            membusresp_tl:     96,
+            membusresp_offset: 49,
+            dramoffset:      -120,
+        })
+        yield opts
+    end
+
+    def coordination_qsub
+        coordination{|opts|
+            qsub_fast opts
+        }
+    end
+
+    def coordination_local
+        coordination{|opts|
+           parallel_local opts.merge( maxinsts: 10**5, fastforward: 10 )
         }
     end
 
