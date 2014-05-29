@@ -11,7 +11,6 @@ module RunScripts
             cpus: %w[ detailed ],
             schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
-            otherbench: %w[ astar ],
             result_dir: "results_preliminary"
         }
         yield opts
@@ -19,6 +18,7 @@ module RunScripts
         #Naive Secure Scheme
         opts = opts.merge({
             schemes: %w[ tp ],
+            otherbench: %w[ astar ],
             rr_nc: true,
             addrpar: true,
             setpart: true,
