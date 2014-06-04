@@ -123,6 +123,7 @@ if __FILE__ == $0
     (1..4).each do |num_tcs|
         puts "#{num_tcs} TCs"
         opts = {
+            nametag: "coordinated",
             dir: "results_scalability",
             otherbench: %w[ astar ],
             use_base_avg: true,

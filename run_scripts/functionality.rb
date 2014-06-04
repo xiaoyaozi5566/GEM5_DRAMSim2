@@ -47,21 +47,24 @@ module RunScripts
             setpart: true,
             rr_nc: true,
             addrpar: true,
-            split_mshr: true,
             split_rport: true,
+            split_mshr: true,
         } )
     end
+    ###########################################################################
+    # Currently fails:
+    # tp_detailed_gcctl6_astartl6_c4MB
+    ###########################################################################
 
     def secure_deep
-        sanity_deep_( {
+        sanity_deep_({
             schemes: %w[tp],
             setpart: true,
             rr_nc: true,
             addrpar: true,
-            split_mshr: true,
             split_rport: true,
+            split_mshr: true,
         } )
     end
-
 
 end

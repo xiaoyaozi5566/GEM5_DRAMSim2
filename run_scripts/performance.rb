@@ -22,7 +22,8 @@ module RunScripts
             rr_nc: true,
             addrpar: true,
             setpart: true,
-            split_rport: true, split_mshr: true,
+            split_rport: true,
+            split_mshr: true,
         })
         yield opts
     end
@@ -70,7 +71,7 @@ module RunScripts
             split_rport: true,
             split_mshr: true,
         }
-        # yield opts
+        yield opts
 
         # Better Baseline
         opts = opts.merge({
