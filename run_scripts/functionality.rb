@@ -41,22 +41,6 @@ module RunScripts
         sanity_deep_( {} )
     end
 
-    def set_part
-        sanity_( {setpart: true} )
-    end
-
-    def set_part_deep
-        sanity_deep_( {setpart: true} )
-    end
-
-    def rr_nc
-        sanity_( {rr_nc: true} )
-    end
-
-    def rr_nc_deep
-        sanity_deep_( {rr_nc: true} )
-    end
-
     def secure
         sanity_( {
             schemes: %w[tp],
@@ -79,58 +63,5 @@ module RunScripts
         } )
     end
 
-    def split_mshr
-        sanity_( {split_mshr: true, result_dir:"results_split"} )
-    end
-
-    def split_mshr_deep
-        sanity_deep_( {split_mshr: true, result_dir:"results_split"} )
-    end
-
-    def split_mshr_secure
-        sanity_( {
-            split_mshr: true,
-            schemes: %w[tp],
-            setpart: true,
-            rr_nc: true,
-            result_dir:"results_split"
-        } )
-    end
-
-    def split_mshr_secure_deep
-        sanity_deep_( {
-            split_mshr: true,
-            schemes: %w[tp],
-            setpart: true,
-            rr_nc: true,
-            result_dir:"results_split"
-        } )
-    end
-
-    def split_rport
-        sanity_({split_rport: true })
-    end
-
-    def split_rport_deep
-        sanity_deep_({split_rport: true })
-    end
-
-    def split_rport_secure
-        sanity_( {
-            split_rport: true,
-            schemes: %w[tp],
-            setpart: true,
-            rr_nc: true,
-        } )
-    end
-
-    def split_rport_secure_deep
-        sanity_deep_( {
-            split_rport: true,
-            schemes: %w[tp],
-            setpart: true,
-            rr_nc: true,
-        } )
-    end
 
 end
