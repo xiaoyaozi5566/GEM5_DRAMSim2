@@ -74,19 +74,20 @@ module RunScripts
         yield opts
 
         # Better Baseline
-        opts = opts.merge({
-            nametag: "better_base",
-            l2l3req_tl:        1,
-            l2l3req_offset:    0,
-            l2l3resp_tl:      10,
-            l2l3resp_offset:   0,
-            membusreq_tl:      1,
-            membusreq_offset:  0,
-            membusresp_tl:    10,
-            membusresp_offset: 0,
-            dramoffset:        0
-        })
-        yield opts
+         opts = opts.merge({
+             nametag: "better_base",
+             l2l3req_tl:        1,
+             l2l3req_offset:    0,
+             l2l3resp_tl:      10,
+             l2l3resp_offset:   0,
+             membusreq_tl:      1,
+             membusreq_offset:  0,
+             membusresp_tl:    10,
+             membusresp_offset: 0,
+             dramoffset:        0
+         })
+        # Better baseline is deprecated because it isn't better.
+        # yield opts
 
         #Coordinated Scheme
         opts = opts.merge({
