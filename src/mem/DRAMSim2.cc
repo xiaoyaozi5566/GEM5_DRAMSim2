@@ -161,6 +161,12 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
     return retVal;
 }
 
+void
+DRAMSim2::MemoryPort::recvRetry(int threadID)
+{
+	if(dramsim2->channels[0]->use_TP) respQueues[threadID]->retry();
+	else queue.retry();
+}
 
 void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle, uint64_t threadID)
 {

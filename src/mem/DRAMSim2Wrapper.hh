@@ -87,9 +87,7 @@ class DRAMSim2Wrapper : public AbstractMemory
             this->respQueues[threadID]->schedSendTiming(pkt, when);
         }
 
-        virtual void recvRetry(int threadID) { 
-            this->respQueues[threadID]->retry();
-        }
+        virtual void recvRetry(int threadID);
         
         virtual void schedTimingResp(PacketPtr pkt, Tick when ){
             QueuedSlavePort::schedTimingResp( pkt, when );
