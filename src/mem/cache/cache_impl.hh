@@ -1781,12 +1781,11 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
               writeBuffers[i] =new MSHRQueue("write buffer",
                   p->write_buffers, p->mshrs+1000, 1);
           }
+
 		  num_tcs = p->num_tcs;
-		  this->memSidePort->reqQueues = new MasterPacketQueue*[p->num_tcs];
-		  for( int i=0; i < (p->num_tcs); i++){
-			  this->memSidePort->reqQueues[i] = new MemSidePacketQueue(
-                      *this, *(this->memSidePort), "MasterPacketQueue", i);
-		  }
+
+          this->memSidePort = new SplitMemSidePort(p->name + ".mem_side", this,
+                                  "MemSidePort");
 }
 
 //-----------------------------------------------------------------------------
