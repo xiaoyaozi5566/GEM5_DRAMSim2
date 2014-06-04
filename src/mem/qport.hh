@@ -68,7 +68,7 @@ class QueuedSlavePort : public SlavePort
       * packet again. */
     virtual void recvRetry() { queue.retry(); }
 	
-	virtual void recvRetry(int threadID) { respQueues[threadID]->retry();}
+	virtual void recvRetry(int threadID) { recvRetry(); }
 
   public:
 
@@ -97,7 +97,7 @@ class QueuedSlavePort : public SlavePort
 	{ queue.schedSendTiming(pkt, when); }
 	
     virtual void schedTimingResp(PacketPtr pkt, Tick when, int threadID)
-    { respQueues[threadID]->schedSendTiming(pkt, when); }
+    { schedTimingResp( pkt, when ); }
 
     /** Check the list of buffered packets against the supplied
      * functional request. */

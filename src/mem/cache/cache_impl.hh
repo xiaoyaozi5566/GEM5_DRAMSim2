@@ -256,7 +256,6 @@ template<class TagStore>
 void
 Cache<TagStore>::squash(int threadNum)
 {
-    fprintf( stderr, "\x1B[33m called getTimingPacket() \x1B[0m\n" );
     bool unblock = false;
     BlockedCause cause = NUM_BLOCKED_CAUSES;
 
@@ -512,10 +511,11 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
 
         if (needsResponse) {
             pkt->makeTimingResponse();
-			if(isSplitRPort())
+			if(isSplitRPort()){
             	cpuSidePort->schedTimingResp(pkt, curTick()+lat, pkt->threadID);
-			else
+            }else{
 				cpuSidePort->schedTimingResp(pkt, curTick()+lat);
+            }
         } else {
             /// @todo nominally we should just delete the packet here,
             /// however, until 4-phase stuff we can't because sending
@@ -945,9 +945,9 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
             if(isSplitRPort()) {
 				//printf("schedTimingResp called @ cycle %llu\n", curTick());
 				cpuSidePort->schedTimingResp(target->pkt, completion_time, target->pkt->threadID);
-			}
-			else
+			}else{
 				cpuSidePort->schedTimingResp(target->pkt, completion_time);
+            }
             break;
 
           case MSHR::Target::FromPrefetcher:
@@ -1805,14 +1805,8 @@ template<class TagStore>
 SplitRPortCache<TagStore>::SplitRPortCache( const Params *p, TagStore *tags )
     : SplitMSHRCache<TagStore>( p, tags )
 {
-    // Calls constructor of Split MSHR Cache which calls the constructor of 
-    // Cache.
-    // Saves num_tcs from p
-    // Prints to prove that the correct module was used
-	this->cpuSidePort->respQueues = new SlavePacketQueue*[p->num_tcs];
-    for( int i=0; i < (p->num_tcs); i++ ){
-        this->cpuSidePort->respQueues[i] = new SlavePacketQueue(
-                *this, *(this->cpuSidePort));
-    }
+
+    this->cpuSidePort = new SRCpuSidePort(p->name + ".cpu_side", this,
+                                  "CpuSidePort");
 }
 
