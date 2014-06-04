@@ -511,11 +511,7 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
 
         if (needsResponse) {
             pkt->makeTimingResponse();
-			if(isSplitRPort()){
             	cpuSidePort->schedTimingResp(pkt, curTick()+lat, pkt->threadID);
-            }else{
-				cpuSidePort->schedTimingResp(pkt, curTick()+lat);
-            }
         } else {
             /// @todo nominally we should just delete the packet here,
             /// however, until 4-phase stuff we can't because sending
@@ -942,12 +938,7 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
                 // isInvalidate() set otherwise.
                 target->pkt->cmd = MemCmd::ReadRespWithInvalidate;
             }
-            if(isSplitRPort()) {
-				//printf("schedTimingResp called @ cycle %llu\n", curTick());
-				cpuSidePort->schedTimingResp(target->pkt, completion_time, target->pkt->threadID);
-			}else{
-				cpuSidePort->schedTimingResp(target->pkt, completion_time);
-            }
+		    cpuSidePort->schedTimingResp(target->pkt, completion_time, target->pkt->threadID);
             break;
 
           case MSHR::Target::FromPrefetcher:

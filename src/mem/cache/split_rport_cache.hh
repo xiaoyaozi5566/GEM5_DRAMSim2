@@ -14,6 +14,7 @@ class SplitRPortCache : public SplitMSHRCache<TagStore>
     protected:
     virtual bool isSplitRPort() {return true;}
     class SRCpuSidePort : public SplitMSHRCache<TagStore>::CpuSidePort{
+        SlavePacketQueue** respQueues;
 
         virtual void schedTimingResp(PacketPtr pkt, Tick when, int threadID)
         { 

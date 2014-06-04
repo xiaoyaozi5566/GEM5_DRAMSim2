@@ -68,6 +68,7 @@ class DRAMSim2Wrapper : public AbstractMemory
     {
 
       public:
+        SlavePacketQueue** respQueues;
 
         DRAMSim2Wrapper* memory;
         MemoryPort(const std::string& _name, DRAMSim2Wrapper* _memory, int numPids);

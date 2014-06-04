@@ -72,7 +72,6 @@ class QueuedSlavePort : public SlavePort
 
   public:
 
-	SlavePacketQueue** respQueues;
 	/**
      * Create a QueuedPort with a given name, owner, and a supplied
      * implementation of a packet queue. The external definition of
