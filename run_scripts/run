@@ -28,8 +28,8 @@ include RunScripts
 # set_part_deep
 # rr_nc
 # rr_nc_deep
-# secure
-# secure_deep
+  secure
+  secure_deep
 # split_mshr
 # split_mshr_deep
 # split_mshr_secure
@@ -50,7 +50,7 @@ include RunScripts
 # per_breakdown_qsub
 # multicore_tc_qsub
 # coordination_qsub
-coordination_local
+# coordination_local
 
 
 ###############################################################################

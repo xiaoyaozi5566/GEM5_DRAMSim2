@@ -11,6 +11,7 @@ module RunScripts
         opts = {
             cpus: %w[ detailed ],
             schemes: %w[ none ],
+            benchmarks: $specint - %w[bzip2],
             maxinsts: 10**3,
             fastforward: 0,
             debug: true,
@@ -57,11 +58,25 @@ module RunScripts
     end
 
     def secure
-        sanity_( { schemes: %w[tp], setpart: true, rr_nc: true } )
+        sanity_( {
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+            addrpar: true,
+            split_mshr: true,
+            split_rport: true,
+        } )
     end
 
     def secure_deep
-        sanity_deep_( { schemes: %w[tp], setpart: true, rr_nc: true } )
+        sanity_deep_( {
+            schemes: %w[tp],
+            setpart: true,
+            rr_nc: true,
+            addrpar: true,
+            split_mshr: true,
+            split_rport: true,
+        } )
     end
 
     def split_mshr
