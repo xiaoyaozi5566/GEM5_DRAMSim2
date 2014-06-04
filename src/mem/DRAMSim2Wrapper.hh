@@ -82,6 +82,20 @@ class DRAMSim2Wrapper : public AbstractMemory
             pendingDelete.push_back(pkt);
         }
 
+        virtual void schedTimingResp(PacketPtr pkt, Tick when, int threadID)
+        { 
+            this->respQueues[threadID]->schedSendTiming(pkt, when);
+        }
+
+        virtual void recvRetry(int threadID) { 
+            this->respQueues[threadID]->retry();
+        }
+        
+        virtual void schedTimingResp(PacketPtr pkt, Tick when ){
+            QueuedSlavePort::schedTimingResp( pkt, when );
+        }
+        virtual void recvRetry() { QueuedSlavePort::recvRetry(); }
+
       protected:
 
         virtual Tick recvAtomic(PacketPtr pkt);
@@ -91,8 +105,6 @@ class DRAMSim2Wrapper : public AbstractMemory
         virtual bool recvTimingReq(PacketPtr pkt);
 
         virtual AddrRangeList getAddrRanges() const;
-		
-		virtual void recvRetry(int threadID);
 
     };
 

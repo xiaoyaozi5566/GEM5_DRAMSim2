@@ -114,7 +114,8 @@ DRAMSim2Wrapper::drain(Event *de)
 DRAMSim2Wrapper::MemoryPort::MemoryPort(const std::string& _name,
                                      DRAMSim2Wrapper* _memory, int numPids)
     : SimpleTimingPort(_name, _memory), memory(_memory)
-{ 	respQueues = new SlavePacketQueue*[numPids];
+{ 	
+    respQueues = new SlavePacketQueue*[numPids];
     for( int i=0; i < numPids; i++ ){
         respQueues[i] = new SlavePacketQueue( *_memory, *this);
     }
