@@ -183,10 +183,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
-			if (dramsim2->channels[0]->use_TP)
-				my_port->schedTimingResp(pkt, toSchedule, threadID);
-			else 
-				my_port->schedTimingResp(pkt, toSchedule);
+            my_port->schedTimingResp(pkt, toSchedule, threadID);
         } else {
             my_port->addPendingDelete(pkt);
         }
