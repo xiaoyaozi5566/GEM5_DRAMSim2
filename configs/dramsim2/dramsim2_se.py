@@ -194,7 +194,10 @@ if options.dramsim2 :
                         #Period for thread 1
                         p1Period=options.p1period,
                         #Offset for DRAM turn length
-                        offset=options.dramoffset
+                        offset=options.dramoffset,
+                        #Infer split memory ports from split cache ports
+                        #TODO give this its own option or infer from scheme
+                        split_ports = options.split_rport
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )
