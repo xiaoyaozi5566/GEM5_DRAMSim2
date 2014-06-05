@@ -1748,24 +1748,12 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 }
 
 template<class TagStore>
-void
-Cache<TagStore>::MemSidePort::recvRetry(int threadID)
-{
-	if(cache->isSplitMSHR()) reqQueues[threadID]->retry();
-	else queue.retry();
-}
-
-template<class TagStore>
 Cache<TagStore>::
 MemSidePort::MemSidePort(const std::string &_name, Cache<TagStore> *_cache,
                          const std::string &_label)
     : BaseCache::CacheMasterPort(_name, _cache, _queue),
       _queue(*_cache, *this, _label, 5), cache(_cache)
-{
-	// reqQueues = new MasterPacketQueue*[2];
-	// for( int i=0; i < 2; i++)
-	// 	reqQueues[i] = new MemSidePacketQueue(*cache, *this, "MemSidePacketQueue", i);
-}
+{}
 
 //-----------------------------------------------------------------------------
 // Split MSHR Cache

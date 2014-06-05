@@ -20,6 +20,10 @@ class SplitMSHRCache : public Cache<TagStore>
     class SplitMemSidePort : public Cache<TagStore>::MemSidePort{
 
         public:
+        virtual void recvRetry( int threadID ){
+            this->reqQueues[threadID]->retry();
+        }
+
         SplitMemSidePort(const std::string &_name, Cache<TagStore> *_cache,
                     const std::string &_label) :
         Cache<TagStore>::MemSidePort( _name, _cache, _label ){

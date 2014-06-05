@@ -123,7 +123,7 @@ class QueuedMasterPort : public MasterPort
       * packet again. */
     virtual void recvRetry() { queue.retry(); }
 	
-	virtual void recvRetry(int threadID) { reqQueues[threadID]->retry(); }
+	virtual void recvRetry(int threadID) { recvRetry(); }
 
   public:
 

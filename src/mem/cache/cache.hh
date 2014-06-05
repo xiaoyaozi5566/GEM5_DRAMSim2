@@ -185,8 +185,6 @@ class Cache : public BaseCache
 
         virtual unsigned deviceBlockSize() const
         { return cache->getBlockSize(); }
-		
-		virtual void recvRetry(int threadID);
 
       public:
 
