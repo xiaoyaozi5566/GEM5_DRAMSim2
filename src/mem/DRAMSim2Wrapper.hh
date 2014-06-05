@@ -88,8 +88,6 @@ class DRAMSim2Wrapper : public AbstractMemory
             this->respQueues[threadID]->schedSendTiming(pkt, when);
         }
 
-        virtual void recvRetry(int threadID);
-        
         virtual void schedTimingResp(PacketPtr pkt, Tick when ){
             QueuedSlavePort::schedTimingResp( pkt, when );
         }
@@ -107,8 +105,22 @@ class DRAMSim2Wrapper : public AbstractMemory
 
     };
 
+    class SplitMemoryPort : public MemoryPort
+    {
+        public:
+        SplitMemoryPort( const std::string& _name, DRAMSim2Wrapper* _memory,
+                int numPids )
+            : MemoryPort( _name, _memory, numPids )
+        {}
+
+        virtual void recvRetry( int threadID ){
+            respQueues[threadID]->retry();
+        }
+
+    };
+
     int numPids;
-	MemoryPort port;
+	MemoryPort* port;
 
     Tick lat;
     Tick lat_var;

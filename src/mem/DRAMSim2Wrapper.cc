@@ -48,9 +48,13 @@
 using namespace std;
 
 DRAMSim2Wrapper::DRAMSim2Wrapper(const Params* p) :
-    AbstractMemory(p), numPids(p->numPids), port(name() + ".port", this, p->numPids), 
+    AbstractMemory(p), numPids(p->numPids),
     lat(p->latency), lat_var(p->latency_var)
 {
+    port = p->split_ports ?
+        new SplitMemoryPort( name() + ".port", this, p->numPids ) :
+        new MemoryPort( name() + ".port", this, p->numPids );
+
 }
 
 void
@@ -58,8 +62,8 @@ DRAMSim2Wrapper::init()
 {
     // allow unconnected memories as this is used in several ruby
     // systems at the moment
-    if (port.isConnected()) {
-        port.sendRangeChange();
+    if (port->isConnected()) {
+        port->sendRangeChange();
     }
 }
 
@@ -95,14 +99,14 @@ DRAMSim2Wrapper::getSlavePort(const std::string &if_name, int idx)
     if (if_name != "port") {
         return MemObject::getSlavePort(if_name, idx);
     } else {
-        return port;
+        return *port;
     }
 }
 
 unsigned int
 DRAMSim2Wrapper::drain(Event *de)
 {
-    int count = port.drain(de);
+    int count = port->drain(de);
 
     if (count)
         changeState(Draining);
