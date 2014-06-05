@@ -127,7 +127,6 @@ class QueuedMasterPort : public MasterPort
 
   public:
 
-    MasterPacketQueue** reqQueues;
 	/**
      * Create a QueuedPort with a given name, owner, and a supplied
      * implementation of a packet queue. The external definition of

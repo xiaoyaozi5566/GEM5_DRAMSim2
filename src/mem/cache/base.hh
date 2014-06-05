@@ -146,10 +146,10 @@ class BaseCache : public MemObject
             queue.schedSendEvent(time);
         }
 		
-		void requestBus(RequestCause cause, Tick time, int threadID)
+		virtual void requestBus(RequestCause cause, Tick time, int threadID)
         {
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            reqQueues[threadID]->schedSendEvent(time);
+            requestBus( cause, time );
         }
 
       protected:

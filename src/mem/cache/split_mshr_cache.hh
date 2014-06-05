@@ -18,10 +18,18 @@ class SplitMSHRCache : public Cache<TagStore>
 
     protected:
     class SplitMemSidePort : public Cache<TagStore>::MemSidePort{
+        private:
+        MasterPacketQueue** reqQueues;
 
         public:
         virtual void recvRetry( int threadID ){
             this->reqQueues[threadID]->retry();
+        }
+
+		virtual void requestBus(BaseCache::RequestCause cause, Tick time, int threadID)
+        {
+            DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
+            reqQueues[threadID]->schedSendEvent(time);
         }
 
         SplitMemSidePort(const std::string &_name, Cache<TagStore> *_cache,
