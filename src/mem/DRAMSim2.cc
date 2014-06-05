@@ -114,8 +114,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 //std::cout << "case 1" << std::endl;
                 dram->doAtomicAccess(pkt);
                 assert(pkt->isResponse());
-                //TODO possible bug fix required
-                schedTimingResp(pkt, curTick() + 1);
+                schedTimingResp(pkt, curTick() + 1, pkt->threadID);
                 return true;
             }
 
@@ -210,8 +209,7 @@ void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycl
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
-            //TODO possible bug fix required
-            my_port->schedTimingResp(pkt, toSchedule);
+            my_port->schedTimingResp(pkt, toSchedule, threadID);
         } else {
             my_port->addPendingDelete(pkt);
         }
