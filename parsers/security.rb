@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 require 'colored'
+require 'set'
 require_relative 'parsers'
 include Parsers
 
@@ -10,16 +11,24 @@ def compare_etime( conf = {} )
         bench: $specint,
     }.merge conf
     differing = []
+    failed = Set.new []
     config = conf[:cpus].product( conf[:schemes], conf[:bench] )
     config.each do |cpu, scheme, p0|
         p = {cpu: cpu, scheme: scheme, p0: p0, dir: conf[:dir] }
-        times = conf[:bench].inject({}) do |hsh,p1|
-            time, found = findTime( stdo_file( p.merge({p1:p1}) ),
-                                   no_ff: true )
+        times = conf[:bench].inject({}) {|hsh,p1|
+            time, found = findTime( stdo_file( p.merge({p1:p1}) ) )
             hsh[p1] = time if found
             hsh
-        end
+        }
         conf[:bench].combination(2) do |p1i,p1j|
+            if times[p1i].nil? 
+                failed << stdo_file( p.merge(p1: p1i) ) 
+                next
+            end
+            if times[p1j].nil? 
+                failed << stdo_file( p.merge(p1: p1j) )
+                next
+            end
             if times[p1i] != times[p1j]
                 fi = stdo_file( p.merge( { p1:p1i } ) )
                 fj = stdo_file( p.merge( { p1:p1j } ) )
@@ -28,7 +37,7 @@ def compare_etime( conf = {} )
             end
         end
     end
-    differing
+    [differing,failed]
 end
 
 
@@ -77,25 +86,28 @@ if __FILE__ == $0
 
     FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
 
-    %w[ tp none ].product($cpus).each do |scheme,cpu|
+    %w[ tp none ].product(%w[detailed]).each do |scheme,cpu|
         conf = {
             dir: input_dir ,
             schemes: [scheme],
             cpus: [cpu],
-            bench: $specint }
-        differing = compare_etime conf
+            bench: $specint-%w[bzip2] }
+        differing,failed = compare_etime conf
         f = File.new( result_dir+"/etime_diff_#{scheme}_#{cpu}.out", 'w' )
         differing.each{|f1,f2|f.puts "#{f1} differs from #{f2}"}
-         puts "#{cpu} #{scheme} Avg Cycle Difference:   " +
+        puts "#{cpu} #{scheme} Avg Cycle Difference:   " +
              ("%E" % (avg_difference conf) ).magenta
-         puts "#{cpu} #{scheme} Avg Percent Difference: " +
+        puts "#{cpu} #{scheme} Avg Percent Difference: " +
              (avg_percent conf).to_s.magenta
         puts "#{cpu} #{scheme} Number of Differences:  " +
-            (count_differences conf).to_s.magenta
+            (differing.size).to_s.magenta
+        puts "#{cpu} #{scheme} Number of Failures:  " +
+            (failed.size).to_s.magenta
         dist, big_diff = percent_diff_dist conf
         puts "#{cpu} #{scheme} distribution:           " +
             dist.to_s.magenta
-        puts "#{cpu} #{scheme} big difference files:"
+        #puts failed.to_a
+        # puts "#{cpu} #{scheme} big difference files:"
         # big_diff.each{|f1,f2| puts "#{f1} != #{f2}"}
         f.close()
     end
