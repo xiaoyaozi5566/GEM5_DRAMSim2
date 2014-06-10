@@ -24,20 +24,11 @@ include RunScripts
 #------------------------------------------------------------------------------
 # sanity
 # sanity_deep
-# set_part
-# set_part_deep
 # rr_nc
 # rr_nc_deep
-  secure
-  secure_deep
-# split_mshr
-# split_mshr_deep
-# split_mshr_secure
-# split_mshr_secure_deep
-# split_rport
-# split_rport_deep
-# split_rport_secure
-# split_rport_secure_deep
+# secure
+# secure_deep
+# gcc_l2l3bus_hang
 
 #------------------------------------------------------------------------------
 # Performance

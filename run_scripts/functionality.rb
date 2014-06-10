@@ -67,4 +67,38 @@ module RunScripts
         } )
     end
 
+    def gcc_l2l3bus_hang
+        opts = {
+            nametag: "uncoordinated",
+            p1: "astar",
+            rr_nc: true,
+            addrpar: true,
+            setpart: true,
+            split_rport: true,
+            split_mshr: true,
+            runmode: :local,
+        }
+
+        #Coordinated Scheme
+        opts_coord = opts.merge({
+            nametag: "coordinated",
+            l2l3req_tl:        12,
+            l2l3req_offset:     0,
+            l2l3resp_tl:       12,
+            l2l3resp_offset:   12,
+            membusreq_tl:       1,
+            membusreq_offset:   0,
+            membusresp_tl:     96,
+            membusresp_offset: 49,
+            dramoffset:      -120,
+        })
+        Parallel.each(1..2, :in_threads=>2) do |i|
+            if i==1
+                sav_script( "detailed", "tp", "gcc", opts )
+            else
+                sav_script( "detailed", "tp", "gcc", opts_coord )
+            end
+        end
+    end
+
 end
