@@ -68,8 +68,6 @@ module RunScripts
             benchmarks:$specint - %w[ bzip2 ],
             schemes: %w[ none ],
             cpus: %w[detailed],
-            maxinsts: 10**6,
-            fastforward: 0,
         }
         qsub_fast opts
 

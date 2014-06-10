@@ -60,7 +60,6 @@ module RunScripts
         # Naive Secure Scheme
         opts = {
             cpus: %w[ detailed ],
-            schemes: %w[ none ],
             benchmarks: $specint - %w[ bzip2 ],
             otherbench: %w[ astar ],
             result_dir: "results_coordination",
