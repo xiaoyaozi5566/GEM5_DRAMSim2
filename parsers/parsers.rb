@@ -44,26 +44,32 @@ def findTime(filename, opts = {} )
     [time,foundtime]
 end
 
-def percent_overhead( opts = {} )
-    time, found = findTime(
-        stdo_file( opts ), opts )
-    baseopts = opts.merge({ nametag: nil, scheme: "none" })
-    basetime, basefound = findTime(
-        stdo_file( baseopts ), baseopts )
-    return nil if !found || !basefound
-    (time-basetime)/(basetime) * 100
+def get_datum( filename, regex )
+    return [nil, false] unless File.exists? filename
+    File.open(filename, 'r'){|f|
+        f.each_line do |line|
+            return [line.match(regex)[1],true] if line =~ regex
+        end
+    }
+    [nil, false]
+end
+
+def overhead( t1, t2 , p={} )
+    unless t1.nil? || t2.nil?
+        ( p[:X] && t1/t2 ) || (t1-t2)/t2 * 100
+    end
 end
 
 def percent_diff(t1,t2)
-        unless t1.nil? || t2.nil?
-            high = ( t1>=t2 && t1 ) || ( true && t2 )
-            low  = ( t1>=t2 && t2 ) || ( true && t1 )
-            (high-low)/((high+low)/2) * 100
-        end
+     unless t1.nil? || t2.nil?
+         high = ( t1>=t2 && t1 ) || ( true && t2 )
+         low  = ( t1>=t2 && t2 ) || ( true && t1 )
+         (high-low)/((high+low)/2) * 100
+     end
 end
 
 def avg_arr arr
-    (arr.length != 0 && arr.inject(:+)/arr.length) || 0
+    (arr.length != 0 && arr.inject(:+)/arr.length) || -1
 end
 
 def filename( p={} )
@@ -88,8 +94,16 @@ def stdo_file( p={} )
     "#{p[:dir]}/stdout_#{filename p}.out"
 end
 
+def m5out_file( p={} )
+    p = {dir: "m5out"}.merge p
+    "#{p[:dir]}/#{filename p}_stats.txt"
+end
+
 def bench_swap_file( p={} )
     filename( p.merge{ p0:p[:p1], p1:[p:p0] } )
+end
+
+def hash_to_csv( hash, filename, p={} )
 end
 
 end
