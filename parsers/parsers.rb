@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+require 'csv'
 require 'fileutils'
 
 module Parsers
@@ -104,6 +105,9 @@ def bench_swap_file( p={} )
 end
 
 def hash_to_csv( hash, filename, p={} )
+    CSV.open( filename, 'w' ) do |csv_object|
+        hash.to_a.each{|row| csv_object << row}
+    end
 end
 
 end

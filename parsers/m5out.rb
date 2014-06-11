@@ -62,22 +62,26 @@ end
 
 if __FILE__ == $0
     input_dir = ARGV[0].to_s
-    # result_dir = ARGV[1].to_s
-    # 
-    # FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
+    result_dir = ARGV[1].to_s
     
-    puts "Baseline memory requests per thousand instructions: \n" +
-    get_stats( dir: input_dir, regex: $l3_miss ).to_a.inject({}){|hsh,kv|
+    FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
+    
+    mpki = get_stats( dir: input_dir, regex: $l3_miss ).to_a.inject({}){|hsh,kv|
         hsh[kv[0]] = kv[1] * 1000 / 10**6
         hsh
-    }.to_s
-    #get_stats( dir: input_dir, regex: $l3_miss ).to_a.to_s
+    }
+    puts "Baseline memory requests per thousand instructions: \n" + mpki.to_s
+    hash_to_csv( mpki, result_dir+"/mpki.csv" )
 
-    puts "Baseline Memory Latency: \n" +
-        get_stats( scheme: "none", dir: input_dir, regex: $mem_latency ).to_s
-    puts "Secure Baseline Memory Latency: \n" +
-        get_stats( scheme: "tp", dir: input_dir, regex: $mem_latency ).to_s
-    puts "Memory Latency Overhead: \n" +
-        compare_stats( dir: input_dir, regex: $mem_latency ).to_s
+    baseline_latency = get_stats( scheme: "none", dir: input_dir, regex: $mem_latency )
+    puts "Baseline Memory Latency: \n" + mpki.to_s
+    hash_to_csv( baseline_latency, result_dir+"/baseline_latency.csv" )
 
+    secure_latency = get_stats( scheme: "tp", dir: input_dir, regex: $mem_latency )
+    puts "Secure Baseline Memory Latency: \n" + secure_latency.to_s
+    hash_to_csv(  secure_latency, result_dir+"/secure_latency.csv" )
+
+    latency_overhead = compare_stats( dir: input_dir, regex: $mem_latency )
+    puts "Memory Latency Overhead: \n" + latency_overhead.to_s
+    hash_to_csv( latency_overhead, result_dir+"/latency_overhead.csv" )
 end
