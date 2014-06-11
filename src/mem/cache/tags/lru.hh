@@ -116,7 +116,6 @@ public:
 
     /**
      * Return the subblock size. In the case of LRU it is always the block
-     * size.
      * @return The block size.
      */
     unsigned
@@ -189,6 +188,8 @@ public:
       * this method and actually use the tid to do partitioning.
       */
     virtual CacheSet get_set( int setnum, uint64_t tid, Addr addr );
+
+    virtual int assoc_of_tc( int tcid ){ return assoc; }
 
     virtual void init_sets();
 

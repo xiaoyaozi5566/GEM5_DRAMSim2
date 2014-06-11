@@ -91,7 +91,7 @@ using namespace std;
 #define BUILD_LRU_CACHE do {                                            \
         LRU *tags;                                                      \
         if( use_way_part )                                              \
-            tags = new WPLRU( numSets, block_size, assoc, latency );     \
+            tags = new WPLRU( numSets, block_size, assoc, latency, num_tcs ); \
         else if( use_set_part )                                               \
             tags = new SPLRU( numSets, block_size, assoc, latency, num_tcs );     \
         else                                                            \

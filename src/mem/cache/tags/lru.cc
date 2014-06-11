@@ -164,7 +164,7 @@ LRU::findVictim(Addr addr, PacketList &writebacks, uint64_t tid)
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
-    BlkType *blk = get_set(set,tid,addr).blks[assoc-1];
+    BlkType *blk = get_set(set,tid,addr).blks[assoc_of_tc(tid)-1];
 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",

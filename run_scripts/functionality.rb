@@ -67,6 +67,28 @@ module RunScripts
         } )
     end
 
+    def secure_wp
+        sanity_({
+            schemes: %w[tp],
+            waypart: true,
+            rr_nc: true,
+            addrpar: true,
+            split_rport: true,
+            split_mshr: true,
+        } )
+    end
+
+    def secure_wp_deep
+        sanity_deep_({
+            schemes: %w[tp],
+            aypart: true,
+            rr_nc: true,
+            addrpar: true,
+            split_rport: true,
+            split_mshr: true,
+        } )
+    end
+
     def gcc_l2l3bus_hang
         opts = {
             nametag: "uncoordinated",
