@@ -72,6 +72,7 @@ module RunScripts
         }
         qsub_fast opts
 
+        # set partitioning
         opts = opts.merge({
             schemes: %w[ tp ],
             setpart: true,
@@ -79,6 +80,12 @@ module RunScripts
             split_mshr: true,
             split_rport: true,
             rr_nc: true,
+        })
+        qsub_fast opts
+
+        # way partitioning
+        opts = opts.merge({
+            waypart: true,
         })
         qsub_fast opts
     end

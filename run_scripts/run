@@ -24,10 +24,10 @@ include RunScripts
 #------------------------------------------------------------------------------
 # sanity
 # sanity_deep
-# rr_nc
-# rr_nc_deep
 # secure
 # secure_deep
+# secure_wp
+# secure_wp_deep
 # gcc_l2l3bus_hang
 
 #------------------------------------------------------------------------------
