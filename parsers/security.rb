@@ -16,7 +16,8 @@ def compare_etime( conf = {} )
     config.each do |cpu, scheme, p0|
         p = {cpu: cpu, scheme: scheme, p0: p0, dir: conf[:dir] }
         times = conf[:bench].inject({}) {|hsh,p1|
-            time, found = findTime( stdo_file( p.merge({p1:p1}) ) )
+            time, found = findTime( stdo_file( p.merge({p1:p1}) ),
+                                 no_ff: true )
             hsh[p1] = time if found
             hsh
         }
@@ -59,16 +60,28 @@ def avg_percent conf
 end
 
 def percent_diff_dist conf
+    # A (log scale) histogram of the distribution of percent differences in 
+    # files.
     dist=Hash.new(0)
-    tests = [  ->(x){x <= 1 } ]
-    (1..11).each{|i| tests << ->(x){ x >= i && x< i+1} }
-    tests << ->(x){ x >= 12 }
+    # An array of lambdas that take a number and decide whether or not the 
+    # numbers is within the specified range. After applying a number to each 
+    # lambda, exactly one is true.
+    tests = (1..11).to_a.reverse.map{|i|
+        ->(x){ x >= 10**(-i) && x< 10**(-i+1) }
+    }
+    tests << ->(x){ x >= 1 }
+    # A list of files that differ dramatically
     big_diff = []
+    # Run each comparison and bin the result in the histogram.
     compare_etime( conf ){|fi,t1,fj,t2|
         diff = method(:percent_diff).call(t1,t2)
         unless diff.nil?
-            big_diff << [fi,fj] if tests.map{|l| l.call( diff )}.index(true) >0 
+            # If the number is placed in a bin with large differeneces, add it 
+            # to the list.
+            big_diff << [fi,fj] if tests.map{|l| l.call( diff )}.index(true)>8
         end
+        # Use the index of the test which is true to determine which bin to 
+        # increment in the histogram.
         dist[tests.map{|l| l.call( diff ) }.index(true)]+=1 unless diff.nil?
     }
     [dist,big_diff]
@@ -107,8 +120,8 @@ if __FILE__ == $0
         puts "#{cpu} #{scheme} distribution:           " +
             dist.to_s.magenta
         #puts failed.to_a
-        # puts "#{cpu} #{scheme} big difference files:"
-        # big_diff.each{|f1,f2| puts "#{f1} != #{f2}"}
+        puts "#{cpu} #{scheme} big difference files:"
+        big_diff.each{|f1,f2| puts "#{f1} != #{f2}"}
         f.close()
     end
 
