@@ -2,7 +2,7 @@
 #include <iomanip>
 #include "stdio.h"
 #include "mem/cache/base.hh"
-#include "params/BaseCache.hh"
+#include "params/MemObject.hh"
 // #include <boost/archive/binary_oarchive.hpp>
 // #include <boost/serialization/list.hpp>
 
@@ -56,34 +56,34 @@ class TraceNode {
     {}
 };
 
-class CacheTrace: public std::list<TraceNode*>{
+class TraceList: public std::list<TraceNode*>{
     std::string outFile;
-    typedef BaseCacheParams Params;
+    typedef MemObjectParams Params;
     const Params * params;
 
     public:
 
-    CacheTrace( std::string outFile, const Params * params )
+    TraceList( std::string outFile, const Params * params )
         :outFile(outFile),
         params(params)
     {}
 
     void add( PacketPtr pkt, std::string op ){
-        if( params->do_cache_trace && pkt->threadID==0 ){
+        if( params->save_trace && pkt->threadID==0 ){
             push_back( new TraceNode( pkt, op ) );
         }
     }
 
     std::string to_s(){
         std::string return_val = "";
-        for( CacheTrace::iterator it=this->begin();
+        for( TraceList::iterator it=this->begin();
                 it != this->end(); it++ ){
             return_val += (*it)->to_s() + "\n";
         }
         return return_val;
     }
     void print(){
-        if( params->do_cache_trace ){
+        if( params->save_trace ){
             FILE * of = fopen( outFile.c_str() , "w" );
             fprintf( of, to_s().c_str() );
             fclose( of );

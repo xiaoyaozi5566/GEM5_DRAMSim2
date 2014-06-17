@@ -59,7 +59,7 @@ class L3Shared( L3Config ):
                             use_way_part = options.use_way_part,
                             split_mshrq = options.split_mshr,
                             split_rport = options.split_rport,
-                            do_cache_trace = options.do_cache_trace,
+                            save_trace = options.do_cache_trace,
                             l3_trace_file = options.l3tracefile)
 
         system.tol3bus = ( RR_NoncoherentBus(num_pids = options.numpids,
@@ -89,7 +89,7 @@ class L3Private( L3Config ):
                     block_size = options.cacheline_size,
                     use_set_part = options.use_set_part,
                     use_way_part = options.use_way_part,
-                    do_cache_trace = options.do_cache_trace,
+                    save_trace = options.do_cache_trace,
                     l3_trace_file = options.l3tracefile
                 )
                 for i in xrange( options.num_cpus )

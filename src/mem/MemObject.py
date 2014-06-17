@@ -26,8 +26,10 @@
 #
 # Authors: Ron Dreslinski
 
+from m5.params import *
 from ClockedObject import ClockedObject
 
 class MemObject(ClockedObject):
     type = 'MemObject'
     abstract = True
+    save_trace = Param.Bool(False, "save trace for this object")

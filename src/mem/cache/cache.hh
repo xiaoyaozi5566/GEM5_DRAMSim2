@@ -56,7 +56,7 @@
 #include "mem/cache/blk.hh"
 #include "mem/cache/mshr.hh"
 #include "sim/eventq.hh"
-#include "mem/cache/cache_trace.hh"
+#include "mem/trace_list.hh"
 #include "params/BaseCache.hh"
 #include "stdio.h"
 
@@ -91,7 +91,7 @@ class Cache : public BaseCache
     /** A typedef for a list of BlkType pointers. */
     typedef typename TagStore::BlkList BlkList;
 
-    CacheTrace * cacheTrace;
+    TraceList * cacheTrace;
 
     const Params *params;
 

@@ -83,9 +83,9 @@ Cache<TagStore>::Cache(const Params *p, TagStore *tags)
     if (prefetcher)
         prefetcher->setCache(this);
 
-    cacheTrace = new CacheTrace( p->l3_trace_file, p );
+    cacheTrace = new TraceList( p->l3_trace_file, p );
     Callback *ctPrintCB =
-        new MakeCallback< CacheTrace , &CacheTrace::print >( cacheTrace );
+        new MakeCallback< TraceList, &TraceList::print >( cacheTrace );
     registerExitCallback( ctPrintCB );
 
     params = p;
