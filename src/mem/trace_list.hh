@@ -36,8 +36,8 @@ class TraceNode {
             isReq  ? " [req ] " :
             isResp ? " [resp] " :
             " [none] ";
-        r << std::hex << "0x" << std::setw(7) << address << std::dec
-          << " @ " << std::setw(13) << time 
+        r << "0x" << std::hex << std::left << std::setw(9) << address 
+          << std::dec << " @ " << std::setw(13) << time 
           << rw << req << op;
         return r.str();
     }

@@ -132,6 +132,10 @@ if '--dramsim2' in sys.argv:
             help="Determines if L3 has separate Response Port Queues per TC")
     parser.add_option("--do_cache_trace", action="store_true", default=False,
             help="Determines if cache traces should be saved and reported")
+    parser.add_option("--do_bus_trace", action="store_true", default=False,
+            help="Save bus traces or not" )
+    parser.add_option("--bustracefile", type="string", default="bustrace.txt",
+            help="Output file for bus traces")
 
 ######################################################################
 

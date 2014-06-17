@@ -49,6 +49,7 @@
 
 #include "base/misc.hh"
 #include "base/trace.hh"
+#include "base/callback.hh"
 #include "debug/Bus.hh"
 #include "debug/BusAddrRanges.hh"
 #include "debug/NoncoherentBus.hh"
@@ -85,6 +86,11 @@ RR_NoncoherentBus::RR_NoncoherentBus(const RR_NoncoherentBusParams *p)
         slavePorts.push_back(bp);
     }
 
+    busTrace = new TraceList( p->bus_trace_file, p );
+    Callback *ctPrintCB =
+        new MakeCallback< TraceList, &TraceList::print >( busTrace );
+    registerExitCallback( ctPrintCB );
+
     clearPortCache();
 }
 
@@ -96,6 +102,8 @@ RR_NoncoherentBus::recvTimingReq(PacketPtr pkt, PortID slave_port_id)
 
     // we should never see express snoops on a non-coherent bus
     assert(!pkt->isExpressSnoop());
+
+    busTrace->add( pkt, "recvTimingReq" );
 
     //if(pkt->threadID == 0 && curTick() > 2820000000) printf("receive timing request %llx from %llu @ cycle %llu\n", pkt->getAddr(), pkt->threadID, curTick());
 	// test if the bus should be considered occupied for the current
@@ -142,6 +150,8 @@ RR_NoncoherentBus::recvTimingResp(PacketPtr pkt, PortID master_port_id)
     // determine the source port based on the id
     MasterPort *src_port = masterPorts[master_port_id];
 
+    busTrace->add( pkt, "recvTimingResp" );
+
     // test if the bus should be considered occupied for the current
     // port
     //if(pkt->threadID == 0 && curTick() > 2820000000) printf("receive timing response %llx from %llu @ cycle %llu\n", pkt->getAddr(), pkt->threadID, curTick());
@@ -187,6 +197,8 @@ RR_NoncoherentBus::recvAtomic(PacketPtr pkt, PortID slave_port_id)
             slavePorts[slave_port_id]->name(), pkt->getAddr(),
             pkt->cmdString());
 
+    busTrace->add( pkt, "recvAtomic" );
+
     // determine the destination port
     PortID dest_id = findPort(pkt->getAddr());
 
@@ -207,6 +219,8 @@ RR_NoncoherentBus::recvFunctional(PacketPtr pkt, PortID slave_port_id)
                 slavePorts[slave_port_id]->name(), pkt->getAddr(),
                 pkt->cmdString());
     }
+
+    busTrace->add( pkt, "recvFunctional" );
 
     // determine the destination port
     PortID dest_id = findPort(pkt->getAddr());
