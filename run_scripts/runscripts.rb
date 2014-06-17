@@ -135,7 +135,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("build/ARM/gem5.debug \\") if debug 
     script.puts("--debug-flags=Cache \\") if cacheDebug
     script.puts("--debug-flags=MMU \\") if mmuDebug
-    script.puts("--debug-flags=Bus,MMU,TLB \\") if options[:memdebug]
+    script.puts("--debug-flags=Bus,MMU,Cache\\") if options[:memdebug]
     script.puts("    --stats-file=#{filename}_stats.txt \\")
     script.puts("    configs/dramsim2/dramsim2_se.py \\")
     script.puts("    --cpu-type=#{cpu} \\")
@@ -174,8 +174,9 @@ def sav_script( cpu, scheme, p0, options = {} )
 
     script.puts("    --dramsim2 \\")
     script.puts("    --savetraces \\") if savetraces
+    script.puts("    --do_cache_trace \\") if options[:do_cache_trace]
     l3tracefile = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"
-    script.puts("    --l3tracefile #{l3tracefile}\\") if savetraces
+    script.puts("    --l3tracefile #{l3tracefile}\\") if options[:do_cache_trace]
     script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
     script.puts("    --devicecfg="+
                 "./ext/DRAMSim2/ini/#{$device} \\")
@@ -257,11 +258,7 @@ def qsub_fast_scaling opts
 
     opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
 
-
     opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        opts[:benchmarks].each do |p0|
-            sav_script( cpu, scheme, p0, opts )
-        end
         opts[:benchmarks].product( opts[:otherbench] ).each do |p0, other|
             sav_script( cpu, scheme, p0, 
                         opts.merge(p1: other)  )

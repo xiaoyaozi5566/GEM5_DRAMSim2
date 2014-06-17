@@ -132,6 +132,8 @@ if '--dramsim2' in sys.argv:
             help="Determines if L3 has separate MSHR Queues per TC")
     parser.add_option("--split_rport", action="store_true", default=False,
             help="Determines if L3 has separate Response Port Queues per TC")
+    parser.add_option("--do_cache_trace", action="store_true", default=False,
+            help="Determines if cache traces should be saved and reported")
 
 ######################################################################
 

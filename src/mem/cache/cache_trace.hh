@@ -1,6 +1,10 @@
 #include <list>
-#include "mem/cache/base.hh"
+#include <iomanip>
 #include "stdio.h"
+#include "mem/cache/base.hh"
+#include "params/BaseCache.hh"
+// #include <boost/archive/binary_oarchive.hpp>
+// #include <boost/serialization/list.hpp>
 
 class TraceNode {
     uint64_t address;
@@ -8,6 +12,19 @@ class TraceNode {
     bool isRead;
     bool isReq;
     bool isResp;
+    std::string op;
+
+    // friend class boost::serialization::access;
+    // template<class Archive>
+    // void serialize( Archive & ar, const unsigned int version ){
+    //     ar & address;
+    //     ar & time;
+    //     ar & isRead;
+    //     ar & isReq;
+    //     ar & isResp;
+    //     ar & isResp;
+    //     ar & op;
+    // }
 
     public:
 
@@ -19,26 +36,43 @@ class TraceNode {
             isReq  ? " [req ] " :
             isResp ? " [resp] " :
             " [none] ";
-        r << address << " @ " << time << rw << req;
+        r << std::hex << "0x" << std::setw(7) << address << std::dec
+          << " @ " << std::setw(13) << time 
+          << rw << req << op;
         return r.str();
     }
     
     TraceNode(PacketPtr ptr):
+        TraceNode(ptr, "")
+    {}
+
+    TraceNode(PacketPtr ptr, std::string op):
         address(ptr->getAddr()),
         time(curTick()),
         isRead(ptr->isRead()),
         isReq(ptr->isRequest()),
-        isResp(ptr->isResponse())
+        isResp(ptr->isResponse()),
+        op(op)
     {}
 };
 
-class CacheTrace : public std::list<TraceNode*>{
+class CacheTrace: public std::list<TraceNode*>{
     std::string outFile;
+    typedef BaseCacheParams Params;
+    const Params * params;
+
     public:
 
-    CacheTrace( std::string outFile )
-        :outFile(outFile)
+    CacheTrace( std::string outFile, const Params * params )
+        :outFile(outFile),
+        params(params)
     {}
+
+    void add( PacketPtr pkt, std::string op ){
+        if( params->do_cache_trace && pkt->threadID==0 ){
+            push_back( new TraceNode( pkt, op ) );
+        }
+    }
 
     std::string to_s(){
         std::string return_val = "";
@@ -49,9 +83,10 @@ class CacheTrace : public std::list<TraceNode*>{
         return return_val;
     }
     void print(){
-        // printf( to_s().c_str() );
-        FILE * of = fopen( outFile.c_str() , "w" );
-        fprintf( of, to_s().c_str() );
-        fclose( of );
+        if( params->do_cache_trace ){
+            FILE * of = fopen( outFile.c_str() , "w" );
+            fprintf( of, to_s().c_str() );
+            fclose( of );
+        } 
     }
 };

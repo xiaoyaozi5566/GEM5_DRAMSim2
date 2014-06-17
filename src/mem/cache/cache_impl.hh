@@ -83,12 +83,10 @@ Cache<TagStore>::Cache(const Params *p, TagStore *tags)
     if (prefetcher)
         prefetcher->setCache(this);
 
-    if ( p->do_cache_trace && p->save_traces ){
-        cacheTrace = new CacheTrace( p->l3_trace_file );
-        Callback *ctPrintCB =
-            new MakeCallback< CacheTrace , &CacheTrace::print >( cacheTrace );
-        registerExitCallback( ctPrintCB );
-    }
+    cacheTrace = new CacheTrace( p->l3_trace_file, p );
+    Callback *ctPrintCB =
+        new MakeCallback< CacheTrace , &CacheTrace::print >( cacheTrace );
+    registerExitCallback( ctPrintCB );
 
     params = p;
 }
@@ -147,7 +145,7 @@ Cache<TagStore>::satisfyCpuSideRequest(PacketPtr pkt, BlkType *blk,
                                        bool deferred_response,
                                        bool pending_downgrade)
 {
-    assert(blk && blk->isValid());
+    // assert(blk && blk->isValid());
     // Occasionally this is not true... if we are a lower-level cache
     // satisfying a string of Read and ReadEx requests from
     // upper-level caches, a Read will mark the block as shared but we
@@ -1358,9 +1356,7 @@ bool
 Cache<TagStore>::CpuSidePort::recvTimingSnoopResp(PacketPtr pkt)
 {
     // Express snoop responses from master to slave, e.g., from L1 to L2
-    if( cache->params->save_traces && pkt->threadID == 0 ){
-        cache->cacheTrace->push_back( new TraceNode(pkt) );
-    }
+    cache->cacheTrace->add( pkt, "recvTimingSnoopResp" );
     cache->timingAccess(pkt);
     return true;
 }
@@ -1616,9 +1612,7 @@ Cache<TagStore>::CpuSidePort::recvTimingReq(PacketPtr pkt)
         return false;
     }
 
-    if( cache->params->save_traces && pkt->threadID == 0 ){
-        cache->cacheTrace->push_back( new TraceNode( pkt ) );
-    }
+    cache->cacheTrace->add( pkt , "recvTimingReq" );
     cache->timingAccess(pkt);
     return true;
 }
@@ -1628,6 +1622,7 @@ Tick
 Cache<TagStore>::CpuSidePort::recvAtomic(PacketPtr pkt)
 {
     // atomic request
+    cache->cacheTrace->add( pkt , "recvAtomic" );
     return cache->atomicAccess(pkt);
 }
 
@@ -1636,6 +1631,7 @@ void
 Cache<TagStore>::CpuSidePort::recvFunctional(PacketPtr pkt)
 {
     // functional request
+    cache->cacheTrace->add( pkt , "recvFunctional" );
     cache->functionalAccess(pkt, true);
 }
 
@@ -1657,9 +1653,7 @@ template<class TagStore>
 bool
 Cache<TagStore>::MemSidePort::recvTimingResp(PacketPtr pkt)
 {
-    if( cache->params->save_traces && pkt->threadID == 0 ){
-        cache->cacheTrace->push_back( new TraceNode( pkt ) );
-    }
+    cache->cacheTrace->add( pkt, "recvTimingResp" );
     cache->handleResponse(pkt);
     return true;
 }
@@ -1670,9 +1664,7 @@ void
 Cache<TagStore>::MemSidePort::recvTimingSnoopReq(PacketPtr pkt)
 {
     // handle snooping requests
-    if( cache->params->save_traces && pkt->threadID == 0 ){
-        cache->cacheTrace->push_back( new TraceNode( pkt ) );
-    }
+    cache->cacheTrace->add( pkt, "recvTimingSnoopReq" );
     cache->snoopTiming(pkt);
 }
 
@@ -1681,6 +1673,7 @@ Tick
 Cache<TagStore>::MemSidePort::recvAtomicSnoop(PacketPtr pkt)
 {
     // atomic snoop
+    cache->cacheTrace->add( pkt, "recvAtomicSnoop" );
     return cache->snoopAtomic(pkt);
 }
 
@@ -1691,6 +1684,7 @@ Cache<TagStore>::MemSidePort::recvFunctionalSnoop(PacketPtr pkt)
     // functional snoop (note that in contrast to atomic we don't have
     // a specific functionalSnoop method, as they have the same
     // behaviour regardless)
+    cache->cacheTrace->add( pkt, "recvFunctionalSnoop" );
     cache->functionalAccess(pkt, false);
 }
 
