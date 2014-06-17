@@ -57,7 +57,7 @@ module RunScripts
             l3config: "shared",
             split_mshr: true,
             setpart: true,
-            result_dir: "results_setpart"
+            result_dir: "res lts_setpar"
         })
 
         parallel_local opts
@@ -92,21 +92,27 @@ module RunScripts
 
     def security_debug
         opts = {
+            nametag: "cache_traces",
             p1: "astar",
-            maxinsts: 10**6,
+            maxinsts: 10**7,
             fastforward: 0,
             setpart: true,
             rr_nc: true,
             split_mshr: true,
-            memdebug: true,
-            runmode: :local
+            split_rport: true,
+            addrpar: true,
+            #memdebug: true,
+            debug: true,
+            runmode: :local,
+            do_cache_trace: true,
+            do_bus_trace: true,
         }
         Parallel.each(1..2, :in_threads=>2) do |i|
             if i==1
-                sav_script( "detailed", "tp", "mcf", opts )
+                sav_script( "detailed", "tp", "gcc", opts )
             else
-                opts = opts.merge( { p1: "hmmer" } )
-                sav_script( "detailed", "tp", "mcf", opts )
+                opts = opts.merge( { p1: "gcc" } )
+                sav_script( "detailed", "tp", "gcc", opts )
             end
         end
     end
