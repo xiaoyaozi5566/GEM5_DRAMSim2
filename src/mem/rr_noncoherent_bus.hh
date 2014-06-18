@@ -52,7 +52,7 @@
 #define __MEM_RR_NONCOHERENT_BUS_HH__
 
 #include "mem/rr_bus.hh"
-#include "mem/trace_list.hh"
+#include "mem/trace_printer.hh"
 #include "params/RR_NoncoherentBus.hh"
 
 /**
@@ -84,7 +84,8 @@ class RR_NoncoherentBus : public RRBus
 	int resp_tl;
 	int resp_offset;
 
-    TraceList * busTrace;
+    //TraceList  * busTrace;
+    TracePrinter * busTrace;
 
     /**
      * Declaration of the non-coherent bus slave port type, one will

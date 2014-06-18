@@ -83,10 +83,7 @@ Cache<TagStore>::Cache(const Params *p, TagStore *tags)
     if (prefetcher)
         prefetcher->setCache(this);
 
-    cacheTrace = new TraceList( p->l3_trace_file, p );
-    Callback *ctPrintCB =
-        new MakeCallback< TraceList, &TraceList::print >( cacheTrace );
-    registerExitCallback( ctPrintCB );
+    tracePrinter = new TracePrinter( p->l3_trace_file, p );
 
     params = p;
 }
@@ -1356,7 +1353,7 @@ bool
 Cache<TagStore>::CpuSidePort::recvTimingSnoopResp(PacketPtr pkt)
 {
     // Express snoop responses from master to slave, e.g., from L1 to L2
-    cache->cacheTrace->add( pkt, "recvTimingSnoopResp" );
+    cache->tracePrinter->addTrace( pkt, "recvTimingSnoopResp" );
     cache->timingAccess(pkt);
     return true;
 }
@@ -1612,7 +1609,7 @@ Cache<TagStore>::CpuSidePort::recvTimingReq(PacketPtr pkt)
         return false;
     }
 
-    cache->cacheTrace->add( pkt , "recvTimingReq" );
+    cache->tracePrinter->addTrace( pkt , "recvTimingReq" );
     cache->timingAccess(pkt);
     return true;
 }
@@ -1622,7 +1619,7 @@ Tick
 Cache<TagStore>::CpuSidePort::recvAtomic(PacketPtr pkt)
 {
     // atomic request
-    cache->cacheTrace->add( pkt , "recvAtomic" );
+    cache->tracePrinter->addTrace( pkt , "recvAtomic" );
     return cache->atomicAccess(pkt);
 }
 
@@ -1631,7 +1628,7 @@ void
 Cache<TagStore>::CpuSidePort::recvFunctional(PacketPtr pkt)
 {
     // functional request
-    cache->cacheTrace->add( pkt , "recvFunctional" );
+    cache->tracePrinter->addTrace( pkt , "recvFunctional" );
     cache->functionalAccess(pkt, true);
 }
 
@@ -1653,7 +1650,7 @@ template<class TagStore>
 bool
 Cache<TagStore>::MemSidePort::recvTimingResp(PacketPtr pkt)
 {
-    cache->cacheTrace->add( pkt, "recvTimingResp" );
+    cache->tracePrinter->addTrace( pkt, "recvTimingResp" );
     cache->handleResponse(pkt);
     return true;
 }
@@ -1664,7 +1661,7 @@ void
 Cache<TagStore>::MemSidePort::recvTimingSnoopReq(PacketPtr pkt)
 {
     // handle snooping requests
-    cache->cacheTrace->add( pkt, "recvTimingSnoopReq" );
+    cache->tracePrinter->addTrace( pkt, "recvTimingSnoopReq" );
     cache->snoopTiming(pkt);
 }
 
@@ -1673,7 +1670,7 @@ Tick
 Cache<TagStore>::MemSidePort::recvAtomicSnoop(PacketPtr pkt)
 {
     // atomic snoop
-    cache->cacheTrace->add( pkt, "recvAtomicSnoop" );
+    cache->tracePrinter->addTrace( pkt, "recvAtomicSnoop" );
     return cache->snoopAtomic(pkt);
 }
 
@@ -1684,7 +1681,7 @@ Cache<TagStore>::MemSidePort::recvFunctionalSnoop(PacketPtr pkt)
     // functional snoop (note that in contrast to atomic we don't have
     // a specific functionalSnoop method, as they have the same
     // behaviour regardless)
-    cache->cacheTrace->add( pkt, "recvFunctionalSnoop" );
+    cache->tracePrinter->addTrace( pkt, "recvFunctionalSnoop" );
     cache->functionalAccess(pkt, false);
 }
 
