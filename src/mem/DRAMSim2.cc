@@ -73,6 +73,7 @@ DRAMSim2Params::create()
 bool
 DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 {
+    memory->tracePrinter->addTrace( pkt, "recvTimingReq" );
     /* I don't know when they can remove this... */
     /// @todo temporary hack to deal with memory corruption issue until
     /// 4-phase transactions are complete. Remove me later
@@ -183,6 +184,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
             my_port->schedTimingResp(pkt, toSchedule, threadID);
+            tracePrinter->addTrace( pkt, "read_complete", toSchedule );
         } else {
             my_port->addPendingDelete(pkt);
         }
@@ -210,6 +212,7 @@ void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycl
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
             my_port->schedTimingResp(pkt, toSchedule, threadID);
+            tracePrinter->addTrace( pkt, "write_complete", toSchedule );
         } else {
             my_port->addPendingDelete(pkt);
         }

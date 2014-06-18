@@ -51,6 +51,7 @@
 
 #include "mem/abstract_mem.hh"
 #include "mem/tport.hh"
+#include "mem/trace_printer.hh"
 #include "params/DRAMSim2Wrapper.hh"
 
 /**
@@ -132,6 +133,7 @@ class DRAMSim2Wrapper : public AbstractMemory
 
 
   public:
+    TracePrinter * tracePrinter;
 
     typedef DRAMSim2WrapperParams Params;
     DRAMSim2Wrapper(const Params *p);

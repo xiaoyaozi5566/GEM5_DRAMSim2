@@ -55,6 +55,7 @@ DRAMSim2Wrapper::DRAMSim2Wrapper(const Params* p) :
         new SplitMemoryPort( name() + ".port", this, p->numPids ) :
         new MemoryPort( name() + ".port", this, p->numPids );
 
+    tracePrinter = new TracePrinter( p->trace_file, p );
 }
 
 void

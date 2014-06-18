@@ -136,6 +136,14 @@ if '--dramsim2' in sys.argv:
             help="Save bus traces or not" )
     parser.add_option("--bustracefile", type="string", default="bustrace.txt",
             help="Output file for bus traces")
+    parser.add_option("--do_mem_trace", action="store_true", default=False,
+            help= "do memory trace" )
+    parser.add_option("--mem_trace_file", type="string", default="memtrace.txt",
+            help="memory trace file")
+    parser.add_option("--addr_trace", action="store_true", default=False,
+            help="do detailed trace for address")
+    parser.add_option("--trace_addr", type="int", default=0,
+            help="address for detailed trace")
 
 ######################################################################
 
@@ -201,7 +209,11 @@ if options.dramsim2 :
                         offset=options.dramoffset,
                         #Infer split memory ports from split cache ports
                         #TODO give this its own option or infer from scheme
-                        split_ports = options.split_rport
+                        split_ports = options.split_rport,
+                        save_trace  = options.do_mem_trace,
+                        trace_file  = options.mem_trace_file,
+                        addr_trace  = options.addr_trace,
+                        trace_addr  = options.trace_addr
                     );
 else: # or we just use the original memory model
     DRAM = SimpleMemory( range = AddrRange(memorysize) )

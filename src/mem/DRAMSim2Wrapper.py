@@ -48,4 +48,8 @@ class DRAMSim2Wrapper(AbstractMemory):
     latency = Param.Latency('30ns', "Request to response latency")
     latency_var = Param.Latency('0ns', "Request to response latency variance")
     split_ports = Param.Bool(False, "Use split memory ports");
+    trace_file  = Param.String("mem_trace.txt", "memory trace file");
+    addr_trace  = Param.Bool(False, "do address trace");
+    trace_addr  = Param.Int(0, "address to trace");
+    addr_trace_file = Param.String("addr_trace.txt", "memory trace file");
     numPids = Param.Int(2, "Number of PIDs")
