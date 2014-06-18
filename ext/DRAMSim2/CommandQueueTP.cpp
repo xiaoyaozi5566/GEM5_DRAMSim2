@@ -2,8 +2,8 @@
 #include "CommandQueueTP.h"
 #include "MemoryController.h"
 
-#define interesting 0x2e065700
-//#define DEBUG_TP
+#define interesting 0x669740
+#define DEBUG_TP
 
 using namespace DRAMSim;
 

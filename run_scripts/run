@@ -16,7 +16,7 @@ include RunScripts
 # cache_security
 # execution_time_compare
 # execution_time_compare_qsub
-# security_debug
+  security_debug
 # setpart_vs_private
 
 #------------------------------------------------------------------------------

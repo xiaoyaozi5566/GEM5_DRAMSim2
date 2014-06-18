@@ -35,7 +35,7 @@
 //Class file for memory controller object
 //
 
-//#define DEBUG_TP
+#define DEBUG_TP
 
 #include "MemoryController.h"
 #include "MemorySystem.h"

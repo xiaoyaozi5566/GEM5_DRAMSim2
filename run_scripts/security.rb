@@ -92,9 +92,9 @@ module RunScripts
 
     def security_debug
         opts = {
-            nametag: "cache_traces",
+            nametag: "debug_traces",
             p1: "astar",
-            maxinsts: 10**7,
+            maxinsts: 2 * 10**5,
             fastforward: 0,
             setpart: true,
             rr_nc: true,
@@ -106,6 +106,7 @@ module RunScripts
             runmode: :local,
             do_cache_trace: true,
             do_bus_trace: true,
+            do_mem_trace: true,
         }
         Parallel.each(1..2, :in_threads=>2) do |i|
             if i==1
