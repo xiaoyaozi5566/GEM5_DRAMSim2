@@ -232,6 +232,12 @@ void MemoryController::update()
             //inform upper levels that a write is done
             if (parentMemorySystem->WriteDataDone!=NULL)
             {
+#ifdef DEBUG_TP
+                if( outgoingDataPacket -> physicalAddress == interesting ){
+                    cout << "returning interesting write to GEM5 @ "
+                        << currentClockCycle;
+                }
+#endif /*DEBUG_TP*/
                 (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle, outgoingDataPacket->threadID);
             }
 
@@ -836,6 +842,12 @@ void MemoryController::updateReturnTransactions()
                 addressMapping(returnTransaction[0]->address,chan,rank,bank,row,col);
                 //insertHistogram(currentClockCycle-pendingReadTransactions[i]->timeAdded,rank,bank);
                 //return latency
+#ifdef DEBUG_TP
+                if( returnTransaction[0]->address == interesting ){
+                    cout << "returning interesting read to GEM5 @ "
+                        << currentClockCycle;
+                }
+#endif /*DEBUG_TP*/
                 returnReadData(pendingReadTransactions[i]);
                 //Formerly outputs just if transaction->threadID==0
                 /*

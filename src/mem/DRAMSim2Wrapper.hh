@@ -116,6 +116,7 @@ class DRAMSim2Wrapper : public AbstractMemory
 
         virtual void schedTimingResp(PacketPtr pkt, Tick when, int threadID)
         { 
+            memory->tracePrinter->addTrace( pkt, "split schedSendTiming" );
             this->respQueues[threadID]->schedSendTiming(pkt, when);
         }
 

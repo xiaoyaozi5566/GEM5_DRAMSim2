@@ -334,6 +334,8 @@ CPUClass.numThreads = numThreads;
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
                 membus = ( RR_NoncoherentBus(num_pids = options.numpids,
+                                             save_trace = options.do_bus_trace,
+                                             bus_trace_file = "mem" + options.bustracefile ,
                                              req_tl = options.membusreq_tl,
                                              req_offset = options.membusreq_offset,
                                              resp_tl = options.membusresp_tl,

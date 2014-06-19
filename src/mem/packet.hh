@@ -492,6 +492,7 @@ class Packet : public Printable
     /// Reset destination field, e.g. to turn a response into a request again.
     void clearDest() { dest = InvalidPortID; }
 
+    Addr getPaddr() const { return req->getPaddr(); }
     Addr getAddr() const { assert(flags.isSet(VALID_ADDR)); return addr; }
     unsigned getSize() const  { assert(flags.isSet(VALID_SIZE)); return size; }
     Addr getOffset(int blkSize) const { return getAddr() & (Addr)(blkSize - 1); }

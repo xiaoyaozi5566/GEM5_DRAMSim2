@@ -51,6 +51,9 @@
 #ifndef __CACHE_HH__
 #define __CACHE_HH__
 
+//#define DEBUGI
+#define interesting 0x669740
+
 #include "base/misc.hh" // fatal, panic, and warn
 #include "mem/cache/base.hh"
 #include "mem/cache/blk.hh"

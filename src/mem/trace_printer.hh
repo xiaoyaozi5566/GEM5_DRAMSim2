@@ -27,7 +27,9 @@ class TracePrinter {
             isResp ? " [resp] " :
             " [none] ";
         uint64_t address = pkt->getAddr();
+        // uint64_t paddress = pkt->getPaddr();
         r << "0x" << std::hex << std::left << std::setw(9) << address 
+          //<< " (0x" << std::hex << std::left << std::setw(9) << paddress << ")"
           << std::dec << " @ " << std::setw(13) << time 
           << rw << req;
         return r.str();

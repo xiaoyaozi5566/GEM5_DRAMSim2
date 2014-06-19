@@ -2,9 +2,6 @@
 #include "CommandQueueFA.h"
 #include "MemoryController.h"
 
-#define interesting 0x00045000
-//#define DEBUG_TP 0
-
 using namespace DRAMSim;
 
 CommandQueueFA::CommandQueueFA(vector< vector<BankState> > &states, 

@@ -94,7 +94,7 @@ module RunScripts
         opts = {
             nametag: "debug_traces",
             p1: "astar",
-            maxinsts: 2 * 10**5,
+            maxinsts: 5*10**7,
             fastforward: 0,
             setpart: true,
             rr_nc: true,
@@ -110,12 +110,27 @@ module RunScripts
         }
         Parallel.each(1..2, :in_threads=>2) do |i|
             if i==1
-                sav_script( "detailed", "tp", "gcc", opts )
+                if block_given? 
+                    yield opts.merge( p0: "gcc" )
+                else
+                    sav_script( "detailed", "tp", "gcc", opts )
+                end
             else
                 opts = opts.merge( { p1: "gcc" } )
-                sav_script( "detailed", "tp", "gcc", opts )
+                if block_given?
+                    yield opts.merge( p0: "gcc" )
+                else
+                    sav_script( "detailed", "tp", "gcc", opts )
+                end
             end
         end
+    end
+
+    def paddr_test
+        security_debug{ |opts|
+            sav_script( "detailed", "tp", opts[:p0],
+               opts.merge( maxinsts: 10**5 , nametag: "paddr_test" ) )
+        }
     end
 
 end

@@ -2,9 +2,6 @@
 #include "CommandQueueTP.h"
 #include "MemoryController.h"
 
-#define interesting 0x669740
-#define DEBUG_TP
-
 using namespace DRAMSim;
 
 CommandQueueTP::CommandQueueTP(vector< vector<BankState> > &states, 
@@ -156,11 +153,13 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
         startingRank = nextRank;
         startingBank = nextBank;
 #ifdef DEBUG_TP
+        if( hasInteresting() ){
         cout << endl << "==========================================="<<endl;
         cout << "Starting turn of length 2**"<<tpTurnLength<<" with PID "<<
             getCurrentPID() <<" at cycle "<< currentClockCycle << endl;
         cout << endl;
         print();
+        }
 #endif /*DEBUG_TP*/
     }
     lastPID = getCurrentPID();
@@ -232,6 +231,7 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
                         <<" startingBank " << startingBank << endl;
                     printf("refreshRank %u\n",refreshRank);
                     bankStates[queue[i]->rank][queue[i]->bank].print();
+                    print();
                     lastPopTime = currentClockCycle;
                 }
 #endif /*DEBUG_TP*/

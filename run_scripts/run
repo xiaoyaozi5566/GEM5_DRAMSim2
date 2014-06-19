@@ -17,6 +17,7 @@ include RunScripts
 # execution_time_compare
 # execution_time_compare_qsub
   security_debug
+# paddr_test
 # setpart_vs_private
 
 #------------------------------------------------------------------------------
