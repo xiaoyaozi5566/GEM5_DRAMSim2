@@ -753,8 +753,8 @@ void CommandQueue::needRefresh(unsigned rank)
     refreshWaiting = true;
     refreshRank = rank;
 #ifdef DEBUG_TP
-    cout << "Called needRefresh setting refreshRank="<<refreshRank<<endl;
-    cout <<" call happened at "<< currentClockCycle<<endl;
+    // cout << "Called needRefresh setting refreshRank="<<refreshRank<<endl;
+    // cout <<" call happened at "<< currentClockCycle<<endl;
 #endif /*DEBUG_TP*/
 }
 

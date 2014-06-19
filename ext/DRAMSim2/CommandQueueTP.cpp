@@ -130,8 +130,8 @@ void CommandQueueTP::refreshPopClosePage(BusPacket **busPacket, bool &
         *busPacket = new BusPacket(REFRESH, 0, 0, 0, refreshRank, 0, 0, 
                 dramsim_log);
 #ifdef DEBUG_TP
-        PRINTN("Refresh at " << currentClockCycle << " for rank " 
-                << refreshRank << endl);
+        // PRINTN("Refresh at " << currentClockCycle << " for rank " 
+        //         << refreshRank << endl);
 #endif /*DEBUG_TP*/
         refreshRank = -1;
         refreshWaiting = false;
@@ -238,10 +238,10 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
             }
         }
 #ifdef DEBUG_TP 
-        else if(hasInteresting() && refreshWaiting && nextRank ==refreshRank){
-            //  PRINTN("Blocked by refreshRank at "<<currentClockCycle<<
-            //         " with turn "<<currentPID<<endl);
-        }
+        // else if(hasInteresting() && refreshWaiting && nextRank ==refreshRank){
+        //     PRINTN("Blocked by refreshRank at "<<currentClockCycle<<
+        //              " with turn "<<currentPID<<endl);
+        // }
 #endif /*DEBUG_TP*/
 
         //if we found something, break out of do-while

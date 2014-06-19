@@ -35,6 +35,9 @@
  *         Tao Zhang
  */
 
+#define DEBUGI
+#define interesting 0x669740
+
 #include <cstdlib>
 #include <iomanip>
 
@@ -179,10 +182,20 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
 
             // remove the skew between DRAMSim2 and gem5
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
+#ifdef DEBUGI
+            if( pkt->getAddr() == interesting ){
+                printf( "toSchedule interesting before calc %lu\n", toSchedule );
+            }
+#endif
             if (toSchedule <= curTick())
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
+#ifdef DEBUGI
+            if( pkt->getAddr() == interesting ){
+                printf( "toSchedule interesting after calc %lu\n", toSchedule );
+            }
+#endif
             my_port->schedTimingResp(pkt, toSchedule, threadID);
             tracePrinter->addTrace( pkt, "read_complete", toSchedule );
         } else {
@@ -207,10 +220,20 @@ void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycl
             doAtomicAccess(pkt);
             assert(pkt->isResponse());
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
+#ifdef DEBUGI
+            if( pkt->getAddr() == interesting ){
+                printf( "toSchedule interesting before calc %lu\n", toSchedule );
+            }
+#endif
             if (toSchedule <= curTick())
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
+#ifdef DEBUGI
+            if( pkt->getAddr() == interesting ){
+                printf( "toSchedule interesting after calc %lu\n", toSchedule );
+            }
+#endif
             my_port->schedTimingResp(pkt, toSchedule, threadID);
             tracePrinter->addTrace( pkt, "write_complete", toSchedule );
         } else {
