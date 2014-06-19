@@ -65,7 +65,7 @@ class L3Shared( L3Config ):
         system.tol3bus = ( 
                 RR_NoncoherentBus(num_pids = options.numpids,
                             save_trace = options.do_bus_trace,
-                            bus_trace_file = "l2l3" + options.bustracefile ,
+                            bus_trace_file = options.l2l3bustracefile ,
                             req_tl = options.l2l3req_tl,
                             req_offset = options.l2l3req_offset,
                             resp_tl = options.l2l3resp_tl,

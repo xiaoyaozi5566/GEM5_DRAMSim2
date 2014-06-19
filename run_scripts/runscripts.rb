@@ -177,8 +177,10 @@ def sav_script( cpu, scheme, p0, options = {} )
     l3tracefile  = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"
     script.puts("    --l3tracefile #{l3tracefile}\\") if options[:do_cache_trace]
     script.puts("    --do_bus_trace \\"  ) if options[:do_bus_trace]
-    bustracefile = options[:bus_trace_file] || "#{result_dir}/bustrace_#{filename}.txt"
-    script.puts("    --bustracefile #{bustracefile}\\") if options[:do_bus_trace]
+    membustracefile = options[:bus_trace_file] || "#{result_dir}/membustrace_#{filename}.txt"
+    l2l3bustracefile = options[:bus_trace_file] || "#{result_dir}/l2l3bustrace_#{filename}.txt"
+    script.puts("    --membustracefile #{membustracefile}\\") if options[:do_bus_trace]
+    script.puts("    --l2l3bustracefile #{l2l3bustracefile}\\") if options[:do_bus_trace]
     script.puts("    --do_mem_trace \\"  ) if options[:do_mem_trace]
     memtracefile = options[:mem_trace_file] || "#{result_dir}/memtrace_#{filename}.txt"
     script.puts("    --mem_trace_file #{memtracefile}\\") if options[:do_mem_trace]

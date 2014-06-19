@@ -134,7 +134,9 @@ if '--dramsim2' in sys.argv:
             help="Determines if cache traces should be saved and reported")
     parser.add_option("--do_bus_trace", action="store_true", default=False,
             help="Save bus traces or not" )
-    parser.add_option("--bustracefile", type="string", default="bustrace.txt",
+    parser.add_option("--membustracefile", type="string", default="bustrace.txt",
+            help="Output file for bus traces")
+    parser.add_option("--l2l3bustracefile", type="string", default="bustrace.txt",
             help="Output file for bus traces")
     parser.add_option("--do_mem_trace", action="store_true", default=False,
             help= "do memory trace" )
@@ -335,7 +337,7 @@ system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 physmem = DRAM,
                 membus = ( RR_NoncoherentBus(num_pids = options.numpids,
                                              save_trace = options.do_bus_trace,
-                                             bus_trace_file = "mem" + options.bustracefile ,
+                                             bus_trace_file = options.membustracefile ,
                                              req_tl = options.membusreq_tl,
                                              req_offset = options.membusreq_offset,
                                              resp_tl = options.membusresp_tl,
