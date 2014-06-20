@@ -36,7 +36,7 @@
  */
 
 #define DEBUGI
-#define interesting 0x669740
+#define interesting 0x66df80
 
 #include <cstdlib>
 #include <iomanip>
@@ -184,9 +184,11 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
 #ifdef DEBUGI
             if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting before calc %lu\n SimClock %lu\n",
+                printf( "toSchedule interesting before calc %lu\n SimClock %lu\n curTick %lu\n",
                         toSchedule,
-                        SimClock::Int::ms );
+                        SimClock::Int::ms,
+                        curTick()
+                        );
             }
 #endif
             if (toSchedule <= curTick()){
