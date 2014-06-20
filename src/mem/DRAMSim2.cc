@@ -184,13 +184,23 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
 #ifdef DEBUGI
             if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting before calc %lu\n", toSchedule );
+                printf( "toSchedule interesting before calc %lu\n SimClock %lu\n",
+                        toSchedule,
+                        SimClock::Int::ms );
             }
 #endif
-            if (toSchedule <= curTick())
+            if (toSchedule <= curTick()){
+#ifdef DEBUGI
+                  if (pkt->getAddr() == interesting ) printf( "(1) taken\n" );
+#endif 
                   toSchedule = curTick() + 1;  //not accurate, but I have to
-            if (toSchedule >= curTick() + SimClock::Int::ms)
+            }
+            if (toSchedule >= curTick() + SimClock::Int::ms){
+#ifdef DEBUGI
+                  if (pkt->getAddr() == interesting ) printf( "(2) taken\n" );
+#endif
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
+            }
 #ifdef DEBUGI
             if( pkt->getAddr() == interesting ){
                 printf( "toSchedule interesting after calc %lu\n", toSchedule );

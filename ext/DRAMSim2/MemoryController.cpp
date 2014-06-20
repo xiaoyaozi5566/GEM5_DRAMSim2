@@ -235,7 +235,7 @@ void MemoryController::update()
 #ifdef DEBUG_TP
                 if( outgoingDataPacket -> physicalAddress == interesting ){
                     cout << "returning interesting write to GEM5 @ "
-                        << currentClockCycle;
+                        << currentClockCycle << endl;
                 }
 #endif /*DEBUG_TP*/
                 (*parentMemorySystem->WriteDataDone)(parentMemorySystem->systemID,outgoingDataPacket->physicalAddress, currentClockCycle, outgoingDataPacket->threadID);
@@ -845,7 +845,7 @@ void MemoryController::updateReturnTransactions()
 #ifdef DEBUG_TP
                 if( returnTransaction[0]->address == interesting ){
                     cout << "returning interesting read to GEM5 @ "
-                        << currentClockCycle;
+                        << currentClockCycle << endl;
                 }
 #endif /*DEBUG_TP*/
                 returnReadData(pendingReadTransactions[i]);
