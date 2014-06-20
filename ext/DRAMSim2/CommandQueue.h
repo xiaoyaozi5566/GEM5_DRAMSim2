@@ -37,7 +37,7 @@
 
 
 #define DEBUG_TP
-#define interesting 0x669740
+#define interesting 0x66df80
 
 #ifndef CMDQUEUE_H
 #define CMDQUEUE_H

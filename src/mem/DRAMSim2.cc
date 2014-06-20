@@ -43,6 +43,15 @@
 
 #include "mem/DRAMSim2.hh"
 
+bool
+isInteresting(PacketPtr pkt ){
+#ifdef interesting
+    return pkt->getAddr() == interesting;
+#else
+    return false;
+#endif
+}
+
 DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
 {
     warn("This is an integrated DRAMsim v2 module");
@@ -90,6 +99,9 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
     if( !dram ) {
         return SimpleTimingPort::recvTimingReq(pkt);
     } else {
+#ifdef DEBUGI
+        if( isInteresting( pkt ) ) printf( "using dramsim recvTiming\n");
+#endif
         if (pkt->memInhibitAsserted()) {
             // snooper will supply based on copy of packet
             // still target's responsibility to delete packet
@@ -105,9 +117,18 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 
         while ((double)dramsim2->currentClockCycle <= (double)(curTick()) / 1000.0 / tCK) {
             dramsim2->update();
+#ifdef DEBUGI
+            if( isInteresting( pkt ) )
+                printf( "g5 time is %lu and d2 time is %lu after an update\n",
+                        curTick(),
+                        dramsim2->currentClockCycle );
+#endif
         }
 
         if (pkt->needsResponse()) {
+#ifdef DEBUGI
+            if( isInteresting( pkt ) ) printf( "interesting needs response\n" );
+#endif
             if (pkt->isRead()) {
                 transType = DATA_READ;
             } else if (pkt->isWrite()) {
@@ -129,7 +150,17 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             dram->ongoingAccess.insert(make_pair(index, meta));
             uint64_t threadID = pkt->threadID;
             // For trace generation
-            if (threadID >= dram->num_pids) threadID = 0;
+            if (threadID >= dram->num_pids){
+                fprintf( stderr,"warn: gem5 made a trans for a packet with threadID >= dram->numpids\n" );
+                threadID = 0;
+            }
+
+#ifdef DEBUGI
+            if( isInteresting( pkt ) ){
+                printf( "made interesting trans: g5 time %lu / d2 time %lu\n",
+                        curTick(), dramsim2->currentClockCycle );
+            }
+#endif
             Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
             retVal = dramsim2->addTransaction(tr);
             //std::cout << "case 2" << std::endl;
@@ -140,7 +171,16 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 transType = DATA_WRITE;
                 uint64_t threadID = pkt->threadID;
                 // For trace generation
-            	if (threadID >= dram->num_pids) threadID = 0;
+            	if (threadID >= dram->num_pids) {
+                    fprintf( stderr,"warn: gem5 made a trans for a packet with threadID >= dram->numpids\n" );
+                    threadID = 0;
+                }
+#ifdef DEBUGI
+                if( isInteresting( pkt ) ){
+                    printf( "made interesting trans: g5 time %lu / d2 time %lu\n",
+                            curTick(), dramsim2->currentClockCycle );
+                }
+#endif
                 Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
                 retVal = dramsim2->addTransaction(tr);
                 if (retVal == true) {
