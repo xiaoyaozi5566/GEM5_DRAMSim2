@@ -38,6 +38,8 @@
 
 #define DEBUG_TP
 #define interesting 0x66df80
+// #define interesting_era_l 5619814
+// #define interesting_era_h 5620121
 
 #ifndef CMDQUEUE_H
 #define CMDQUEUE_H

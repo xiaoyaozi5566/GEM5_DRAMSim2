@@ -37,6 +37,8 @@
 
 #define DEBUGI
 #define interesting 0x66df80
+#define interesting_era_l 8429720000
+#define interesting_era_h 8430182001
 
 #include <cstdlib>
 #include <iomanip>
@@ -46,7 +48,11 @@
 bool
 isInteresting(PacketPtr pkt ){
 #ifdef interesting
-    return pkt->getAddr() == interesting;
+    bool is_interesting_time = 
+        (curTick() >= interesting_era_l) &&
+        (curTick() <= interesting_era_h);
+    bool is_interesting_addr = (pkt->getAddr() == interesting);
+    return is_interesting_time || is_interesting_addr;
 #else
     return false;
 #endif
@@ -100,7 +106,10 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
         return SimpleTimingPort::recvTimingReq(pkt);
     } else {
 #ifdef DEBUGI
-        if( isInteresting( pkt ) ) printf( "using dramsim recvTiming\n");
+        if( isInteresting( pkt ) ){
+            printf( "(%8s) using dramsim recvTiming\n",
+                std::to_string( pkt->getAddr() ).c_str() );
+        }
 #endif
         if (pkt->memInhibitAsserted()) {
             // snooper will supply based on copy of packet
@@ -119,7 +128,8 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
             dramsim2->update();
 #ifdef DEBUGI
             if( isInteresting( pkt ) )
-                printf( "g5 time is %lu and d2 time is %lu after an update\n",
+                printf( "(%8s) g5 time is %lu and d2 time is %lu after an update\n",
+                        std::to_string( pkt->getAddr() ).c_str(),
                         curTick(),
                         dramsim2->currentClockCycle );
 #endif
@@ -127,7 +137,10 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 
         if (pkt->needsResponse()) {
 #ifdef DEBUGI
-            if( isInteresting( pkt ) ) printf( "interesting needs response\n" );
+            if( isInteresting( pkt ) ){
+                printf( "(%8s) interesting needs response\n",
+                        std::to_string( pkt->getAddr() ).c_str() );
+            }
 #endif
             if (pkt->isRead()) {
                 transType = DATA_READ;
@@ -157,7 +170,8 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 
 #ifdef DEBUGI
             if( isInteresting( pkt ) ){
-                printf( "made interesting trans: g5 time %lu / d2 time %lu\n",
+                printf( "(%8s) made interesting trans: g5 time %lu / d2 time %lu\n",
+                        std::to_string( pkt->getAddr() ).c_str(),
                         curTick(), dramsim2->currentClockCycle );
             }
 #endif
@@ -177,7 +191,8 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 }
 #ifdef DEBUGI
                 if( isInteresting( pkt ) ){
-                    printf( "made interesting trans: g5 time %lu / d2 time %lu\n",
+                    printf( "(%8s) made interesting trans: g5 time %lu / d2 time %lu\n",
+                            std::to_string( pkt->getAddr() ).c_str(),
                             curTick(), dramsim2->currentClockCycle );
                 }
 #endif
@@ -223,8 +238,9 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
             // remove the skew between DRAMSim2 and gem5
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
 #ifdef DEBUGI
-            if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting before calc %lu\n SimClock %lu\n curTick %lu\n",
+            if( isInteresting( pkt ) ){
+                printf( "(%8s) toSchedule interesting before calc %lu\n SimClock %lu\n curTick %lu\n",
+                        std::to_string( pkt->getAddr() ).c_str(),
                         toSchedule,
                         SimClock::Int::ms,
                         curTick()
@@ -233,19 +249,27 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
 #endif
             if (toSchedule <= curTick()){
 #ifdef DEBUGI
-                  if (pkt->getAddr() == interesting ) printf( "(1) taken\n" );
+                  if ( isInteresting( pkt ) ){
+                      printf( "(%8s) (1) taken\n",
+                           std::to_string( pkt->getAddr() ).c_str() );
+                  }
 #endif 
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             }
             if (toSchedule >= curTick() + SimClock::Int::ms){
 #ifdef DEBUGI
-                  if (pkt->getAddr() == interesting ) printf( "(2) taken\n" );
+                  if ( isInteresting( pkt ) ){
+                      printf( "(%8s) (2) taken\n",
+                           std::to_string( pkt->getAddr() ).c_str() );
+                  }
 #endif
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
             }
 #ifdef DEBUGI
-            if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting after calc %lu\n", toSchedule );
+            if( isInteresting( pkt ) ){
+                printf( "(%8s) toSchedule interesting after calc %lu\n",
+                        std::to_string( pkt->getAddr() ).c_str(),
+                        toSchedule );
             }
 #endif
             my_port->schedTimingResp(pkt, toSchedule, threadID);
@@ -273,18 +297,18 @@ void DRAMSim2::write_complete(unsigned id, uint64_t address, uint64_t clock_cycl
             assert(pkt->isResponse());
             Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
 #ifdef DEBUGI
-            if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting before calc %lu\n", toSchedule );
-            }
+            // if( isInteresting( pkt ) ){
+            //     printf( "toSchedule interesting before calc %lu\n", toSchedule );
+            // }
 #endif
             if (toSchedule <= curTick())
                   toSchedule = curTick() + 1;  //not accurate, but I have to
             if (toSchedule >= curTick() + SimClock::Int::ms)
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
 #ifdef DEBUGI
-            if( pkt->getAddr() == interesting ){
-                printf( "toSchedule interesting after calc %lu\n", toSchedule );
-            }
+            // if( isInteresting( pkt ) ){
+            //     printf( "toSchedule interesting after calc %lu\n", toSchedule );
+            // }
 #endif
             my_port->schedTimingResp(pkt, toSchedule, threadID);
             tracePrinter->addTrace( pkt, "write_complete", toSchedule );
