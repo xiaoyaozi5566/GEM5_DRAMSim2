@@ -45,17 +45,20 @@
 
 #include "mem/DRAMSim2.hh"
 
+std::string
+hexstr( int i ){
+    std::stringstream s;
+    s << "0x" << std::hex << i;
+    return s.str();
+}
+
 bool
 isInteresting(PacketPtr pkt ){
-#ifdef interesting
     bool is_interesting_time = 
         (curTick() >= interesting_era_l) &&
         (curTick() <= interesting_era_h);
     bool is_interesting_addr = (pkt->getAddr() == interesting);
     return is_interesting_time || is_interesting_addr;
-#else
-    return false;
-#endif
 }
 
 DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)
@@ -103,18 +106,22 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 
     // if DRAMSim2 is disabled, just use the default recvTiming. 
     if( !dram ) {
+        memory->updateDRAMSim2();
         return SimpleTimingPort::recvTimingReq(pkt);
     } else {
 #ifdef DEBUGI
         if( isInteresting( pkt ) ){
-            printf( "(%8s) using dramsim recvTiming\n",
-                std::to_string( pkt->getAddr() ).c_str() );
+            printf( "(%8s)[%lu] using dramsim recvTiming\n",
+               hexstr( pkt->getAddr() ).c_str(), 
+                    pkt->threadID
+               );
         }
 #endif
         if (pkt->memInhibitAsserted()) {
             // snooper will supply based on copy of packet
             // still target's responsibility to delete packet
             delete pkt;
+            memory->updateDRAMSim2();
             return true;
         }
 
@@ -124,22 +131,15 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
         meta.port = this;
         TransactionType transType;
 
-        while ((double)dramsim2->currentClockCycle <= (double)(curTick()) / 1000.0 / tCK) {
-            dramsim2->update();
-#ifdef DEBUGI
-            if( isInteresting( pkt ) )
-                printf( "(%8s) g5 time is %lu and d2 time is %lu after an update\n",
-                        std::to_string( pkt->getAddr() ).c_str(),
-                        curTick(),
-                        dramsim2->currentClockCycle );
-#endif
-        }
+        memory->updateDRAMSim2();
 
         if (pkt->needsResponse()) {
 #ifdef DEBUGI
             if( isInteresting( pkt ) ){
-                printf( "(%8s) interesting needs response\n",
-                        std::to_string( pkt->getAddr() ).c_str() );
+                printf( "(%8s)[%lu] interesting needs response\n",
+                        hexstr( pkt->getAddr() ).c_str(),
+                        pkt->threadID
+                        );
             }
 #endif
             if (pkt->isRead()) {
@@ -153,6 +153,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 dram->doAtomicAccess(pkt);
                 assert(pkt->isResponse());
                 schedTimingResp(pkt, curTick() + 1, pkt->threadID);
+                memory->updateDRAMSim2();
                 return true;
             }
 
@@ -170,12 +171,14 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 
 #ifdef DEBUGI
             if( isInteresting( pkt ) ){
-                printf( "(%8s) made interesting trans: g5 time %lu / d2 time %lu\n",
-                        std::to_string( pkt->getAddr() ).c_str(),
+                printf( "(%8s)[%lu] made interesting trans: g5 time %lu / d2 time %lu\n",
+                        hexstr( pkt->getAddr() ).c_str(),
+                        pkt->threadID,
                         curTick(), dramsim2->currentClockCycle );
             }
 #endif
-            Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
+            Transaction tr = Transaction(transType, addr, NULL, threadID,
+                    dramsim2->currentClockCycle, 0);
             retVal = dramsim2->addTransaction(tr);
             //std::cout << "case 2" << std::endl;
             //std::cout << "Thread: " << threadID << std::endl;
@@ -191,12 +194,14 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
                 }
 #ifdef DEBUGI
                 if( isInteresting( pkt ) ){
-                    printf( "(%8s) made interesting trans: g5 time %lu / d2 time %lu\n",
-                            std::to_string( pkt->getAddr() ).c_str(),
+                    printf( "(%8s)[%lu] made interesting trans: g5 time %lu / d2 time %lu\n",
+                            hexstr( pkt->getAddr() ).c_str(),
+                            pkt->threadID,
                             curTick(), dramsim2->currentClockCycle );
                 }
 #endif
-                Transaction tr = Transaction(transType, addr, NULL, threadID, dramsim2->currentClockCycle, 0);
+                Transaction tr = Transaction(transType, addr, NULL, threadID,
+                        dramsim2->currentClockCycle, 0);
                 retVal = dramsim2->addTransaction(tr);
                 if (retVal == true) {
                 	dram->doAtomicAccess(pkt);
@@ -217,6 +222,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
 			}
         }
     }
+    memory->updateDRAMSim2();
     return retVal;
 }
 
@@ -236,11 +242,12 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
             assert(pkt->isResponse());
 
             // remove the skew between DRAMSim2 and gem5
-            Tick toSchedule = (Tick)(clock_cycle) * (Tick)(tCK * 1000);
+            Tick toSchedule = (Tick)(clock_cycle+1) * (Tick)(tCK * 1000);
 #ifdef DEBUGI
             if( isInteresting( pkt ) ){
-                printf( "(%8s) toSchedule interesting before calc %lu\n SimClock %lu\n curTick %lu\n",
-                        std::to_string( pkt->getAddr() ).c_str(),
+                printf( "(%8s)[%lu] toSchedule interesting before calc %lu\n SimClock %lu\n curTick %lu\n",
+                        hexstr( pkt->getAddr() ).c_str(),
+                        pkt->threadID,
                         toSchedule,
                         SimClock::Int::ms,
                         curTick()
@@ -251,7 +258,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
 #ifdef DEBUGI
                   if ( isInteresting( pkt ) ){
                       printf( "(%8s) (1) taken\n",
-                           std::to_string( pkt->getAddr() ).c_str() );
+                           hexstr( pkt->getAddr() ).c_str() );
                   }
 #endif 
                   toSchedule = curTick() + 1;  //not accurate, but I have to
@@ -260,7 +267,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
 #ifdef DEBUGI
                   if ( isInteresting( pkt ) ){
                       printf( "(%8s) (2) taken\n",
-                           std::to_string( pkt->getAddr() ).c_str() );
+                           hexstr( pkt->getAddr() ).c_str() );
                   }
 #endif
                   toSchedule = curTick() + SimClock::Int::ms - 1; //not accurate
@@ -268,7 +275,7 @@ void DRAMSim2::read_complete(unsigned id, uint64_t address, uint64_t clock_cycle
 #ifdef DEBUGI
             if( isInteresting( pkt ) ){
                 printf( "(%8s) toSchedule interesting after calc %lu\n",
-                        std::to_string( pkt->getAddr() ).c_str(),
+                        hexstr( pkt->getAddr() ).c_str(),
                         toSchedule );
             }
 #endif

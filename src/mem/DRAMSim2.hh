@@ -40,8 +40,6 @@
 #include "mem/DRAMSim2Wrapper.hh"
 #include "params/DRAMSim2.hh"
 
-#include "MultiChannelMemorySystem.h"
-
 /**********************************************************************/
 // the following parameters are claimed globally because they have to...
 

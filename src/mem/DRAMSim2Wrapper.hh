@@ -54,16 +54,27 @@
 #include "mem/trace_printer.hh"
 #include "params/DRAMSim2Wrapper.hh"
 
+#include "MultiChannelMemorySystem.h"
+
 /**
  * The simple memory is a basic single-ported memory controller with
  * an infinite throughput and a fixed latency, potentially with a
  * variance added to it. It uses a SimpleTimingPort to implement the
  * timing accesses.
  */
+
+extern DRAMSim::MultiChannelMemorySystem *dramsim2;
 class DRAMSim2Wrapper : public AbstractMemory
 {
 
   public:
+
+    void updateDRAMSim2(){
+            while ( (double)dramsim2->currentClockCycle
+                    <= (double)(curTick()) / 1000.0 / tCK) {
+                dramsim2->update();
+            }
+    }
 
     class MemoryPort : public SimpleTimingPort
     {
