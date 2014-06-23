@@ -4,6 +4,8 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <iomanip>
+#include "stdio.h"
 
 #include "base/range.hh"
 #include "base/range_map.hh"
@@ -126,6 +128,19 @@ class RRBus : public MemObject
         /** track the state of the bus layer */
         State * state;
 
+        void printStates( std::ostream &o = std:: cout ){
+            o << "================== Bus States ==================\n";
+            for( int i = 0; i < num_pids; i++ ){
+                std::string state = state[i] == IDLE ? "IDLE" :
+                    state[i] == BUSY ? "BUSY" :
+                    state[i] == RETRY ? "RETRY" :
+                    "CRAZYSTATE";
+                ccprintf( o, "%i : %s\n", i, state );
+                
+            }
+            o << "================================================\n";
+        }
+
 		/** number of security domains */
 		int num_pids;
 		
@@ -199,6 +214,18 @@ class RRBus : public MemObject
     };
 
     PortCache portCache[3];
+
+    void printPortCaches( std::ostream &o = std::cout ){
+        o << "================ Bus Port Caches ================\n";
+        for( int i = 0; i< 3; i++ ){
+            std::string v = portCache[i].valid? "V" : "I";
+            ccprintf( o, "[%i] : %i %s ", i, portCache[i].id, v );
+            o << "( " <<std::setw(8) << std::hex << portCache[i].start
+                << " --> " << std::setw(8) << std::hex << portCache[i].end
+                << " )" << std::dec << "\n";
+        }
+        o << "================================================\n";
+    }
 
     // Checks the cache and returns the id of the port that has the requested
     // address within its range
