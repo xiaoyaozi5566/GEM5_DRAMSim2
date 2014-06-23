@@ -41,7 +41,7 @@ class TracePrinter {
         if( params->save_trace && pkt->threadID==0 ){
             std::string trace = packet_to_str( pkt, time ) + op +
                 *( new std::string("\n") );
-            fprintf( of, trace.c_str() );
+            fprintf( of, "%s", trace.c_str() );
         }
     }
 

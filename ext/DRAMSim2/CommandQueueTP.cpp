@@ -220,7 +220,8 @@ bool CommandQueueTP::normalPopClosePage(BusPacket **busPacket, bool
                     break;
                 }
 #ifdef DEBUG_TP
-                else if(queue[i]->physicalAddress==interesting)
+                else if( queue[i]->physicalAddress==interesting
+                        && lastPopTime!= currentClockCycle )
                 {
                     string bptype = (queue[i]->busPacketType==ACTIVATE) ?
                         "activate" : "r/w";
