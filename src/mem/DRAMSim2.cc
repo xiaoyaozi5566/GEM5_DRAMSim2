@@ -35,7 +35,7 @@
  *         Tao Zhang
  */
 
-// #define DEBUGI
+#define DEBUGI
 #define interesting 0xa38b80
 // #define interesting_era_l 8429720000
 // #define interesting_era_h 8430182001

@@ -36,7 +36,7 @@
 
 
 
-//#define DEBUG_TP
+#define DEBUG_TP
 #define interesting 0xa38b80
 // #define interesting_era_l 5619814
 // #define interesting_era_h 5620121
