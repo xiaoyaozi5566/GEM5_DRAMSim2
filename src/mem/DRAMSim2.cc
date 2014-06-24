@@ -36,9 +36,9 @@
  */
 
 // #define DEBUGI
-#define interesting 0x66df80
-#define interesting_era_l 8429720000
-#define interesting_era_h 8430182001
+#define interesting 0xa38b80
+// #define interesting_era_l 8429720000
+// #define interesting_era_h 8430182001
 
 #include <cstdlib>
 #include <iomanip>
