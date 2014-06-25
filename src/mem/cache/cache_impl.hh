@@ -1628,7 +1628,6 @@ void
 Cache<TagStore>::CpuSidePort::recvFunctional(PacketPtr pkt)
 {
     // functional request
-    cache->tracePrinter->addTrace( pkt , "recvFunctional" );
     cache->functionalAccess(pkt, true);
 }
 
@@ -1681,7 +1680,6 @@ Cache<TagStore>::MemSidePort::recvFunctionalSnoop(PacketPtr pkt)
     // functional snoop (note that in contrast to atomic we don't have
     // a specific functionalSnoop method, as they have the same
     // behaviour regardless)
-    cache->tracePrinter->addTrace( pkt, "recvFunctionalSnoop" );
     cache->functionalAccess(pkt, false);
 }
 

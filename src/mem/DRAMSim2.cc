@@ -54,11 +54,12 @@ hexstr( int i ){
 
 bool
 isInteresting(PacketPtr pkt ){
-    bool is_interesting_time = 
-        (curTick() >= interesting_era_l) &&
-        (curTick() <= interesting_era_h);
+    // bool is_interesting_time = 
+    //     (curTick() >= interesting_era_l) &&
+    //     (curTick() <= interesting_era_h);
     bool is_interesting_addr = (pkt->getAddr() == interesting);
-    return is_interesting_time || is_interesting_addr;
+    //return is_interesting_time || is_interesting_addr;
+    return is_interesting_addr;
 }
 
 DRAMSim2::DRAMSim2(const Params *p) : DRAMSim2Wrapper(p)

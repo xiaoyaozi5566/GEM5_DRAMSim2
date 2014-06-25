@@ -217,7 +217,6 @@ RR_NoncoherentBus::recvFunctional(PacketPtr pkt, PortID slave_port_id)
                 pkt->cmdString());
     }
 
-    busTrace->addTrace( pkt, "recvFunctional" );
 
     // determine the destination port
     PortID dest_id = findPort(pkt->getAddr());

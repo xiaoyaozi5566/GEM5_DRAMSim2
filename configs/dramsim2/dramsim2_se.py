@@ -120,6 +120,8 @@ if '--dramsim2' in sys.argv:
             help="determine the number of PIDs")
     parser.add_option("--l3tracefile", type="string", default="l3trace.txt",
             help="Output file for l3 cache traces")
+    parser.add_option("--l2tracefile", type="string", default="l2trace.txt",
+            help="Output file for l2 cache traces")
     parser.add_option("--use_set_part", action="store_true", default=False,
             help="Determines if the L3 cache should be set partitioned")
     parser.add_option("--use_way_part", action="store_true", default=False,

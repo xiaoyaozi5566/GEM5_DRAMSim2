@@ -184,6 +184,8 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --do_mem_trace \\"  ) if options[:do_mem_trace]
     memtracefile = options[:mem_trace_file] || "#{result_dir}/memtrace_#{filename}.txt"
     script.puts("    --mem_trace_file #{memtracefile}\\") if options[:do_mem_trace]
+    l2tracefile  = options[:l2tracefile] || "#{result_dir}/l2trace_#{filename}.txt"
+    script.puts("    --l2tracefile #{l2tracefile}\\") if options[:do_cache_trace]
 
     script.puts("    --dramsim2 \\")
     script.puts("    --tpturnlength=#{tl0} \\") unless tl0==0 || diffperiod
