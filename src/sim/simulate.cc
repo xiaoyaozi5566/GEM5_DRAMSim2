@@ -63,7 +63,13 @@ simulate(Tick num_cycles, int numPids)
     mainEventQueue.schedule(limit_event, num_cycles);
 
     while (1) {
-
+        // if there is DRAMsim2
+        if (dramsim2) {
+            while (dramsim2->currentClockCycle * tCK * 1000 < mainEventQueue.nextTick()) {
+                dramsim2->update();
+                //std::cout << "memory update" << std::endl;
+            }
+        }
         // there should always be at least one event (the SimLoopExitEvent
         // we just scheduled) in the queue
         assert(!mainEventQueue.empty());
@@ -73,14 +79,6 @@ simulate(Tick num_cycles, int numPids)
         // forward current cycle to the time of the first event on the
         // queue
         curTick(mainEventQueue.nextTick());
-        // if there is DRAMsim2, make sure it is caught up to the next event 
-        // before processing it.
-        if (dramsim2) {
-            while (dramsim2->currentClockCycle * tCK * 1000 < mainEventQueue.nextTick()) {
-                dramsim2->update();
-                //std::cout << "memory update" << std::endl;
-            }
-        }
         Event *exit_event = mainEventQueue.serviceOne();
         if (exit_event != NULL) {
             // hit some kind of exit event; return to Python

@@ -132,7 +132,7 @@ DRAMSim2::MemoryPort::recvTimingReq(PacketPtr pkt)
         meta.port = this;
         TransactionType transType;
 
-        //memory->updateDRAMSim2();
+        memory->updateDRAMSim2();
 
         if (pkt->needsResponse()) {
 #ifdef DEBUGI
