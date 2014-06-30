@@ -65,7 +65,7 @@ simulate(Tick num_cycles, int numPids)
     while (1) {
         // if there is DRAMsim2
         if (dramsim2) {
-            while (dramsim2->currentClockCycle * tCK * 1000 < mainEventQueue.nextTick()) {
+            while ((dramsim2->currentClockCycle-1) * tCK * 1000 < mainEventQueue.nextTick()) {
                 dramsim2->update();
                 //std::cout << "memory update" << std::endl;
             }
