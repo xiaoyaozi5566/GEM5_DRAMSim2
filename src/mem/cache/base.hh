@@ -115,9 +115,9 @@ class BaseCache : public MemObject
         return &writeBuffer;
     }
 	
-	virtual bool isSplitMSHR() {return false;}
-	
-	virtual bool isSplitRPort() {return false;}
+	// virtual bool isSplitMSHR() {return false;}
+	// 
+	// virtual bool isSplitRPort() {return false;}
 	
 	virtual int get_num_tcs() {return 1;}
 
@@ -148,7 +148,6 @@ class BaseCache : public MemObject
 		
 		virtual void requestBus(RequestCause cause, Tick time, int threadID)
         {
-            DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
             requestBus( cause, time );
         }
 
@@ -225,6 +224,13 @@ class BaseCache : public MemObject
         }
 
         if (requestBus) {
+#ifdef DEBUG_TP
+            if( addr == interesting ){
+                printf("reqMemSide for interesting with time %lu with curTick %lu\n",
+                        time,
+                        curTick());
+            }
+#endif
             requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
         }
 
@@ -534,8 +540,7 @@ class BaseCache : public MemObject
      */
     void requestMemSideBus(RequestCause cause, Tick time, int threadID)
     {
-        if(isSplitMSHR()) memSidePort->requestBus(cause, time, threadID);
-		else memSidePort->requestBus(cause, time);
+		memSidePort->requestBus(cause, time, threadID);
     }
 
     /**

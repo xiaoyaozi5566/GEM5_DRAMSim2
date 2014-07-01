@@ -5,6 +5,7 @@
 #include "mem/cache/tags/lru.hh"
 #include "mem/cache/base.hh"
 #include "sim/core.hh"
+#include "mem/cache/blk.hh"
 #include <typeinfo>
 
 WPLRU::WPLRU( unsigned _numSets,
@@ -20,7 +21,14 @@ WPLRU::WPLRU( unsigned _numSets,
 
 CacheSet
 WPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
-    return sets[tid][setnum];
+    CacheSet s = sets[tid][setnum];
+#ifdef DEBUG_TP
+    if( s.hasBlk(interesting) ){
+        printf( "get_set on interesting @ %lu", curTick() );
+        s.print();
+    }
+#endif
+    return s;
 }
 
 int

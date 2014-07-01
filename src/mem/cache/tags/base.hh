@@ -42,6 +42,9 @@
 #include "base/callback.hh"
 #include "base/statistics.hh"
 
+#define DEBUG_TP
+#define interesting 0x55fc40
+
 class BaseCache;
 
 /**

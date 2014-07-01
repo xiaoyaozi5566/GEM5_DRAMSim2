@@ -296,7 +296,16 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     }
 
     int id = pkt->req->hasContextId() ? pkt->req->contextId() : -1;
+
     blk = tags->accessBlock(pkt->getAddr(), lat, id, pkt->threadID);
+#ifdef DEBUG_TP
+    if( pkt->getAddr() == interesting && params->split_mshrq){
+        printf( "did interesting access it was a %s @ %lu\n",
+                (blk == NULL)? "miss" : "hit",
+                curTick()
+              );
+    }
+#endif
 
     DPRINTF(Cache, "%s%s %x %s\n", pkt->cmdString(),
             pkt->req->isInstFetch() ? " (ifetch)" : "",
@@ -518,6 +527,15 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
 
         Addr blk_addr = blockAlign(pkt->getAddr());
         MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch( blk_addr );
+
+#ifdef DEBUG_TP
+        if( pkt->getAddr() == interesting && params->split_mshrq){
+            printf("searched MSHR for interesting @ %lu it was a %s\n",
+                    blk_addr,
+                    mshr? "mshr hit" : "mshr miss"
+                  );
+        }
+#endif
 
         if (mshr) {
             // MSHR hit
@@ -1474,6 +1492,12 @@ Cache<TagStore>::getTimingPacket( int threadID )
     PacketPtr tgt_pkt = mshr->getTarget()->pkt;
     PacketPtr pkt = NULL;
 
+#ifdef DEBUG_TP
+    if( tgt_pkt->getAddr() == interesting ){
+        printf("interesting target pulled from mshr at time %lu\n",curTick());
+    }
+#endif
+
     if (tgt_pkt->cmd == MemCmd::SCUpgradeFailReq ||
         tgt_pkt->cmd == MemCmd::StoreCondFailReq) {
         // SCUpgradeReq or StoreCondReq saw invalidation while queued
@@ -1688,13 +1712,19 @@ void
 Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
 	// if we have a response packet waiting we have to start with that
-    //TODO This shouild get a TID based on the bus turn
+    //TODO This should get a TID based on the bus turn
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
         trySendTiming();
     } else {
         // check for request packets (requests & writebacks)
         PacketPtr pkt = cache.getTimingPacket( ID );
+#ifdef DEBUG_TP
+        if( pkt->getAddr() == interesting ){
+            printf("getTimingPacket produced an interesting packet with ID=%i @%lu\n",
+                    ID, curTick());
+        }
+#endif
 		// if(pkt != NULL) {
 		// 	printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
 		// 	std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
@@ -1706,6 +1736,13 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
             waitingOnRetry = false;
         } else {
             MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
+
+#ifdef DEBUG_TP
+            if( pkt->getAddr() == interesting ){
+                printf("getTimingPacket sent to bus @%lu\n",
+                        curTick());
+            }
+#endif
 
             waitingOnRetry = !masterPort.sendTimingReq(pkt);
 

@@ -52,7 +52,7 @@ class SplitMSHRCache : public Cache<TagStore>
         return writeBuffers[threadID];
     }
 	
-	virtual bool isSplitMSHR() {return true;}
+	//virtual bool isSplitMSHR() {return true;}
 	
 	virtual int get_num_tcs() {return num_tcs;}
 };

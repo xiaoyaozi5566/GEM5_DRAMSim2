@@ -12,7 +12,7 @@ class SplitRPortCache : public SplitMSHRCache<TagStore>
     SplitRPortCache( const Params *p, TagStore *tags );
 
     protected:
-    virtual bool isSplitRPort() {return true;}
+    //virtual bool isSplitRPort() {return true;}
     class SRCpuSidePort : public SplitMSHRCache<TagStore>::CpuSidePort{
         SlavePacketQueue** respQueues;
 
