@@ -26,10 +26,10 @@ class SplitMSHRCache : public Cache<TagStore>
             this->reqQueues[threadID]->retry();
         }
 
-		virtual void requestBus(BaseCache::RequestCause cause, Tick time, int threadID)
+		virtual void requestBus(BaseCache::RequestCause cause, Tick time, int threadID, bool isInteresting)
         {
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            reqQueues[threadID]->schedSendEvent(time);
+            reqQueues[threadID]->schedSendEvent(time, isInteresting);
         }
 
         SplitMemSidePort(const std::string &_name, Cache<TagStore> *_cache,
