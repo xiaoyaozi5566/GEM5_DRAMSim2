@@ -144,7 +144,7 @@ class Cache : public BaseCache
       protected:
 
         Cache<TagStore> &cache;
-		int ID;
+        int ID;
 
       public:
 

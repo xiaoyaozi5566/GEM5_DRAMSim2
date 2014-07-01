@@ -90,10 +90,16 @@ PacketQueue::checkFunctional(PacketPtr pkt)
 }
 
 void
-PacketQueue::schedSendEvent(Tick when)
+PacketQueue::schedSendEvent(Tick when, bool isInteresring)
 {
     // if we are waiting on a retry, do not schedule a send event, and
     // instead rely on retry being called
+#ifdef DEBUG_TP
+    if( isInteresring ){
+      printf( "interesting schedEvent when=%lu curTick=%lu\n",
+          when, curTick() );
+    }
+#endif
     if (waitingOnRetry) {
         assert(!sendEvent.scheduled());
         return;
@@ -102,10 +108,19 @@ PacketQueue::schedSendEvent(Tick when)
     //printf("schedule send Event @ cycle %llu\n", when);
 	//if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
 	if (!sendEvent.scheduled()) {
+#ifdef DEBUG_TP
+      if( isInteresting ) printf("interesting scheduled at %lu\n",when);
+#endif
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
+#ifdef DEBUG_TP
+      if(isInteresting){
+        printf("interesting was scheduled at %lu, rescheduled at %lu\n",
+            sendEvent.when(), when);
+      }
+#endif
         //printf("Event rescheduled @ cycle %llu\n", when);
-		em.reschedule(&sendEvent, when);
+      em.reschedule(&sendEvent, when);
     }
 }
 
@@ -126,7 +141,11 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         // and could in theory put a new packet at the head of the
         // transmit list before retrying the existing packet
         transmitList.push_front(DeferredPacket(when, pkt, send_as_snoop));
+#ifdef DEBUG_TP
+        schedSendEvent(when, pkt->getAddr()==interesting);
+#else
         schedSendEvent(when);
+#endif
         return;
     }
 
