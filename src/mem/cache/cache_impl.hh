@@ -1796,7 +1796,7 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
                   p->write_buffers, p->mshrs+1000, 1);
           }
 
-          num_tcs = p->num_tcs;
+		  num_tcs = p->num_tcs;
 
           this->memSidePort = new SplitMemSidePort(p->name + ".mem_side", this,
                                   "MemSidePort");

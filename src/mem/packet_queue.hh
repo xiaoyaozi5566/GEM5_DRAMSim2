@@ -188,7 +188,7 @@ class PacketQueue
      *
      * @param when
      */
-    void schedSendEvent(Tick when, bool isInteresting=false);
+    void schedSendEvent(Tick when);
 
     /**
      * Add a packet to the transmit list, and ensure that a

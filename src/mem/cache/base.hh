@@ -140,16 +140,15 @@ class BaseCache : public MemObject
          * that we could already have a retry or a transmit list of
          * responses outstanding.
          */
-        void requestBus(RequestCause cause, Tick time, bool isInteresting=false)
+        void requestBus(RequestCause cause, Tick time)
         {
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            queue.schedSendEvent(time, isInteresting);
+            queue.schedSendEvent(time);
         }
 		
-        virtual void requestBus(RequestCause cause, Tick time, int threadID,
-            bool isInteresting=false)
+		virtual void requestBus(RequestCause cause, Tick time, int threadID)
         {
-            requestBus( cause, time, isInteresting );
+            requestBus( cause, time );
         }
 
       protected:
@@ -231,10 +230,8 @@ class BaseCache : public MemObject
                         time,
                         curTick());
             }
-            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID, addr==interesting);
-#else
-            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
 #endif
+            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
         }
 
         return mshr;
@@ -541,9 +538,9 @@ class BaseCache : public MemObject
      * @param cause The reason for the request.
      * @param time The time to make the request.
      */
-    void requestMemSideBus(RequestCause cause, Tick time, int threadID, bool isInteresting=false)
+    void requestMemSideBus(RequestCause cause, Tick time, int threadID)
     {
-      memSidePort->requestBus(cause, time, threadID, isInteresting);
+		memSidePort->requestBus(cause, time, threadID);
     }
 
     /**
