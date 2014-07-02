@@ -172,6 +172,13 @@ void PacketQueue::trySendTiming()
     DeferredPacket dp = transmitList.front();
     transmitList.pop_front();
 
+#ifdef DEBUG_TP
+    if( dp.pkt->getAddr() == interesting ){
+      printf("interesting trySendTiming within PQ @%lu, dest %i\n",
+          curTick(), dp.pkt->getDest());
+    }
+#endif
+
     // use the appropriate implementation of sendTiming based on the
     // type of port associated with the queue, and whether the packet
     // is to be sent as a snoop or not

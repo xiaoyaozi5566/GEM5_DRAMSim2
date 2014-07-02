@@ -300,10 +300,12 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
     blk = tags->accessBlock(pkt->getAddr(), lat, id, pkt->threadID);
 #ifdef DEBUG_TP
-    if( pkt->getAddr() == interesting && params->split_mshrq){
-        printf( "did interesting access it was a %s @ %lu\n",
+    if( pkt->getAddr() == interesting && params->split_mshrq
+        && pkt->threadID==0 ){
+        printf( "did interesting access it was a %s @ %lu with dest %i\n",
                 (blk == NULL)? "miss" : "hit",
-                curTick()
+                curTick(),
+                pkt->getDest()
               );
     }
 #endif
@@ -530,7 +532,8 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
         MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch( blk_addr );
 
 #ifdef DEBUG_TP
-        if( pkt->getAddr() == interesting && params->split_mshrq){
+        if(pkt->getAddr() == interesting && params->split_mshrq &&
+            pkt->threadID==0){
             printf("searched MSHR for interesting @ %lu it was a %s\n",
                     blk_addr,
                     mshr? "mshr hit" : "mshr miss"
@@ -1494,7 +1497,8 @@ Cache<TagStore>::getTimingPacket( int threadID )
     PacketPtr pkt = NULL;
 
 #ifdef DEBUG_TP
-    if( tgt_pkt->getAddr() == interesting ){
+    if( tgt_pkt->getAddr() == interesting && params->split_mshrq &&
+        tgt_pkt->threadID==0){
         printf("interesting target pulled from mshr at time %lu\n",curTick());
     }
 #endif
@@ -1729,7 +1733,8 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
         // check for request packets (requests & writebacks)
         PacketPtr pkt = cache.getTimingPacket( ID );
 #ifdef DEBUG_TP
-        if(pkt->getAddr() == interesting && cache.params->split_mshrq){
+        if(pkt->getAddr() == interesting && cache.params->split_mshrq &&
+            pkt->threadID==0){
             printf("getTimingPacket produced an interesting packet with ID=%i @%lu\n",
                     ID, curTick());
         }
@@ -1747,7 +1752,8 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
             MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
 
 #ifdef DEBUG_TP
-            if( pkt->getAddr() == interesting ){
+            if(pkt->getAddr() == interesting && cache.params->split_mshrq &&
+                pkt->threadID == 0){
                 printf("getTimingPacket sent to bus @%lu\n",
                         curTick());
             }
