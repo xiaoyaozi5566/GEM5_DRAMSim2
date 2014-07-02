@@ -136,12 +136,12 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         // and could in theory put a new packet at the head of the
         // transmit list before retrying the existing packet
         transmitList.push_front(DeferredPacket(when, pkt, send_as_snoop));
-#if 1
-        if(pkt->getAddr()==0x55fc40 && pkt->threadID==0){
+#ifdef DEBUG_TP
+        if(pkt->getAddr()==interesting && pkt->threadID==0){
           printf("interesting schedSendTiming->schedSendEvent @ %lu\n",
               curTick());
         }
-        schedSendEvent(when,(pkt->getAddr())==0x55fc40);
+        schedSendEvent(when,(pkt->getAddr())==interesting);
 #else
         schedSendEvent(when);
 #endif

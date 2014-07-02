@@ -44,6 +44,8 @@
 
 #define DEBUG_TP
 #define interesting 0x55fc40
+#define interesting_era_l 10
+#define interesting_era_h 11
 
 class BaseCache;
 

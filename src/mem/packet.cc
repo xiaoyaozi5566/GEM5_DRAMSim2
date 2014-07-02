@@ -318,7 +318,7 @@ Packet::checkFunctional(Printable *obj, Addr addr, int size, uint8_t *data)
 void
 Packet::print(ostream &o, const int verbosity, const string &prefix) const
 {
-    ccprintf(o, "%s[%x:%x] %s\n", prefix,
+    ccprintf(o, "%s{%i}[%x:%x] %s", prefix, threadID,
              getAddr(), getAddr() + getSize() - 1, cmdString());
 }
 

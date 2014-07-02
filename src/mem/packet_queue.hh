@@ -54,17 +54,20 @@
  */
 
 #include <list>
+#include <sstream>
 
 #include "mem/port.hh"
 #include "sim/eventq.hh"
 
+#define DEBUG_TP
+#define interesting 0x55fc40
 /**
  * A packet queue is a class that holds deferred packets and later
  * sends them using the associated slave port or master port.
  */
 class PacketQueue
 {
-  private:
+  public:
     /** A deferred packet, buffered to transmit later. */
     class DeferredPacket {
       public:
@@ -74,10 +77,35 @@ class PacketQueue
         DeferredPacket(Tick t, PacketPtr p, bool send_as_snoop)
             : tick(t), pkt(p), sendAsSnoop(send_as_snoop)
         {}
+
+        std::string print(){
+          std::string t = std::to_string(tick);
+          return "(" + t + ") " + pkt->to_string();
+        }
+
     };
 
     typedef std::list<DeferredPacket> DeferredPacketList;
     typedef std::list<DeferredPacket>::iterator DeferredPacketIterator;
+
+#ifdef DEBUG_TP
+    bool hasInteresting(DeferredPacketList tl){
+      for( DeferredPacketIterator it = tl.begin();
+          it != tl.end(); it++ ){
+        if((*it).pkt->getAddr() == interesting) return true;
+      }
+      return false;
+    }
+#endif
+
+    std::string print(DeferredPacketList tl){
+      std::ostringstream s;
+      for( DeferredPacketIterator it = tl.begin();
+          it != tl.end(); it++ ){
+        s << (*it).print() << "\n";
+      }
+      return s.str();
+    }
 
     /** A list of outgoing timing response packets that haven't been
      * serviced yet. */

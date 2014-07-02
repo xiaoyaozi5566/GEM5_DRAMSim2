@@ -102,7 +102,8 @@ module RunScripts
             split_rport: true,
             addrpar: true,
             #memdebug: true,
-            runmode: :qsub,
+            runmode: :local,
+            debug: true
             #do_cache_trace: true,
             #do_bus_trace: true,
             #do_mem_trace: true,
