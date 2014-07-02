@@ -29,6 +29,9 @@ class SplitMSHRCache : public Cache<TagStore>
         virtual void requestBus(BaseCache::RequestCause cause, Tick time, int 
             threadID, bool isInteresting){
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
+            if( isInteresting ){
+              printf( "interesting in split requestBus with time %lu\n", time );
+            }
             reqQueues[threadID]->schedSendEvent(time, isInteresting);
         }
 

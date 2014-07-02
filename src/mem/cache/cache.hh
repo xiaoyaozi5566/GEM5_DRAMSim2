@@ -74,6 +74,11 @@ template <class TagStore>
 class Cache : public BaseCache
 {
   private:
+    bool isInteresting( PacketPtr pkt ){
+      return (pkt->getAddr() == interesting && params->split_mshrq &&
+              pkt->threadID==0);
+    }
+
     int
     tid_from_addr( Addr addr ){
         if( addr < 2 * pow( 1024, 3 ) ) return 0;
