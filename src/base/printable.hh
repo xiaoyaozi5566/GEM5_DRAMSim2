@@ -34,6 +34,7 @@
 #define __PRINTABLE_HH__
 
 #include <ostream>
+#include <sstream>
 #include <string>
 
 /**
@@ -50,6 +51,12 @@ class Printable
     virtual void print(std::ostream &os,
                        int verbosity = 0,
                        const std::string &prefix = "") const = 0;
+
+    virtual std::string to_string(){
+      std::ostringstream s;
+      this->print( s );
+      return s.str();
+    }
 };
 
 #endif // __PRINTABLE_HH__
