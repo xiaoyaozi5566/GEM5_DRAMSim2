@@ -137,7 +137,7 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         // transmit list before retrying the existing packet
         transmitList.push_front(DeferredPacket(when, pkt, send_as_snoop));
 #if 1
-        if(pkt->getAddr()==0x55fc40){
+        if(pkt->getAddr()==0x55fc40 && pkt->threadID==0){
           printf("interesting schedSendTiming->schedSendEvent @ %lu\n",
               curTick());
         }

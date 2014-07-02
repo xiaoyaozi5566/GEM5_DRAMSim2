@@ -80,6 +80,7 @@ BaseCache::BaseCache(const Params *p)
       addrRanges(p->addr_ranges.begin(), p->addr_ranges.end()),
       system(p->system)
 {
+    params = p;
 }
 
 void
