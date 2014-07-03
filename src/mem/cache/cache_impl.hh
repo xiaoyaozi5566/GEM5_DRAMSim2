@@ -1765,7 +1765,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 #ifdef DEBUG_TP
         if(isInterestingTime){
             printf("getTimingPacket produced packet %s @%lu\n",
-                    pkt->to_string().c_string(), curTick());
+                    pkt->to_string().c_str(), curTick());
         }
 #endif
 		// if(pkt != NULL) {
