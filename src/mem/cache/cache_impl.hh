@@ -1749,12 +1749,12 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 	// if we have a response packet waiting we have to start with that
     //TODO This should get a TID based on the bus turn
 #ifdef DEBUG_TP
-  bool isInterestingTime = (curTick() > interesting_era_l) &&
-    (curTick() < interesting_era_h);
-  if( isInterestingTime && cache.params->split_mshrq){
-    printf("interesting sendDeferred with ID=%i, @%lu printing transmitlist:\n%s",
-        ID, curTick(), print(transmitList).c_str());
-  }
+    bool isInterestingTime = (curTick() > interesting_era_l) &&
+      (curTick() < interesting_era_h);
+    if( isInterestingTime && cache.params->split_mshrq){
+      printf("interesting sendDeferred with ID=%i, @%lu printing transmitlist:\n%s",
+          ID, curTick(), print(transmitList).c_str());
+    }
 #endif
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
@@ -1763,9 +1763,9 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
         // check for request packets (requests & writebacks)
         PacketPtr pkt = cache.getTimingPacket( ID );
 #ifdef DEBUG_TP
-        if(cache.isInteresting(pkt)){
-            printf("getTimingPacket produced an interesting packet with ID=%i @%lu\n",
-                    ID, curTick());
+        if(isInterestingTime){
+            printf("getTimingPacket produced packet %s @%lu\n",
+                    pkt->to_string().c_string(), curTick());
         }
 #endif
 		// if(pkt != NULL) {

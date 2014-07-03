@@ -91,7 +91,7 @@ class PacketQueue
 #ifdef DEBUG_TP
     bool hasInteresting(DeferredPacketList tl){
       for( DeferredPacketIterator it = tl.begin();
-          it != tl.end(); it++ ){
+          it != tl.end(); ++it ){
         if((*it).pkt->getAddr() == interesting) return true;
       }
       return false;
@@ -101,7 +101,7 @@ class PacketQueue
     std::string print(DeferredPacketList tl){
       std::ostringstream s;
       for( DeferredPacketIterator it = tl.begin();
-          it != tl.end(); it++ ){
+          it != tl.end(); ++it ){
         s << (*it).print() << "\n";
       }
       return s.str();
