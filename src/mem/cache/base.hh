@@ -231,8 +231,7 @@ class BaseCache : public MemObject
                         time,
                         curTick());
             }
-            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID,
-                (addr==interesting) && (params->split_mshrq) && (pkt->threadID==0));
+            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID, true);
 #else
             requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
 #endif
