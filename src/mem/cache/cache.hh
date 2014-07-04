@@ -164,6 +164,10 @@ class Cache : public BaseCache
          */
         virtual void sendDeferredPacket();
 
+        virtual std::string print_elements(){
+          return cache.getNextMSHR( ID )->to_string();
+        }
+
     };
 
     /**
@@ -366,9 +370,6 @@ class Cache : public BaseCache
      * @return The request to service, NULL if none found.
      */
     virtual PacketPtr getTimingPacket( int threadID );
-    virtual PacketPtr getTimingPacket(){
-        return getTimingPacket( 0 );
-    }
 
     /**
      * Marks a request as in service (sent on the bus). This can have side

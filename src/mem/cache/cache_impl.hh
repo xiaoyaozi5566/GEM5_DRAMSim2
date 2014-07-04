@@ -1487,6 +1487,14 @@ Cache<TagStore>::getNextMSHR( int threadID )
 
     // fall through... no pending requests.  Try a prefetch.
     assert(!miss_mshr && !write_mshr);
+#ifdef DEBUG_TP
+    bool isInterestingTime = (curTick() > interesting_era_l) &&
+      (curTick() < interesting_era_h);
+    if( isInterestingTime && params->split_mshrq ){
+      printf("got a prefetch in getNextMSHR at @%lu during the chosen time\n",
+          curTick());
+    }
+#endif
     if (prefetcher && !getMSHRQueue( threadID )->isFull()) {
         // If we have a miss queue slot, we can try a prefetch
         PacketPtr pkt = prefetcher->getPacket();
@@ -1763,7 +1771,7 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
         // check for request packets (requests & writebacks)
         PacketPtr pkt = cache.getTimingPacket( ID );
 #ifdef DEBUG_TP
-        if(isInterestingTime){
+        if(isInterestingTime && cache.params->split_mshrq){
             printf("getTimingPacket produced packet %s @%lu\n",
                     pkt->to_string().c_str(), curTick());
         }
@@ -1839,7 +1847,7 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
                   p->write_buffers, p->mshrs+1000, 1);
           }
 
-		  num_tcs = p->num_tcs;
+          num_tcs = p->num_tcs;
 
           this->memSidePort = new SplitMemSidePort(p->name + ".mem_side", this,
                                   "MemSidePort");

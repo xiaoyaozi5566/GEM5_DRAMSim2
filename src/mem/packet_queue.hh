@@ -61,6 +61,8 @@
 
 #define DEBUG_TP
 #define interesting 0x55fc40
+#define i_era_l     10
+#define i_era_h     11
 /**
  * A packet queue is a class that holds deferred packets and later
  * sends them using the associated slave port or master port.
@@ -87,6 +89,10 @@ class PacketQueue
 
     typedef std::list<DeferredPacket> DeferredPacketList;
     typedef std::list<DeferredPacket>::iterator DeferredPacketIterator;
+
+    std::string print_elements(){
+      return "";
+    }
 
 #ifdef DEBUG_TP
     bool hasInteresting(DeferredPacketList tl){
@@ -121,7 +127,35 @@ class PacketQueue
     /**
      * Event used to call processSendEvent.
      **/
-    EventWrapper<PacketQueue, &PacketQueue::processSendEvent> sendEvent;
+    typedef EventWrapper<PacketQueue, &PacketQueue::processSendEvent> WrappedPSE;
+    class WrappedSend : public WrappedPSE{
+
+      public:
+        WrappedSend( PacketQueue * pq )
+          : WrappedPSE(pq), pq(pq){}
+
+      protected:
+      virtual void setWhen(Tick w, EventQueue *q){
+        if(isInteresting() || isInteresting(w)){
+          printf("setting the sendEvent to %lu with an element_list:\n%s",
+              w, pq->print_elements().c_str());
+        }
+        WrappedPSE::setWhen(w, q);
+      }
+
+      private:
+      PacketQueue * pq;
+      bool isInteresting(){ return isInteresting(curTick()); }
+      bool isInteresting(Tick w){
+#ifdef DEBUG_TP
+        return (w > i_era_l) && (w < i_era_h);
+#else
+        return false;
+#endif
+      }
+    };
+    WrappedSend sendEvent;
+
 
     /** If we need to drain, keep the drain event around until we're done
      * here.*/

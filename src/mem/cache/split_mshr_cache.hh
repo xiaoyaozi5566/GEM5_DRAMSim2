@@ -31,6 +31,12 @@ class SplitMSHRCache : public Cache<TagStore>
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
             if( isInteresting ){
               printf( "interesting in split requestBus with time %lu\n", time );
+              if( reqQueues[threadID]->sendEvent.scheduled() ){
+                printf( "sendEvent was already scheduled at %lu\n", 
+                    reqQueues[threadID]->sendEvent.when() );
+              } else {
+                printf("scheduled at time %lu\n", time);
+              }
             }
             reqQueues[threadID]->schedSendEvent(time, isInteresting);
         }
@@ -40,8 +46,7 @@ class SplitMSHRCache : public Cache<TagStore>
           Cache<TagStore>::MemSidePort( _name, _cache, _label ){
           this->reqQueues = new MasterPacketQueue*[_cache->params->num_tcs];
           for( int i=0; i < (_cache->params->num_tcs); i++){
-            fprintf( stderr, "made MemSidePacketQueue with ID=%i\n",
-                i );
+            fprintf(stderr, "made MemSidePacketQueue with ID=%i\n", i);
             this->reqQueues[i] = new MemSidePacketQueue(
                           *_cache, *this, "MasterPacketQueue", i);
           }
