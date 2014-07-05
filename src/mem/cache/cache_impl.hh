@@ -617,10 +617,8 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
 
                 //printf("store miss %llx from thread %llu to MSHR @ cycle %llu\n", pkt->getAddr(), pkt->threadID, time);
 #ifdef DEBUG_TP
-                if(isInteresting(pkt)){
-                    printf("allocateMissBuffer( %s, %lu, true ) @ %lu\n",
-                        pkt->to_string().c_str(), time, curTick());
-                }
+                printf("allocateMissBuffer( %s, %lu, true ) @ %lu\n",
+                    pkt->to_string().c_str(), time, curTick());
 #endif 
                 allocateMissBuffer(pkt, time, true);
             }
