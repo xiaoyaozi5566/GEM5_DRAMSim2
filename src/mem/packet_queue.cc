@@ -90,7 +90,7 @@ PacketQueue::checkFunctional(PacketPtr pkt)
 }
 
 void
-PacketQueue::schedSendEvent(Tick when, bool isInteresting)
+PacketQueue::schedSendEvent(Tick when, bool isCool )
 {
     // if we are waiting on a retry, do not schedule a send event, and
     // instead rely on retry being called
@@ -99,7 +99,7 @@ PacketQueue::schedSendEvent(Tick when, bool isInteresting)
         return;
     }
 
-    if( isInteresting ){
+    if( isCool ){
       printf( "interesting schedEvent when=%lu curTick=%lu\n",
            when, curTick() );
     }
@@ -107,11 +107,11 @@ PacketQueue::schedSendEvent(Tick when, bool isInteresting)
     //printf("schedule send Event @ cycle %llu\n", when);
 	  //if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
 	  if (!sendEvent.scheduled()) {
-        if( isInteresting ) printf("interesting scheduled at %lu\n",when);
+        if( isInteresting() ) printf("sendEvent scheduled at %lu\n",when);
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
-        if(isInteresting){
-           printf("interesting was scheduled at %lu, rescheduled at %lu\n",
+        if( isInteresting() ){
+           printf("sendEvent was scheduled at %lu, rescheduled at %lu\n",
                    sendEvent.when(), when);
         }
         //printf("Event rescheduled @ cycle %llu\n", when);
@@ -198,6 +198,9 @@ PacketQueue::scheduleSend(Tick time)
     // the next ready time is either determined by the next deferred packet,
     // or in the cache through the MSHR ready time
     Tick nextReady = std::min(deferredPacketReadyTime(), time);
+    if( isInteresting() ){
+        printf( "nextReady = %lu curTick= %lu", nextReady, curTick() );
+    }
 
     if (nextReady != MaxTick) {
         // if the sendTiming caused someone else to call our

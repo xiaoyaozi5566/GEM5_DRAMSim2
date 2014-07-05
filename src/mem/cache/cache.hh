@@ -149,13 +149,12 @@ class Cache : public BaseCache
       protected:
 
         Cache<TagStore> &cache;
-        int ID;
 
       public:
 
         MemSidePacketQueue(Cache<TagStore> &cache, MasterPort &port,
                            const std::string &label, int ID) :
-            MasterPacketQueue(cache, port, label), cache(cache), ID(ID){ }
+            MasterPacketQueue(cache, port, label), cache(cache) { ID=ID; }
 
         /**
          * Override the normal sendDeferredPacket and do not only
