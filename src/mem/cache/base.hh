@@ -226,12 +226,15 @@ class BaseCache : public MemObject
 
         if (requestBus) {
 #ifdef DEBUG_TP
-            if( addr == interesting && params->split_mshrq && pkt->threadID==0){
+            bool interesting_cond = (addr == interesting) && (params->split_mshrq)
+                && (pkt->threadID==0);
+            if( interesting_cond ){
                 printf("reqMemSide for interesting with time %lu with curTick %lu\n",
                         time,
                         curTick());
             }
-            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID, true);
+            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID,
+                    interesting_cond);
 #else
             requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
 #endif

@@ -102,6 +102,8 @@ class Cache : public BaseCache
 
     const Params *params;
 
+    virtual bool isL3(){ return params->split_mshrq; }
+
   protected:
 
     /**
@@ -149,13 +151,12 @@ class Cache : public BaseCache
       protected:
 
         Cache<TagStore> &cache;
-        int ID;
 
       public:
 
         MemSidePacketQueue(Cache<TagStore> &cache, MasterPort &port,
                            const std::string &label, int ID) :
-            MasterPacketQueue(cache, port, label), cache(cache), ID(ID){ }
+            MasterPacketQueue(cache, port, label), cache(cache) { ID=ID; }
 
         /**
          * Override the normal sendDeferredPacket and do not only
@@ -165,7 +166,12 @@ class Cache : public BaseCache
         virtual void sendDeferredPacket();
 
         virtual std::string print_elements(){
-          return cache.getNextMSHR( ID )->to_string();
+            MSHR * m = cache.getNextMSHR(ID);
+            if(m){
+                return m->to_string();
+            } else {
+                return "null";
+            }
         }
 
     };

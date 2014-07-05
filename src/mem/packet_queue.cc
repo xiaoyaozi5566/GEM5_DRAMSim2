@@ -51,6 +51,7 @@ PacketQueue::PacketQueue(EventManager& _em, const std::string& _label)
     : em(_em), sendEvent(this), drainEvent(NULL), label(_label),
       waitingOnRetry(false)
 {
+    ID=0;
 	//printf("SendEvent initialized %d\n", sendEvent.initialized());
 	//cout<< _label << endl;
 }
@@ -107,11 +108,11 @@ PacketQueue::schedSendEvent(Tick when, bool isInteresting)
     //printf("schedule send Event @ cycle %llu\n", when);
 	  //if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
 	  if (!sendEvent.scheduled()) {
-        if( isInteresting ) printf("interesting scheduled at %lu\n",when);
+        if( isEra() ) printf("schedSendEvent at %lu\n",when);
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
-        if(isInteresting){
-           printf("interesting was scheduled at %lu, rescheduled at %lu\n",
+        if( isEra() ){
+           printf("scendEvent was scheduled at %lu, rescheduled at %lu\n",
                    sendEvent.when(), when);
         }
         //printf("Event rescheduled @ cycle %llu\n", when);

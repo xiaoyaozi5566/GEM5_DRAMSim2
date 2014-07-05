@@ -61,8 +61,8 @@
 
 #define DEBUG_TP
 #define interesting 0x55fc40
-#define i_era_l     10
-#define i_era_h     11
+#define i_era_l     48318210000
+#define i_era_h     48319352000
 /**
  * A packet queue is a class that holds deferred packets and later
  * sends them using the associated slave port or master port.
@@ -70,6 +70,15 @@
 class PacketQueue
 {
   public:
+    int ID;
+    bool isEra(){ return isEra(curTick()); }
+    bool isEra(Tick w){
+#ifdef DEBUG_TP
+      return (w > i_era_l) && (w < i_era_h);
+#else
+      return false;
+#endif
+    }
     /** A deferred packet, buffered to transmit later. */
     class DeferredPacket {
       public:
@@ -90,7 +99,7 @@ class PacketQueue
     typedef std::list<DeferredPacket> DeferredPacketList;
     typedef std::list<DeferredPacket>::iterator DeferredPacketIterator;
 
-    std::string print_elements(){
+    virtual std::string print_elements(){
       return "";
     }
 
@@ -136,7 +145,8 @@ class PacketQueue
 
       protected:
       virtual void setWhen(Tick w, EventQueue *q){
-        if(isInteresting() || isInteresting(w)){
+
+        if(pq->em.isL3() && pq->ID==0 && (pq->isEra() || pq->isEra(w)) ){
           printf("setting the sendEvent to %lu with an element_list:\n%s",
               w, pq->print_elements().c_str());
         }
@@ -145,14 +155,6 @@ class PacketQueue
 
       private:
       PacketQueue * pq;
-      bool isInteresting(){ return isInteresting(curTick()); }
-      bool isInteresting(Tick w){
-#ifdef DEBUG_TP
-        return (w > i_era_l) && (w < i_era_h);
-#else
-        return false;
-#endif
-      }
     };
     WrappedSend sendEvent;
 
