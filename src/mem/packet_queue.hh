@@ -59,7 +59,7 @@
 #include "mem/port.hh"
 #include "sim/eventq.hh"
 
-#define DEBUG_TP
+//#define DEBUG_TP
 #define interesting 0x55fc40
 #define i_era_l     48318210000
 #define i_era_h     48319352000
@@ -146,10 +146,12 @@ class PacketQueue
       protected:
       virtual void setWhen(Tick w, EventQueue *q){
 
+#ifdef DEBUG_TP
         if(pq->em.isL3() && pq->ID==0 && (pq->isEra() || pq->isEra(w)) ){
           printf("setting the sendEvent to %lu with an element_list:\n%s",
               w, pq->print_elements().c_str());
         }
+#endif
         WrappedPSE::setWhen(w, q);
       }
 

@@ -144,7 +144,7 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         }
         schedSendEvent(when,(pkt->getAddr())==interesting);
 #else
-        schedSendEvent(when);
+        schedSendEvent(when,false);
 #endif
         return;
     }

@@ -70,7 +70,7 @@ module RunScripts
             cpus: %w[detailed],
             fastforward: 0,
         }
-        qsub_fast opts
+        #qsub_fast opts
 
         # set partitioning
         opts = opts.merge({
@@ -81,7 +81,7 @@ module RunScripts
             split_rport: true,
             rr_nc: true,
         })
-        qsub_fast opts
+        #qsub_fast opts
 
         # way partitioning
         opts = opts.merge({
@@ -102,11 +102,10 @@ module RunScripts
             split_rport: true,
             addrpar: true,
             #memdebug: true,
-            runmode: :local,
-            debug: true
-            #do_cache_trace: true,
-            #do_bus_trace: true,
-            #do_mem_trace: true,
+            #runmode: :qsub,
+            do_cache_trace: true,
+            do_bus_trace: true,
+            do_mem_trace: true,
         }
         Parallel.each(1..2, :in_threads=>2) do |i|
             if i==1
