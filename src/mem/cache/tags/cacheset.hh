@@ -72,6 +72,24 @@ class CacheSet
      */
     void moveToTail(CacheBlk *blk);
 
+
+    // similar to findBlk, but doesn't explicitly call findBlk so this can be 
+    // differentiated from actual findBlk calls.
+    bool hasBlk(Addr tag){
+        for (int i = 0; i < assoc; ++i) {
+            if (blks[i]->tag == tag && blks[i]->isValid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void print(){
+        for(int i = 0; i < assoc; i++){
+            (new CacheBlkPrintWrapper(blks[i]))->print( std::cout );
+        }
+    }
+
 };
 
 #endif

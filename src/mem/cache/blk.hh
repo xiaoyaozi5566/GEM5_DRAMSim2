@@ -59,7 +59,6 @@ enum CacheBlkStatusBits {
     /** block was a hardware prefetch yet unaccessed*/
     BlkHWPrefetched =   0x20
 };
-
 /**
  * A Basic Cache block.
  * Contains the tag, status, and a pointer to data.
@@ -269,7 +268,9 @@ class CacheBlk
             return true;
         }
     }
+
 };
+
 
 /**
  * Simple class to provide virtual print() method on cache blocks

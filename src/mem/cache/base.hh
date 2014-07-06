@@ -115,9 +115,9 @@ class BaseCache : public MemObject
         return &writeBuffer;
     }
 	
-	virtual bool isSplitMSHR() {return false;}
-	
-	virtual bool isSplitRPort() {return false;}
+	// virtual bool isSplitMSHR() {return false;}
+	// 
+	// virtual bool isSplitRPort() {return false;}
 	
 	virtual int get_num_tcs() {return 1;}
 
@@ -140,16 +140,16 @@ class BaseCache : public MemObject
          * that we could already have a retry or a transmit list of
          * responses outstanding.
          */
-        void requestBus(RequestCause cause, Tick time)
+        void requestBus(RequestCause cause, Tick time, bool isInteresting)
         {
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            queue.schedSendEvent(time);
+            queue.schedSendEvent(time, isInteresting);
         }
 		
-		virtual void requestBus(RequestCause cause, Tick time, int threadID)
+		virtual void requestBus(RequestCause cause, Tick time, int threadID,
+        bool isInteresting)
         {
-            DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            requestBus( cause, time );
+            requestBus( cause, time, isInteresting );
         }
 
       protected:
@@ -225,7 +225,19 @@ class BaseCache : public MemObject
         }
 
         if (requestBus) {
+#ifdef DEBUG_TP
+            bool interesting_cond = (addr == interesting) && (params->split_mshrq)
+                && (pkt->threadID==0);
+            if( interesting_cond ){
+                printf("reqMemSide for interesting with time %lu with curTick %lu\n",
+                        time,
+                        curTick());
+            }
+            requestMemSideBus((RequestCause)mq->index, time, pkt->threadID,
+                    interesting_cond);
+#else
             requestMemSideBus((RequestCause)mq->index, time, pkt->threadID);
+#endif
         }
 
         return mshr;
@@ -435,6 +447,7 @@ class BaseCache : public MemObject
 
   public:
     typedef BaseCacheParams Params;
+    const Params * params;
     BaseCache(const Params *p);
     ~BaseCache() {}
 
@@ -532,10 +545,10 @@ class BaseCache : public MemObject
      * @param cause The reason for the request.
      * @param time The time to make the request.
      */
-    void requestMemSideBus(RequestCause cause, Tick time, int threadID)
+    void requestMemSideBus(RequestCause cause, Tick time, int threadID,
+        bool isInteresting=false)
     {
-        if(isSplitMSHR()) memSidePort->requestBus(cause, time, threadID);
-		else memSidePort->requestBus(cause, time);
+      memSidePort->requestBus(cause, time, threadID, isInteresting);
     }
 
     /**

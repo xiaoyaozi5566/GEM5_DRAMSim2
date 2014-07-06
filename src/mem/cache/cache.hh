@@ -52,7 +52,6 @@
 #define __CACHE_HH__
 
 //#define DEBUGI
-#define interesting 0x66df80
 
 #include "base/misc.hh" // fatal, panic, and warn
 #include "mem/cache/base.hh"
@@ -75,6 +74,11 @@ template <class TagStore>
 class Cache : public BaseCache
 {
   private:
+    bool isInteresting( PacketPtr pkt ){
+      return (pkt->getAddr() == interesting && params->split_mshrq &&
+              pkt->threadID==0);
+    }
+
     int
     tid_from_addr( Addr addr ){
         if( addr < 2 * pow( 1024, 3 ) ) return 0;
@@ -97,6 +101,8 @@ class Cache : public BaseCache
     TracePrinter * tracePrinter;
 
     const Params *params;
+
+    virtual bool isL3(){ return params->split_mshrq; }
 
   protected:
 
@@ -145,13 +151,12 @@ class Cache : public BaseCache
       protected:
 
         Cache<TagStore> &cache;
-		int ID;
 
       public:
 
         MemSidePacketQueue(Cache<TagStore> &cache, MasterPort &port,
                            const std::string &label, int ID) :
-            MasterPacketQueue(cache, port, label), cache(cache), ID(ID){ }
+            MasterPacketQueue(cache, port, label), cache(cache) { ID=ID; }
 
         /**
          * Override the normal sendDeferredPacket and do not only
@@ -159,6 +164,15 @@ class Cache : public BaseCache
          * requests.
          */
         virtual void sendDeferredPacket();
+
+        virtual std::string print_elements(){
+            MSHR * m = cache.getNextMSHR(ID);
+            if(m){
+                return m->to_string();
+            } else {
+                return "null";
+            }
+        }
 
     };
 
@@ -362,9 +376,6 @@ class Cache : public BaseCache
      * @return The request to service, NULL if none found.
      */
     virtual PacketPtr getTimingPacket( int threadID );
-    virtual PacketPtr getTimingPacket(){
-        return getTimingPacket( 0 );
-    }
 
     /**
      * Marks a request as in service (sent on the bus). This can have side

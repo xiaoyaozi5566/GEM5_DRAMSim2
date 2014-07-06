@@ -70,7 +70,7 @@ module RunScripts
             cpus: %w[detailed],
             fastforward: 0,
         }
-        qsub_fast opts
+        #qsub_fast opts
 
         # set partitioning
         opts = opts.merge({
@@ -81,7 +81,7 @@ module RunScripts
             split_rport: true,
             rr_nc: true,
         })
-        qsub_fast opts
+        #qsub_fast opts
 
         # way partitioning
         opts = opts.merge({
@@ -96,14 +96,13 @@ module RunScripts
             p1: "astar",
             maxinsts: 5*10**7,
             fastforward: 0,
-            setpart: true,
+            waypart: true,
             rr_nc: true,
             split_mshr: true,
             split_rport: true,
             addrpar: true,
             #memdebug: true,
-            debug: true,
-            runmode: :local,
+            #runmode: :qsub,
             do_cache_trace: true,
             do_bus_trace: true,
             do_mem_trace: true,
@@ -113,14 +112,14 @@ module RunScripts
                 if block_given? 
                     yield opts.merge( p0: "gcc" )
                 else
-                    sav_script( "detailed", "tp", "gcc", opts )
+                    sav_script( "detailed", "tp", "gobmk", opts )
                 end
             else
                 opts = opts.merge( { p1: "gcc" } )
                 if block_given?
                     yield opts.merge( p0: "gcc" )
                 else
-                    sav_script( "detailed", "tp", "gcc", opts )
+                    sav_script( "detailed", "tp", "gobmk", opts )
                 end
             end
         end

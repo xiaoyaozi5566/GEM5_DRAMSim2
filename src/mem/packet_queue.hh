@@ -54,17 +54,31 @@
  */
 
 #include <list>
+#include <sstream>
 
 #include "mem/port.hh"
 #include "sim/eventq.hh"
 
+//#define DEBUG_TP
+#define interesting 0x55fc40
+#define i_era_l     48318210000
+#define i_era_h     48319352000
 /**
  * A packet queue is a class that holds deferred packets and later
  * sends them using the associated slave port or master port.
  */
 class PacketQueue
 {
-  private:
+  public:
+    int ID;
+    bool isEra(){ return isEra(curTick()); }
+    bool isEra(Tick w){
+#ifdef DEBUG_TP
+      return (w > i_era_l) && (w < i_era_h);
+#else
+      return false;
+#endif
+    }
     /** A deferred packet, buffered to transmit later. */
     class DeferredPacket {
       public:
@@ -74,10 +88,39 @@ class PacketQueue
         DeferredPacket(Tick t, PacketPtr p, bool send_as_snoop)
             : tick(t), pkt(p), sendAsSnoop(send_as_snoop)
         {}
+
+        std::string print(){
+          std::string t = std::to_string(tick);
+          return "(" + t + ") " + pkt->to_string();
+        }
+
     };
 
     typedef std::list<DeferredPacket> DeferredPacketList;
     typedef std::list<DeferredPacket>::iterator DeferredPacketIterator;
+
+    virtual std::string print_elements(){
+      return "";
+    }
+
+#ifdef DEBUG_TP
+    bool hasInteresting(DeferredPacketList tl){
+      for( DeferredPacketIterator it = tl.begin();
+          it != tl.end(); ++it ){
+        if((*it).pkt->getAddr() == interesting) return true;
+      }
+      return false;
+    }
+#endif
+
+    std::string print(DeferredPacketList tl){
+      std::ostringstream s;
+      for( DeferredPacketIterator it = tl.begin();
+          it != tl.end(); ++it ){
+        s << (*it).print() << "\n";
+      }
+      return s.str();
+    }
 
     /** A list of outgoing timing response packets that haven't been
      * serviced yet. */
@@ -93,7 +136,30 @@ class PacketQueue
     /**
      * Event used to call processSendEvent.
      **/
-    EventWrapper<PacketQueue, &PacketQueue::processSendEvent> sendEvent;
+    typedef EventWrapper<PacketQueue, &PacketQueue::processSendEvent> WrappedPSE;
+    class WrappedSend : public WrappedPSE{
+
+      public:
+        WrappedSend( PacketQueue * pq )
+          : WrappedPSE(pq), pq(pq){}
+
+      protected:
+      virtual void setWhen(Tick w, EventQueue *q){
+
+#ifdef DEBUG_TP
+        if(pq->em.isL3() && pq->ID==0 && (pq->isEra() || pq->isEra(w)) ){
+          printf("setting the sendEvent to %lu with an element_list:\n%s",
+              w, pq->print_elements().c_str());
+        }
+#endif
+        WrappedPSE::setWhen(w, q);
+      }
+
+      private:
+      PacketQueue * pq;
+    };
+    WrappedSend sendEvent;
+
 
     /** If we need to drain, keep the drain event around until we're done
      * here.*/
@@ -188,7 +254,7 @@ class PacketQueue
      *
      * @param when
      */
-    void schedSendEvent(Tick when);
+    void schedSendEvent(Tick when, bool isInteresting);
 
     /**
      * Add a packet to the transmit list, and ensure that a

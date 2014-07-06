@@ -51,6 +51,7 @@ PacketQueue::PacketQueue(EventManager& _em, const std::string& _label)
     : em(_em), sendEvent(this), drainEvent(NULL), label(_label),
       waitingOnRetry(false)
 {
+    ID=0;
 	//printf("SendEvent initialized %d\n", sendEvent.initialized());
 	//cout<< _label << endl;
 }
@@ -90,7 +91,7 @@ PacketQueue::checkFunctional(PacketPtr pkt)
 }
 
 void
-PacketQueue::schedSendEvent(Tick when)
+PacketQueue::schedSendEvent(Tick when, bool isInteresting)
 {
     // if we are waiting on a retry, do not schedule a send event, and
     // instead rely on retry being called
@@ -99,13 +100,23 @@ PacketQueue::schedSendEvent(Tick when)
         return;
     }
 
+    if( isInteresting ){
+      printf( "interesting schedEvent when=%lu curTick=%lu\n",
+           when, curTick() );
+    }
+  
     //printf("schedule send Event @ cycle %llu\n", when);
-	//if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
-	if (!sendEvent.scheduled()) {
+	  //if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
+	  if (!sendEvent.scheduled()) {
+        if( isEra() ) printf("schedSendEvent at %lu\n",when);
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
+        if( isEra() ){
+           printf("scendEvent was scheduled at %lu, rescheduled at %lu\n",
+                   sendEvent.when(), when);
+        }
         //printf("Event rescheduled @ cycle %llu\n", when);
-		em.reschedule(&sendEvent, when);
+      em.reschedule(&sendEvent, when);
     }
 }
 
@@ -126,7 +137,15 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         // and could in theory put a new packet at the head of the
         // transmit list before retrying the existing packet
         transmitList.push_front(DeferredPacket(when, pkt, send_as_snoop));
-        schedSendEvent(when);
+#ifdef DEBUG_TP
+        if(pkt->getAddr()==interesting && pkt->threadID==0){
+          printf("interesting schedSendTiming->schedSendEvent @ %lu\n",
+              curTick());
+        }
+        schedSendEvent(when,(pkt->getAddr())==interesting);
+#else
+        schedSendEvent(when,false);
+#endif
         return;
     }
 
@@ -153,6 +172,13 @@ void PacketQueue::trySendTiming()
     // ourselves through the sendTiming call below
     DeferredPacket dp = transmitList.front();
     transmitList.pop_front();
+
+#ifdef DEBUG_TP
+    if( dp.pkt->getAddr() == interesting ){
+      printf("interesting trySendTiming within PQ @%lu, dest %i\n",
+          curTick(), dp.pkt->getDest());
+    }
+#endif
 
     // use the appropriate implementation of sendTiming based on the
     // type of port associated with the queue, and whether the packet

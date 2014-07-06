@@ -253,6 +253,7 @@ Cache<TagStore>::squash(int threadNum)
 {
     bool unblock = false;
     BlockedCause cause = NUM_BLOCKED_CAUSES;
+    fprintf(stderr, "%s\n", "SQUASHED!!");
 
     if (noTargetMSHR && noTargetMSHR->threadNum == threadNum) {
         noTargetMSHR = NULL;
@@ -296,7 +297,17 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     }
 
     int id = pkt->req->hasContextId() ? pkt->req->contextId() : -1;
+
     blk = tags->accessBlock(pkt->getAddr(), lat, id, pkt->threadID);
+#ifdef DEBUG_TP
+    if(isInteresting(pkt)){
+        printf( "did interesting access it was a %s @ %lu with dest %i\n",
+                (blk == NULL)? "miss" : "hit",
+                curTick(),
+                pkt->getDest()
+              );
+    }
+#endif
 
     DPRINTF(Cache, "%s%s %x %s\n", pkt->cmdString(),
             pkt->req->isInstFetch() ? " (ifetch)" : "",
@@ -396,6 +407,12 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
     // we charge hitLatency for doing just about anything here
     Tick time =  curTick() + hitLatency;
 
+#ifdef DEBUG_TP
+    if(isInteresting(pkt)){
+      printf("(hitLatency) time = %lu\n", time);
+    }
+#endif
+
     if (pkt->isResponse()) {
         // must be cache-to-cache response from upper to lower level
         ForwardResponseRecord *rec =
@@ -414,6 +431,11 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
         rec->restore(pkt, this);
         delete rec;
         memSidePort->schedTimingSnoopResp(pkt, time);
+#ifdef DEBUG_TP
+        if(isInteresting(pkt)){
+          printf("(did schedTimingSnoopResp) time = %lu\n", time);
+        }
+#endif
         return true;
     }
 
@@ -445,6 +467,12 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
     }
 
     if (pkt->req->isUncacheable()) {
+#ifdef DEBUG_TP
+      if(isInteresting(pkt)){
+        printf( "interesting %s isUncacheable\n",
+            pkt->to_string().c_str() );
+      }
+#endif
         if (pkt->req->isClearLL()) {
             tags->clearLocks();
         } else if (pkt->isWrite()) {
@@ -519,6 +547,15 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
         Addr blk_addr = blockAlign(pkt->getAddr());
         MSHR *mshr = getMSHRQueue( pkt->threadID )->findMatch( blk_addr );
 
+#ifdef DEBUG_TP
+        if(isInteresting(pkt)){
+            printf("searched MSHR for interesting @ %lu it was a %s\n",
+                    curTick(),
+                    mshr? "mshr hit" : "mshr miss"
+                  );
+        }
+#endif
+
         if (mshr) {
             // MSHR hit
             //@todo remove hw_pf here
@@ -527,6 +564,12 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
             if (mshr->threadNum != 0/*pkt->req->threadId()*/) {
                 mshr->threadNum = -1;
             }
+#ifdef DEBUG_TP
+            if(isInteresting(pkt)){
+              printf( "mshr->allocateTarget( %s, %lu, %lu )\n",
+                  pkt->to_string().c_str(), time, order+1 );
+            }
+#endif
             mshr->allocateTarget(pkt, time, order++);
             if (mshr->getNumTargets() == numTarget) {
                 noTargetMSHR = mshr;
@@ -544,6 +587,12 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
             // no-write-allocate or bypass accesses this will have to
             // be changed.
             if (pkt->cmd == MemCmd::Writeback) {
+#ifdef DEBUG_TP
+                if(isInteresting(pkt)){
+                  printf( "mshr->allocateWriteBuffer( %s, %lu, %i )\n",
+                      pkt->to_string().c_str(), time, true );
+                }
+#endif
                 allocateWriteBuffer(pkt, time, true);
             } else {
                 if (blk && blk->isValid()) {
@@ -567,7 +616,13 @@ Cache<TagStore>::timingAccess(PacketPtr pkt)
                 }
 
                 //printf("store miss %llx from thread %llu to MSHR @ cycle %llu\n", pkt->getAddr(), pkt->threadID, time);
-				allocateMissBuffer(pkt, time, true);
+#ifdef DEBUG_TP
+                if( isInteresting(pkt) ){
+                    printf("allocateMissBuffer( %s, %lu, true ) @ %lu\n",
+                        pkt->to_string().c_str(), time, curTick());
+                }
+#endif 
+                allocateMissBuffer(pkt, time, true);
             }
 
             if (prefetcher) {
@@ -1434,6 +1489,14 @@ Cache<TagStore>::getNextMSHR( int threadID )
 
     // fall through... no pending requests.  Try a prefetch.
     assert(!miss_mshr && !write_mshr);
+#ifdef DEBUG_TP
+    bool isInterestingTime = (curTick() > interesting_era_l) &&
+      (curTick() < interesting_era_h);
+    if( isInterestingTime && params->split_mshrq ){
+      printf("got a prefetch in getNextMSHR at @%lu during the chosen time\n",
+          curTick());
+    }
+#endif
     if (prefetcher && !getMSHRQueue( threadID )->isFull()) {
         // If we have a miss queue slot, we can try a prefetch
         PacketPtr pkt = prefetcher->getPacket();
@@ -1473,6 +1536,12 @@ Cache<TagStore>::getTimingPacket( int threadID )
     // use request from 1st target
     PacketPtr tgt_pkt = mshr->getTarget()->pkt;
     PacketPtr pkt = NULL;
+
+#ifdef DEBUG_TP
+    if(isInteresting(tgt_pkt)){
+        printf("interesting target pulled from mshr at time %lu\n",curTick());
+    }
+#endif
 
     if (tgt_pkt->cmd == MemCmd::SCUpgradeFailReq ||
         tgt_pkt->cmd == MemCmd::StoreCondFailReq) {
@@ -1688,13 +1757,27 @@ void
 Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
 {
 	// if we have a response packet waiting we have to start with that
-    //TODO This shouild get a TID based on the bus turn
+    //TODO This should get a TID based on the bus turn
+#ifdef DEBUG_TP
+    bool isInterestingTime = (curTick() > interesting_era_l) &&
+      (curTick() < interesting_era_h);
+    if( isInterestingTime && cache.params->split_mshrq){
+      printf("interesting sendDeferred with ID=%i, @%lu printing transmitlist:\n%s",
+          ID, curTick(), print(transmitList).c_str());
+    }
+#endif
     if (deferredPacketReady()) {
         // use the normal approach from the timing port
         trySendTiming();
     } else {
         // check for request packets (requests & writebacks)
         PacketPtr pkt = cache.getTimingPacket( ID );
+#ifdef DEBUG_TP
+        if(isInterestingTime && cache.params->split_mshrq){
+            printf("getTimingPacket produced packet %s @%lu\n",
+                    pkt->to_string().c_str(), curTick());
+        }
+#endif
 		// if(pkt != NULL) {
 		// 	printf("send miss %llx from thread %llu @ %llu\n", pkt->getAddr(), pkt->threadID, cache.nextCycle());
 		// 	std::cout << cache.name() << " " << cache.isSplitMSHR() << std::endl;
@@ -1706,6 +1789,13 @@ Cache<TagStore>::MemSidePacketQueue::sendDeferredPacket()
             waitingOnRetry = false;
         } else {
             MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);
+
+#ifdef DEBUG_TP
+            if(cache.isInteresting(pkt)){
+                printf("getTimingPacket sent to bus @%lu\n",
+                        curTick());
+            }
+#endif
 
             waitingOnRetry = !masterPort.sendTimingReq(pkt);
 
@@ -1759,7 +1849,7 @@ SplitMSHRCache<TagStore>::SplitMSHRCache( const Params *p, TagStore *tags )
                   p->write_buffers, p->mshrs+1000, 1);
           }
 
-		  num_tcs = p->num_tcs;
+          num_tcs = p->num_tcs;
 
           this->memSidePort = new SplitMemSidePort(p->name + ".mem_side", this,
                                   "MemSidePort");

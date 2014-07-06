@@ -41,6 +41,7 @@
 #include <climits>
 #include <iosfwd>
 #include <string>
+#include <sstream>
 
 #include "base/flags.hh"
 #include "base/misc.hh"
@@ -90,7 +91,7 @@ class Event : public Serializable
   public:
     typedef int8_t Priority;
 
-  private:
+  protected:
     // The event queue is now a linked list of linked lists.  The
     // 'nextBin' pointer is to find the bin, where a bin is defined as
     // when+priority.  All events in the same bin will be stored in a
@@ -130,7 +131,7 @@ class Event : public Serializable
     Tick whenScheduled; //!< time scheduled
 #endif
 
-    void
+    virtual void
     setWhen(Tick when, EventQueue *q)
     {
         _when = when;
@@ -371,6 +372,7 @@ class EventQueue : public Serializable
     const EventQueue &operator=(const EventQueue &);
 
   public:
+
     int exit_count;
     EventQueue(const std::string &n);
 
@@ -437,6 +439,8 @@ class EventManager
     EventManager(EventManager &em) : eventq(em.eventq) {}
     EventManager(EventManager *em) : eventq(em->eventq) {}
     EventManager(EventQueue *eq) : eventq(eq) {}
+
+    virtual bool isL3(){ return false; }
 
     EventQueue *
     eventQueue() const
