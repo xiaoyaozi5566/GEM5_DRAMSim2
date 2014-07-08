@@ -16,20 +16,18 @@ include RunScripts
 # cache_security
 # execution_time_compare
 # execution_time_compare_qsub
-  security_debug
+# security_debug
 # paddr_test
 # setpart_vs_private
 
 #------------------------------------------------------------------------------
 # Functionality
 #------------------------------------------------------------------------------
-# sanity
-# sanity_deep
-# secure
+# insecure_sanity
+# insecure_deep
+# secure_sanity
 # secure_deep
-# secure_wp
-# secure_wp_deep
-# gcc_l2l3bus_hang
+secure_scaling
 
 #------------------------------------------------------------------------------
 # Performance
