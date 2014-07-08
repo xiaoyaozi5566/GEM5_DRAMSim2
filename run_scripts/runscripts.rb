@@ -160,17 +160,20 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --split_rport \\")   if options[:split_rport]
 
     #Time Quanta and Offsets
-    # Assumes all or none are passed. Default if none are passed.
-    unless options[:l2l3req_tl].nil?
-        script.puts("    --l2l3req_tl #{options[:l2l3req_tl]}\\")
-        script.puts("    --l2l3req_offset #{options[:l2l3req_offset]}\\")
-        script.puts("    --l2l3resp_tl #{options[:l2l3resp_tl]}\\")
-        script.puts("    --l2l3resp_offset #{options[:l2l3resp_offset]}\\")
-        script.puts("    --membusreq_tl #{options[:membusreq_tl]}\\")
-        script.puts("    --membusreq_offset #{options[:membusreq_offset]}\\")
-        script.puts("    --membusresp_tl #{options[:membusresp_tl]}\\")
-        script.puts("    --membusresp_offset #{options[:membusresp_offset]}\\")
-        script.puts("    --dramoffset #{options[:dramoffset]}\\")
+    [
+      :l2l3req_tl,
+      :l2l3req_offset,
+      :l2l3resp_tl,
+      :l2l3resp_offset,
+      :membusreq_tl,
+      :membusreq_offset,
+      :membusresp_tl,
+      :membusresp_offset,
+      :dramoffset
+    ].each do |param|
+      unless options[param].nil?
+       script.puts("    --#{param.to_s} #{options[param]} \\")
+      end
     end
 
     #Trace Options
