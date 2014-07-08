@@ -2,7 +2,6 @@
 
 require 'fileutils'
 require 'colored'
-require 'parallel'
 
 module RunScripts
 #directories
@@ -220,99 +219,98 @@ def sav_script( cpu, scheme, p0, options = {} )
     [success,filename]
 end
 
-def parallel_local opts
-    opts = {
-        cpus: $cpus,
+def iterate_and_submit opts={}, &block
+    o = {
+        cpus: %w[detailed],
         schemes: $schemes,
         benchmarks: $specint,
         runmode: :local,
+        threads: 4
     }.merge opts
 
-    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
+    o[:otherbench] = o[:benchmarks] if o[:otherbench].nil?
 
-    failed = []
+    f = []
 
-    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        Parallel.each( opts[:benchmarks].product( opts[:otherbench] ),
-                      in_threads: 4 ) do |p0, p1|
-            iteropts = { p1: p1 }
-            r = sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
-            failed << r[1] unless r[0] 
+    submit = block_given? ?
+      block :
+      ( lambda do |cpu, scheme, param, p0, other|
+          r = sav_script(cpu, scheme, p0, param.merge(p1: other))
+          (r[0] && [] ) || r[1]
         end
+      )
+      
+    o[:cpus].product(o[:schemes]).each do |cpu, scheme|
+      o[:benchmarks].product(o[:otherbench]).each_slice(o[:threads]) do |i|
+        threads=[]
+        i.each do |p0,other|
+          threads << Thread.new { f << submit.call(cpu, scheme, o, p0, other).flatten }
+        end
+        threads.each { |t| t.join }
+      end
     end
-    failed.each{|f| puts f.red}
+    puts f.flatten.to_s.red
 end
 
-def qsub_fast opts
-    opts = {
-        cpus: $cpus,
-        schemes: $schemes,
-        benchmarks: $specint,
-        runmode: :qsub,
-    }.merge opts
-    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
-
-    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        opts[:benchmarks].product( opts[:otherbench] ).each do |p0, p1|
-            iteropts = { p1: p1 }
-            sav_script( cpu, scheme, p0, opts.merge( iteropts ) )
-        end
-    end
-
+def parallel_local opts={}
+  iterate_and_submit opts
 end
 
-def qsub_fast_scaling opts
-    opts = {
-        cpus: $cpus,
-        schemes: $schemes,
-        benchmarks: $specint,
-        runmode: :qsub,
-    }.merge opts
-
-    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
-
-    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        opts[:benchmarks].product( opts[:otherbench] ).each do |p0, other|
-            sav_script( cpu, scheme, p0, 
-                        opts.merge(p1: other)  )
-            sav_script( cpu, scheme, p0,
-                        opts.merge( p1: other, p2: other ) )
-            sav_script( cpu, scheme, p0,
-                        opts.merge( p1: other, p2: other, p3: other ) )
-        end
-    end
+def qsub_fast opts={}
+  iterate_and_submit opts.merge(runmode: qsub)
 end
 
-
-def parallel_local_scaling opts
-    opts = {
-        cpus: $cpus,
+def single opts={}
+    o = {
+        cpus: %w[detailed],
         schemes: $schemes,
         benchmarks: $specint,
         runmode: :local,
+        threads: 4
     }.merge opts
 
-    opts[:otherbench] = opts[:benchmarks] if opts[:otherbench].nil?
+    f = []
 
-    failed = []
-
-    opts[:cpus].product( opts[:schemes] ).each do |cpu, scheme|
-        Parallel.each( opts[:benchmarks].product( opts[:otherbench] ),
-                      in_threads: 4 ) do |p0, other|
-            r = sav_script( cpu, scheme, p0, opts )
-            failed << r[1] unless r[0] 
-            r = sav_script( cpu, scheme, p0,
-                           opts.merge( p1: other ) )
-            failed << r[1] unless r[0] 
-            r = sav_script( cpu, scheme, p0,
-                           opts.merge( p1: other, p2: other) )
-            failed << r[1] unless r[0] 
-            r = sav_script( cpu, scheme, p0,
-                           opts.merge( p1: other, p2: other, p3:other ) )
-            failed << r[1] unless r[0] 
+    o[:cpus].product(o[:schemes], o[:benchmarks]).each_slice(o[:threads]) do |i|
+      t={}
+      i.each do |cpu,scheme,p0|
+        t[i] = Thread.new do
+          r=sav_script(cpu, scheme, p0, o)
+          f << r[1] unless r[0]
         end
+      end
+      t.each { |_,v| v.join }
     end
-    failed.each{|f| puts f.red}
+    puts f.flatten.to_s.red
+end
+
+def single_qsub opts={}
+  single opts.merge(runmode: :qsub)
+end
+
+def parallel_local_scaling opts={}
+  opts = opts.merge(otherbench: %w[astar])
+  iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
+    f = []
+    #2
+    p = param.merge(p1: other)
+    r = sav_script(cpu, scheme, p0, p)
+    f << r[1] unless r[0]
+    #3
+    p = p.merge(p2: other)
+    r = sav_script(cpu, scheme, p0, p)
+    f << r[1] unless r[0]
+    #4
+    p = p.merge(p3: other)
+    r = sav_script(cpu, scheme, p0, p)
+    f << r[1] unless r[0]
+    f
+  end
+end
+
+
+def qsub_scaling opts = {}
+  paralell_local_scaling opts.merge(runmode: :qsub)
 end
 
 end

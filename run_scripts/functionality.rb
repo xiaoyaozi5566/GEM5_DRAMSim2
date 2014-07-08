@@ -2,7 +2,6 @@
 # Security Tests
 #------------------------------------------------------------------------------
 require_relative "runscripts"
-require 'parallel'
 require 'colored'
 include RunScripts
 

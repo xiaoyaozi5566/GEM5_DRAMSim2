@@ -2,7 +2,6 @@
 # Security Tests
 #------------------------------------------------------------------------------
 require_relative "runscripts"
-require 'parallel'
 include RunScripts
 
 module RunScripts
@@ -107,21 +106,20 @@ module RunScripts
             do_bus_trace: true,
             do_mem_trace: true,
         }
-        Parallel.each(1..2, :in_threads=>2) do |i|
-            if i==1
-                if block_given? 
-                    yield opts.merge( p0: "gcc" )
-                else
-                    sav_script( "detailed", "tp", "gobmk", opts )
-                end
-            else
-                opts = opts.merge( { p1: "gcc" } )
-                if block_given?
-                    yield opts.merge( p0: "gcc" )
-                else
-                    sav_script( "detailed", "tp", "gobmk", opts )
-                end
-            end
+        fork do 
+          if block_given? 
+              yield opts.merge( p0: "gcc" )
+          else
+              sav_script( "detailed", "tp", "gobmk", opts )
+          end
+        end
+        fork do
+          opts = opts.merge( { p1: "gcc" } )
+          if block_given?
+              yield opts.merge( p0: "gcc" )
+          else
+              sav_script( "detailed", "tp", "gobmk", opts )
+          end
         end
     end
 
