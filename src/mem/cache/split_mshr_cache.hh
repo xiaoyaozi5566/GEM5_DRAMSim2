@@ -21,7 +21,7 @@ class SplitMSHRCache : public Cache<TagStore>
         private:
         MasterPacketQueue** reqQueues;
 
-        public:
+         ublic:
         virtual void recvRetry( int threadID ){
             this->reqQueues[threadID]->retry();
         }
@@ -46,7 +46,6 @@ class SplitMSHRCache : public Cache<TagStore>
           Cache<TagStore>::MemSidePort( _name, _cache, _label ){
           this->reqQueues = new MasterPacketQueue*[_cache->params->num_tcs];
           for( int i=0; i < (_cache->params->num_tcs); i++){
-            fprintf(stderr, "made MemSidePacketQueue with ID=%i\n", i);
             this->reqQueues[i] = new MemSidePacketQueue(
                           *_cache, *this, "MasterPacketQueue", i);
           }
