@@ -21,7 +21,7 @@ class SplitMSHRCache : public Cache<TagStore>
         private:
         MasterPacketQueue** reqQueues;
 
-         ublic:
+        public:
         virtual void recvRetry( int threadID ){
             this->reqQueues[threadID]->retry();
         }
