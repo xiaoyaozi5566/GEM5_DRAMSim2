@@ -30,6 +30,29 @@ module RunScripts
       }.merge opts){|args| block.call args}
     end
 
+    def only_mc
+      insecure{|opts| parallel_local opts.merge(
+        nametag:"onlymc", schemes: %w[tp], addrpar: true)}
+    end
+
+    def only_l2l3
+      insecure{|opts| parallel_local opts.merge(
+        nametag: "onlyl2l3", addrpar: true, rr_l2l3: true)}
+    end
+
+    def only_membus
+      insecure{|opts| parallel_local opts.merge(
+        nametag: "onlymembus", addrpar: true, rr_mem: true,
+        #It turns out that the following line is not necessary
+        split_rport: true, split_mshr: true
+      )}
+    end
+
+    def only_waypart
+      insecure{|opts| parallel_local opts.merge(
+        nametag: "onlywaypart", addrpar: true, waypart: true)}
+    end
+
     def secure_scaling
       secure{|opts| parallel_local_scaling opts}
     end

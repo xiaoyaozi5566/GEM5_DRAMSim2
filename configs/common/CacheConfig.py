@@ -69,7 +69,7 @@ class L3Shared( L3Config ):
                             req_tl = options.l2l3req_tl,
                             req_offset = options.l2l3req_offset,
                             resp_tl = options.l2l3resp_tl,
-                            resp_offset = options.l2l3resp_offset) if options.rr_nc
+                            resp_offset = options.l2l3resp_offset) if options.rr_l2l3
                 else NoncoherentBus()
                 )
         # system.tol3bus = NoncoherentBus()

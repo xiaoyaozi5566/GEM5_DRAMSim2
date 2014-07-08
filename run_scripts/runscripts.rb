@@ -151,12 +151,14 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --maxtick=#{$maxtick} \\")
 
     #Protection Mechanisms
-    script.puts("   --fixaddr\\") if scheme == "fa" || options[:addrpar]
-    script.puts("    --rr_nc\\" ) if rr_nc
-    script.puts("    --use_set_part\\" ) if use_set_part
-    script.puts("    --use_way_part\\" ) if use_way_part
-    script.puts("    --split_mshr\\"   ) if options[:split_mshr]
-    script.puts("    --split_rport\\"   ) if options[:split_rport]
+    script.puts("    --fixaddr \\")       if scheme == "fa" || options[:addrpar]
+    script.puts("    --rr_nc \\" )        if rr_nc
+    script.puts("    --rr_l2l3 \\")       if options[:rr_l2l3]
+    script.puts("    --rr_mem \\")        if options[:rr_mem]
+    script.puts("    --use_set_part \\" ) if use_set_part
+    script.puts("    --use_way_part \\")  if use_way_part
+    script.puts("    --split_mshr \\")    if options[:split_mshr]
+    script.puts("    --split_rport \\")   if options[:split_rport]
 
     #Time Quanta and Offsets
     # Assumes all or none are passed. Default if none are passed.

@@ -128,6 +128,10 @@ if '--dramsim2' in sys.argv:
             help="Determines if the L3 cache should be way partitioned")
     parser.add_option("--rr_nc", action="store_true", default=False,
             help="Should a round robin noncoherent bus be used?" )
+    parser.add_option("--rr_l2l3", action="store_true", default=False,
+            help="Should a round robin noncoherent bus be used for l2l3?" )
+    parser.add_option("--rr_mem", action="store_true", default=False,
+            help="Should a round robin noncoherent bus be used for membus?" )
     parser.add_option("--split_mshr", action="store_true", default=False,
             help="Determines if L3 has separate MSHR Queues per TC")
     parser.add_option("--split_rport", action="store_true", default=False,
@@ -167,6 +171,11 @@ if args:
 
 # Number of CPUs
 options.num_cpus = options.numpids
+
+#Allow rr_nc to apply rr to both buses
+if options.rr_nc :
+    options.rr_l2l3 = True 
+    options.rr_mem  = True
 
 ######################################################################
 # Add DRAMSim2 into the system
@@ -343,7 +352,7 @@ system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                                              req_tl = options.membusreq_tl,
                                              req_offset = options.membusreq_offset,
                                              resp_tl = options.membusresp_tl,
-                                             resp_offset = options.membusresp_offset) if options.rr_nc
+                                             resp_offset = options.membusresp_offset) if options.rr_mem
                     else NoncoherentBus() ),
                 mem_mode = test_mem_mode,
                 numPids = options.numpids,
