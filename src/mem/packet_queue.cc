@@ -64,7 +64,7 @@ void
 PacketQueue::retry()
 {
     DPRINTF(PacketQueue, "Queue %s received retry\n", name());
-    assert(waitingOnRetry);
+    //assert(waitingOnRetry);
     //printf("Queue %s received retry @ %llu\n", name().c_str(), curTick());
 	sendDeferredPacket();
 }
