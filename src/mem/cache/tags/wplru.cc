@@ -33,7 +33,9 @@ WPLRU::get_set( int setnum, uint64_t tid, Addr addr ){
 
 int
 WPLRU::assoc_of_tc( int tcid ){
-    return assoc / num_tcs;
+    int a = assoc / num_tcs;
+    if(tcid < (assoc%num_tcs)) a++;
+    return a;
 }
 
 void
