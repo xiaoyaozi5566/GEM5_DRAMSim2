@@ -10,7 +10,7 @@ module RunScripts
      yield ({ 
       cpus: %w[detailed],
       schemes: %w[none],
-      benchmarks: $specint - %w[bzip2],
+      benchmarks: $specint,
       maxinsts: 10**3,
       fastforward: 0,
       debug: true,

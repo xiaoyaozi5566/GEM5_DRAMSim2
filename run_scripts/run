@@ -4,6 +4,7 @@ require_relative 'runscripts'
 require_relative 'security'
 require_relative 'functionality'
 require_relative 'performance'
+require_relative 'parameter_sweeping'
 require_relative 'memctl_unoptimized'
 require_relative 'memctl_optimized'
 require_relative 'memctl_scheduler'
@@ -35,7 +36,7 @@ include RunScripts
 
 #------------------------------------------------------------------------------
 # Performance
-#------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 # prelim_local
 # scalability_local
 # breakdown_local
@@ -46,6 +47,15 @@ include RunScripts
 # coordination_qsub
 # coordination_local
 
+#----------------------------------------------------------------------------
+# Parameter Sweeping
+#----------------------------------------------------------------------------
+# l2l3_sweeping_local
+# membus_sweeping_local
+# memctl_sweeping_local
+# l2l3_sweeping_qsub
+# membus_sweeping_qsub
+# membus_sweeping_qsub
 
 ###############################################################################
 # Memory Controller Tests

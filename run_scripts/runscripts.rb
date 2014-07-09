@@ -13,7 +13,7 @@ $scriptgen_dir = Dir.new(Dir.pwd+"/scriptgen")
 $fastforward = 10**9
 $maxinsts = 10**8
 $maxtick = 2*10**15 
-$cpus = %w[detailed timing]
+$cpus = %w[detailed] #timing is also available
 $cacheSizes = [0,1,2,4]
 $p0periods = [64,96,128,192,256]
 $l3configs = %w[shared private]
@@ -292,7 +292,7 @@ def single_qsub opts={}
 end
 
 def parallel_local_scaling opts={}
-  opts = opts.merge(otherbench: %w[astar])
+  opts = {otherbench: %w[astar]}.merge opts
   iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
     f = []
     #2
@@ -310,7 +310,6 @@ def parallel_local_scaling opts={}
     f
   end
 end
-
 
 def qsub_scaling opts = {}
   paralell_local_scaling opts.merge(runmode: :qsub)
