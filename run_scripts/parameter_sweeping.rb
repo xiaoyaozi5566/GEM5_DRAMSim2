@@ -6,7 +6,7 @@ module RunScripts
     opts = { schemes: %w[tp], otherbench: %w[astar] }.merge opts
 
     #sweep resp turn
-    [1,2,4,8,9,16,17,25,32].each do |tl|
+    [1,4,8,9,16,17,25,32].each do |tl|
       #default req turn
       o = opts.merge(
         nametag: "l2l3resp_#{tl}",
@@ -30,7 +30,7 @@ module RunScripts
     opts = { schemes: %w[tp], otherbench: %w[astar] }.merge opts
 
     #sweep resp turn
-    [1,2,4,8,9,16,17,25,32].each do |tl|
+    [1,4,8,9,16,17,25,32].each do |tl|
       #default req turn
       o = opts.merge(
         nametag: "membusresp_#{tl}",
@@ -78,4 +78,13 @@ module RunScripts
     memctl_sweeping { |o| qsub_scaling o }
   end
 
+  def fa_sweeping_local
+    membus_sweeping( maxinsts: 10**3, fastforward: 100, debug: true ) do |o|
+      parallel_local_scaling o.merge(schemes: %w[fa])
+    end
+  end
+
+  def fa_sweeping_qsub
+    memctl_sweeping { |o| qsub_scaling o.merge(schemes: %w[fa]) }
+  end
 end

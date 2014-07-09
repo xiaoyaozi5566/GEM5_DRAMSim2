@@ -53,9 +53,11 @@ include RunScripts
 # l2l3_sweeping_local
 # membus_sweeping_local
 # memctl_sweeping_local
+# fa_sweeping_local
 # l2l3_sweeping_qsub
 # membus_sweeping_qsub
 # membus_sweeping_qsub
+# fa_sweeping_qsub
 
 ###############################################################################
 # Memory Controller Tests
