@@ -316,21 +316,16 @@ bool CommandQueueTP::isBufferTime(){
     		turnBegin = _currentClockCycle - (_currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
     }
     uint64_t dead_time;
+	  uint64_t _turnBegin = turnBegin + offset;
     int anyr_refresh = REFRESH_PERIOD/NUM_RANKS/tCK;
-    // if ( bankPart ){
-	  //   dead_time = ( int(turnBegin / anyr_refresh ) < 
-	  //   int((turnBegin+tlength-1) / anyr_refresh ) ) ?
-    //     FIX_TP_BUFFER_TIME :
-    //     FIX_WORST_CASE_DELAY;
-    // } 
-    //   else 
-    {
-	    uint64_t _turnBegin = turnBegin + offset;
-		  dead_time = (int(_turnBegin / anyr_refresh ) < 
-		  		int((_turnBegin+tlength-1) / anyr_refresh )) ?
-        TP_BUFFER_TIME :
-        WORST_CASE_DELAY;
-    }
+
+    // Set the dead time based on whether or not there will be a refresh during
+    // this turn.
+		dead_time = (int(_turnBegin / anyr_refresh ) < 
+				int((_turnBegin+tlength-1) / anyr_refresh )) ?
+      refresh_deadtime( tlength ) :
+      normal_deadtime( tlength );
+
     if ( diffPeriod )
     	return (tlength - (_currentClockCycle - turnBegin)) <= dead_time;
     else

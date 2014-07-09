@@ -40,5 +40,13 @@ namespace DRAMSim
 
             unsigned getCurrentPID();
             bool isBufferTime();
+
+            virtual int normal_deadtime(int tlength){
+              return tlength - (tlength - FIX_WORST_CASE_DELAY)/10;
+            }
+
+            virtual int refresh_deadtime(int tlength){
+              return tlength - (tlength - FIX_TP_BUFFER_TIME)/10;
+            }
     };
 }

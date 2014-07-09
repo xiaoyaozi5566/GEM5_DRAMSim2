@@ -367,12 +367,14 @@ bool CommandQueueFA::isBufferTime(){
     		turnBegin = currentClockCycle - (currentClockCycle%(p0Period+(num_pids-1)*p1Period)-(p0Period+(pid-1)*p1Period));
     }
     uint64_t dead_time;
-    if ( fixAddr )
-		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? FIX_TP_BUFFER_TIME : FIX_WORST_CASE_DELAY;
-    else
-		dead_time = (int(turnBegin / (REFRESH_PERIOD/NUM_RANKS/tCK)) < 
-				int((turnBegin+tlength-1) / (REFRESH_PERIOD/NUM_RANKS/tCK))) ? TP_BUFFER_TIME : WORST_CASE_DELAY;
+    int anyr_refresh = REFRESH_PERIOD/NUM_RANKS/tCK;
+
+    // Set the dead time based on whether or not there will be a refresh during
+    // this turn.
+		dead_time = (int(turnBegin / anyr_refresh ) < 
+				int((turnBegin+tlength-1) / anyr_refresh )) ?
+      refresh_deadtime( tlength ) :
+      normal_deadtime( tlength );
     if ( diffPeriod )
     	return (tlength - (currentClockCycle - turnBegin)) <= dead_time;
     else
