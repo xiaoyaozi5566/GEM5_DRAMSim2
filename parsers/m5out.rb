@@ -66,22 +66,36 @@ if __FILE__ == $0
     
     FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
     
-    mpki = get_stats( dir: input_dir, regex: $l3_miss ).to_a.inject({}){|hsh,kv|
-        hsh[kv[0]] = kv[1] * 1000 / 10**6
-        hsh
-    }
-    puts "Baseline memory requests per thousand instructions: \n" + mpki.to_s
-    hash_to_csv( mpki, result_dir+"/mpki.csv" )
+    # mpki = get_stats( dir: input_dir, regex: $l3_miss, otherbench: %w[astar] ).to_a.inject({}){|hsh,kv|
+    #     hsh[kv[0]] = kv[1] * 1000 / 10**9
+    #     hsh
+    # }
+    # puts "Baseline memory requests per thousand instructions: \n" + mpki.to_s
+    # hash_to_csv( mpki, result_dir+"/mpki.csv" )
 
     baseline_latency = get_stats( scheme: "none", dir: input_dir, regex: $mem_latency )
-    puts "Baseline Memory Latency: \n" + mpki.to_s
+    puts "Baseline Memory Latency: \n" + baseline_latency.to_s
     hash_to_csv( baseline_latency, result_dir+"/baseline_latency.csv" )
 
-    secure_latency = get_stats( scheme: "tp", dir: input_dir, regex: $mem_latency )
-    puts "Secure Baseline Memory Latency: \n" + secure_latency.to_s
-    hash_to_csv(  secure_latency, result_dir+"/secure_latency.csv" )
+    # secure_latency = get_stats( scheme: "tp", dir: input_dir, regex: $mem_latency, otherbench: %w[astar] )
+    # puts "Secure Baseline Memory Latency: \n" + secure_latency.to_s
+    # hash_to_csv(  secure_latency, result_dir+"/secure_latency.csv" )
 
-    latency_overhead = compare_stats( dir: input_dir, regex: $mem_latency )
-    puts "Memory Latency Overhead: \n" + latency_overhead.to_s
-    hash_to_csv( latency_overhead, result_dir+"/latency_overhead.csv" )
+    latency_overhead = compare_stats( dir: input_dir, regex: $mem_latency, otherbench: %w[astar] )
+    puts "Baseline Latency Overhead: \n" + latency_overhead.to_s
+    hash_to_csv( latency_overhead, result_dir+"/baseline_overhead.csv" )
+
+    latency_overhead = compare_stats( dir: input_dir,
+                                     nametag: "bad_coordinated",
+                                     regex: $mem_latency,
+                                     otherbench: %w[astar] )
+    puts "Bad Coordinated Latency Overhead: \n" + latency_overhead.to_s
+    hash_to_csv( latency_overhead, result_dir+"/bad_coordinated_overhead.csv" )
+
+    latency_overhead = compare_stats( dir: input_dir,
+                                     nametag: "coordinated",
+                                     regex: $mem_latency,
+                                     otherbench: %w[astar] )
+    puts "Coordinated Latency Overhead: \n" + latency_overhead.to_s
+    hash_to_csv( latency_overhead, result_dir+"/coordinated_overhead.csv" )
 end
