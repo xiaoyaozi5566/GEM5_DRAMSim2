@@ -3,61 +3,6 @@ require 'colored'
 require_relative 'parsers'
 include Parsers
 
-def perf_compare( conf = {} )
-    conf = {
-        cpu: "detailed",
-        scheme: "tp",
-        bench: $specint - %w[ bzip2 ],
-        use_base_avg: false,
-    }.merge conf
-
-    conf[:otherbench]=conf[:bench]  if conf[:otherbench].nil?
-    use_base_avg = conf[:use_base_avg]
-
-    results = {}
-    conf[:bench].each do |p0|
-        overheads = []
-        (conf[:otherbench]).each do |other|
-            fopts = ( block_given? && conf.merge(yield(p0,other)) ) ||
-                conf.merge({ p0:p0, p1: other })
-            overhead = ( use_base_avg && diff_from_base_avg( fopts ) ) ||
-                       ( percent_overhead fopts )
-            overheads << overhead unless overhead.nil?
-        end
-        results[p0] = avg_arr overheads
-    end
-    results
-end
-
-def base_avg( conf = {} )
-    conf = {
-        cpu: "detailed",
-        bench: $specint - %w[ bzip2 ]
-    }.merge conf
-
-    conf[:otherbench] = conf[:bench] if conf[:otherbench].nil?
-
-    conf[:bench].inject({}){|h,p0|
-        times = conf[:otherbench].inject([]){|o,other|
-            yieldopts = conf.merge( ( block_given? && yield(p0,other) ) ||
-                {p0: p0, p1: other}
-            )
-            fopts = yieldopts.merge({ nametag:nil, scheme: "none" })
-            time,found = findTime( stdo_file( fopts ), fopts )
-            puts "#{stdo_file fopts} time not found!" unless found
-            o << time if found; o
-        }
-        h[p0] = avg_arr times; h
-    }
-end
-
-def diff_from_base_avg( opts = {} )
-    time, found = findTime( stdo_file( opts ), opts )
-    basetime = base_avg( opts )[ opts[:p0] ]
-    return nil unless found
-    (time-basetime)/basetime * 100
-end
-
 def perf_compare_prelim opts
     perf_compare( opts ){|p0,other| {p0: p0, p1: other } }
 end
@@ -109,7 +54,6 @@ def results_to_stdout results
         puts "#{k}, #{v}"
     end
 end
-
 
 if __FILE__ == $0
     # Preliminary Results

@@ -46,7 +46,10 @@ def findTime(filename, opts = {} )
 end
 
 def get_datum( filename, regex )
-    return [nil, false] unless File.exists? filename
+    unless File.exists? filename
+        puts "#{filename} not found"
+        return [nil, false] 
+    end
     File.open(filename, 'r'){|f|
         f.each_line do |line|
             return [line.match(regex)[1],true] if line =~ regex
@@ -102,6 +105,65 @@ end
 
 def bench_swap_file( p={} )
     filename( p.merge{ p0:p[:p1], p1:[p:p0] } )
+end
+
+def perf_compare( conf = {} )
+    conf = {
+        cpu: "detailed",
+        scheme: "tp",
+        bench: $specint - %w[ bzip2 ],
+        use_base_avg: false,
+    }.merge conf
+
+    conf[:otherbench]=conf[:bench]  if conf[:otherbench].nil?
+    use_base_avg = conf[:use_base_avg]
+
+    results = {}
+    conf[:bench].each do |p0|
+        overheads = []
+        (conf[:otherbench]).each do |other|
+            fopts = ( block_given? && conf.merge(yield(p0,other)) ) ||
+                conf.merge({ p0:p0, p1: other })
+            # overhead = ( use_base_avg && diff_from_base_avg( fopts ) ) ||
+            #            ( percent_overhead fopts )
+            overhead = diff_from_base_avg( fopts )
+            overheads << overhead unless overhead.nil?
+        end
+        results[p0] = avg_arr overheads
+    end
+    results
+end
+
+def base_avg( conf = {} )
+    conf = {
+        cpu: "detailed",
+        bench: $specint - %w[ bzip2 ]
+    }.merge conf
+
+    conf[:otherbench] = conf[:bench] if conf[:otherbench].nil?
+
+    conf[:bench].inject({}){|h,p0|
+        times = conf[:otherbench].inject([]){|o,other|
+            yieldopts = conf.merge( ( block_given? && yield(p0,other) ) ||
+                {p0: p0, p1: other}
+            )
+            # force the options to reflect the baseline
+            fopts = yieldopts.merge( nametag:nil, scheme: "none", tl0:6, tl1:6,
+                                    tl2:6, tl3: 6 )
+            time,found = findTime( stdo_file( fopts ), fopts )
+            puts "#{stdo_file fopts} time not found!" unless found
+            o << time if found; o
+        }
+        h[p0] = avg_arr times; h
+    }
+end
+
+def diff_from_base_avg( opts = {} )
+    time, found = findTime( stdo_file( opts ), opts )
+    base_avgs = base_avg( opts )
+    basetime = base_avgs[ opts[:p0] ]
+    return nil unless found
+    (time-basetime)/basetime * 100
 end
 
 def hash_to_csv( hash, filename, p={} )
