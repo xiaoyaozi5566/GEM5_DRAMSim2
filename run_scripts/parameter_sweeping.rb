@@ -3,7 +3,7 @@ include RunScripts
 
 module RunScripts
   def l2l3_sweeping opts={}
-    opts = { schemes: %w[tp], otherbench: %w[astar] }.merge opts
+    opts = { schemes: %w[none], otherbench: %w[astar] }.merge opts
 
     #sweep resp turn
     [1,4,8,9,16,17,25,32].each do |tl|
@@ -17,7 +17,8 @@ module RunScripts
   end
 
   def l2l3_sweeping_local
-    l2l3_sweeping( maxinsts: 10**3, fastforward: 100, debug: true ) do |o|
+    opts = { maxinsts: 10**3, fastforward: 100 }
+    l2l3_sweeping(opts) do |o|
       parallel_local_scaling o
     end
   end
@@ -27,7 +28,8 @@ module RunScripts
   end
 
   def membus_sweeping opts={}
-    opts = { schemes: %w[tp], otherbench: %w[astar] }.merge opts
+    opts = { schemes: %w[none], otherbench: %w[astar],
+    }.merge opts
 
     #sweep resp turn
     [1,4,8,9,16,17,25,32].each do |tl|
@@ -41,7 +43,8 @@ module RunScripts
   end
 
   def membus_sweeping_local
-    membus_sweeping( maxinsts: 10**3, fastforward: 100, debug: true ) do |o|
+    opts = { maxinsts: 10**3, fastforward: 100 }
+    membus_sweeping(opts) do |o|
       parallel_local_scaling o
     end
   end

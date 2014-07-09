@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-requrie_relative 'rerun'
+require_relative 'rerun'
 require_relative 'runscripts'
 require_relative 'security'
 require_relative 'functionality'
