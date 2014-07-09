@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+requrie_relative 'rerun'
 require_relative 'runscripts'
 require_relative 'security'
 require_relative 'functionality'
@@ -10,6 +11,11 @@ require_relative 'memctl_optimized'
 require_relative 'memctl_scheduler'
 require_relative 'memctl_synthetic'
 include RunScripts
+
+#------------------------------------------------------------------------------
+# Rerun
+#------------------------------------------------------------------------------
+# rerun
 
 #------------------------------------------------------------------------------
 # Security
