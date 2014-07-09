@@ -265,7 +265,7 @@ def parallel_local opts={}
 end
 
 def qsub_fast opts={}
-  iterate_and_submit opts.merge(runmode: qsub)
+  iterate_and_submit opts.merge(runmode: :qsub)
 end
 
 def single opts={}
