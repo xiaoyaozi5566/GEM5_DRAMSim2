@@ -30,12 +30,12 @@ class SplitMSHRCache : public Cache<TagStore>
             threadID, bool isInteresting){
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
             if( isInteresting ){
-              printf( "interesting in split requestBus with time %lu\n", time );
+              printf( "interesting in split requestBus with time %llu\n", time );
               if( reqQueues[threadID]->sendEvent.scheduled() ){
-                printf( "sendEvent was already scheduled at %lu\n", 
+                printf( "sendEvent was already scheduled at %llu\n", 
                     reqQueues[threadID]->sendEvent.when() );
               } else {
-                printf("scheduled at time %lu\n", time);
+                printf("scheduled at time %llu\n", time);
               }
             }
             reqQueues[threadID]->schedSendEvent(time, isInteresting);
