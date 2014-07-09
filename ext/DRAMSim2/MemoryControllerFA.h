@@ -1,30 +1,22 @@
-#include "MemoryController.h"
+#include "MemoryControllerTP.h"
+#include "CommandQueueFA.h"
 
 using namespace std;
 
 namespace DRAMSim
 {
-    class MemoryControllerFA : public MemoryController
+    class MemoryControllerFA : public MemoryControllerTP
     {
         public:
             MemoryControllerFA(MemorySystem* ms, CSVWriter &csvOut_, 
                     ostream &dramsim_log_, 
                     const string &outputFilename_,
                     unsigned tpTurnLength_,
-		    bool genTrace_,
+                    bool genTrace_,
                     const string &traceFilename_,
                     int num_pids_, bool fixAddr,
-                    bool diffPeriod, int p0Period, int p1Period);
+                    bool diffPeriod, int p0Period, int p1Period,
+                    int offset);
 
-            virtual bool addTransaction(Transaction *trans);
-            virtual void receiveFromBus(BusPacket *bpacket);
-
-        private:
-            vector<Transaction *> transactionQueues[4];
-            
-            virtual void updateTransactionQueue();
-            virtual void updateReturnTransactions();
-
-            bool WillAcceptTransaction(uint64_t pid);
     };
 }

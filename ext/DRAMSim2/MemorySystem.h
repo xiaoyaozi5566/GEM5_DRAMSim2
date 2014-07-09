@@ -42,7 +42,6 @@
 #include "SystemConfiguration.h"
 #include "MemoryController.h"
 #include "MemoryControllerFT.h"
-#include "MemoryControllerTP.h"
 #include "MemoryControllerFA.h"
 #include "MemoryControllerFR.h"
 #include "Rank.h"

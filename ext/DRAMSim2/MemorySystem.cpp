@@ -147,7 +147,7 @@ MemorySystem::MemorySystem(unsigned id, unsigned int megsOfMemory,
     } else if(timingProtection == FixedAddress){
     	memoryController = 
             new MemoryControllerFA(this, csvOut, dramsim_log, 
-                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period);
+                    outputFilename, tpTurnLength, genTrace, traceFilename, num_pids, fixAddr, diffPeriod, p0Period, p1Period, offset);
 	} else if(timingProtection == FR_FCFS){
     	memoryController = 
             new MemoryControllerFR(this, csvOut, dramsim_log, 

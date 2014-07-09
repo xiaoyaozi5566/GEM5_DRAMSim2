@@ -1,5 +1,4 @@
 #include "MemoryControllerTP.h"
-#include "MemoryController.h"
 #include "CommandQueueTP.h"
 #include "AddressMapping.h"
 #include <iomanip>
@@ -20,8 +19,14 @@ MemoryControllerTP::MemoryControllerTP(MemorySystem *parent,
         bool diffPeriod,
         int p0Period,
         int p1Period,
-		int offset) :
-    MemoryController(parent,csvOut_,dramsim_log_,outputFilename_, genTrace_, traceFilename_, num_pids_, fixAddr)
+        int offset) :
+    MemoryController(
+        parent,csvOut_,
+        dramsim_log_,outputFilename_,
+        genTrace_,
+        traceFilename_,
+        num_pids_,
+        fixAddr)
 {
 
     commandQueue = new CommandQueueTP(bankStates,dramsim_log_,tpTurnLength,num_pids_, fixAddr, diffPeriod, p0Period, p1Period, offset); 

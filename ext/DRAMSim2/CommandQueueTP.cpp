@@ -1,6 +1,4 @@
-#include "CommandQueue.h"
 #include "CommandQueueTP.h"
-#include "MemoryController.h"
 
 using namespace DRAMSim;
 

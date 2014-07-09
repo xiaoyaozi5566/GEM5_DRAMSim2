@@ -22,7 +22,7 @@ namespace DRAMSim
                     unsigned pid);
             virtual void print();
 
-        private:
+        protected:
             virtual void refreshPopClosePage(BusPacket **busPacket, bool & sendingREF);
             virtual bool normalPopClosePage(BusPacket **busPacket, bool & sendingREF);
 
@@ -41,6 +41,7 @@ namespace DRAMSim
 
             unsigned getCurrentPID();
             bool isBufferTime();
+
             virtual int normal_deadtime(int tlength){
               return tlength - (tlength - WORST_CASE_DELAY)/10;
             }
