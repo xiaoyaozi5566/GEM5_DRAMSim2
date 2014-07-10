@@ -79,22 +79,36 @@ def fa_sweep opts = {}
 end
 
 def results_to_stdout results
-    puts $specint.inject("") { |s, b| s+=b+", "; s }
-    results.each do |k,v|
-        puts "#{k}" + v.inject("") { |s,pair| s+=", "+pair[1].to_s; s }
-    end
+  #print heach benchmark
+  puts $specint.inject("") { |s, b| s+=b+", " }[0..-2]
+  #for each paramter value, print the overhead
+  results.each do |k,v|
+    puts "#{k}" + v.inject("") { |s,pair| s+=", "+pair[1].to_s }
+  end
 end
 
+def results_to_stdout_t results
+  #print pramater values
+  puts "%-14s" % ("bench,") + results.keys.inject("") { |s, v|
+    s += "%-14s" % (v.to_s + ", ")
+  }
+  $specint.each do |b|
+    puts "%-14s" % (b + ",") + results.values.inject("") { |s, r|
+      s+= "%-14s" % (("%.4f" % r[b]) + ",")
+    }
+  end
+end
+
+
 if __FILE__ == $0
-    #puts "l2l3 sweeping:"
-    #results_to_stdout l2l3_sweep(
-    #    otherbench: %w[astar],
-    #    scheme: "tp"
-    #)
-    #puts ""
+    puts "l2l3 sweeping:"
+    results_to_stdout_t l2l3_sweep(
+        #otherbench: %w[astar],
+    )
+    puts ""
 
     puts "fa sweeping:"
-    results_to_stdout fa_sweep(
+    results_to_stdout_t fa_sweep(
         #otherbench: %w[astar]
     )
 end

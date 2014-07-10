@@ -47,7 +47,7 @@ end
 
 def get_datum( filename, regex )
     unless File.exists? filename
-        puts "#{filename} not found"
+        #puts "#{filename} not found"
         return [nil, false] 
     end
     File.open(filename, 'r'){|f|
@@ -111,7 +111,7 @@ def perf_compare( conf = {} )
     conf = {
         cpu: "detailed",
         scheme: "tp",
-        bench: $specint - %w[ bzip2 ],
+        bench: $specint,
         use_base_avg: false,
     }.merge conf
 
@@ -134,10 +134,10 @@ def perf_compare( conf = {} )
     results
 end
 
-def base_avg( conf = {} )
+def calculate_base_avg( conf = {} )
     conf = {
         cpu: "detailed",
-        bench: $specint - %w[ bzip2 ]
+        bench: $specint,
     }.merge conf
 
     conf[:otherbench] = conf[:bench] if conf[:otherbench].nil?
@@ -151,12 +151,23 @@ def base_avg( conf = {} )
             fopts = yieldopts.merge( nametag:nil, scheme: "none", tl0:6, tl1:6,
                                     tl2:6, tl3: 6 )
             time,found = findTime( stdo_file( fopts ), fopts )
-            puts "#{stdo_file fopts} time not found!" unless found
+            #puts "#{stdo_file fopts} time not found!" unless found
             o << time if found; o
         }
         h[p0] = avg_arr times; h
     }
 end
+
+def base_avg( conf={} )
+  conf = {
+    nametag:nil, scheme: "none", tl0:6, tl1:6, tl2:6, tl3: 6,
+           cpu: conf[:cpu], bench: conf[:bench], otherbench: conf[:otherbench]
+  }
+  @base_avg ||= {}
+  @base_avg[conf] ||= calculate_base_avg conf
+  @base_avg[conf]
+end
+
 
 def diff_from_base_avg( opts = {} )
     time, found = findTime( stdo_file( opts ), opts )
