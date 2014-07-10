@@ -28,6 +28,13 @@ module RunScripts
         yield opts
     end
 
+    def baseline
+      qsub_scaling(
+        schemes: %w[none],
+        cpus: %w[detailed],
+      )
+    end
+
     def prelim_qsub
         preliminary_results{|opts| qsub_fast opts}
     end

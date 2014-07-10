@@ -10,6 +10,7 @@ module RunScripts
       #default req turn
       o = opts.merge(
         nametag: "l2l3resp_#{tl}",
+        rr_l2l3: true,
         l2l3resp_tl: tl
       )
       yield o
@@ -36,6 +37,7 @@ module RunScripts
       #default req turn
       o = opts.merge(
         nametag: "membusresp_#{tl}",
+        rr_mem: true,
         membusresp_tl: tl
       )
       yield o
