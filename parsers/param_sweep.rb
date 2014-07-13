@@ -2,6 +2,7 @@
 require 'colored'
 require_relative 'parsers'
 require_relative 'm5out'
+require_relative 'graph'
 include Parsers
 
 def param_sweeping opts
@@ -111,6 +112,18 @@ def string_to_f string, filename
     File.open(filename, 'w') { |f| f.puts string }
 end
 
+def results_to_a results, benchmarks=$specint
+  # the outer index is the benchmark, and the column index is the parameter 
+  # value
+  benchmarks.inject([]) do |return_val,b|
+    return_val << results.values.inject([]) { |row, param_hash|
+      row << param_hash[b]
+      row
+    }
+    return_val
+  end
+
+end
 
 if __FILE__ == $0
     out = ARGV[0].to_s
@@ -118,39 +131,54 @@ if __FILE__ == $0
 
     # Output results
     main = lambda do |opts|
-     [2,3,4].each do |num_tcids|
-      puts "="*80
-      puts "   #{num_tcids} TCIDS"
-      puts "="*80
+      [2,3,4].each do |num_tcids|
+        puts "="*80
+        puts "   #{num_tcids} TCIDS"
+        puts "="*80
 
-      puts "l2l3 #{opts[:label]}:"
-      r = results_to_s_t l2l3_sweep(opts)[num_tcids-2]
-      puts r
-      string_to_f r, out+"/l2l3_#{opts[:label]}_#{num_tcids}.csv"
-      puts ""
+        g_opts_bus = { legend: [1,4,8,9,16,17,25,32] }
+        g_opts_mem = { legend: [0,64,96,128,192,256] }
+        
+        puts "l2l3 #{opts[:label]}:"
+        r = l2l3_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/l2l3_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_bus
+        string_to_f rg, out+"/l2l3_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
 
-      puts "membus #{opts[:label]}:"
-      r = results_to_s_t membus_sweep(opts)[num_tcids-2]
-      puts r
-      string_to_f r, out+"/membus_#{opts[:label]}_#{num_tcids}.csv"
-      puts ""
+        puts "membus #{opts[:label]}:"
+        r = membus_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/membus_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_bus
+        string_to_f rg, out+"/membus_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
 
-      puts "tp #{opts[:label]}:"
-      r = results_to_s_t tp_sweep(opts)[num_tcids-2]
-      puts r
-      string_to_f r, out+"/tp_#{opts[:label]}_#{num_tcids}.csv"
-      puts ""
+        puts "tp #{opts[:label]}:"
+        r = tp_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/tp_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_mem
+        string_to_f rg, out+"/tp_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
 
-      puts "fa #{opts[:label]}:"
-      r = results_to_s_t fa_sweep(opts)[num_tcids-2]
-      puts r
-      string_to_f r, out+"/fa_#{opts[:label]}_#{num_tcids}.csv"
-      puts ""
-     end
+        puts "fa #{opts[:label]}:"
+        r = fa_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/fa_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_mem
+        string_to_f rg, out+"/fa_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
+      end
     end
 
-    # Execution Time Overhead
-    # main.call(otherbench: %w[mcf], label: "execution")
+    #Execution Time Overhead
+    main.call(otherbench: %w[mcf], label: "execution")
 
     # L3 Miss Latency Overhead
     main.call(otherbench: %w[astar],
