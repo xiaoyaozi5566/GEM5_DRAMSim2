@@ -140,7 +140,9 @@ if __FILE__ == $0
         g_opts_mem = { legend: [0,64,96,128,192,256] }
         
         puts "l2l3 #{opts[:label]}:"
-        r = l2l3_sweep(opts)[num_tcids-2]
+        r = l2l3_sweep(
+          opts.merge(regex: opts[:regex].nil? ? nil : $l3_latency)
+        )[num_tcids-2]
         rs = results_to_s_t r
         puts rs
         string_to_f rs, out+"/l2l3_#{opts[:label]}_#{num_tcids}.csv"

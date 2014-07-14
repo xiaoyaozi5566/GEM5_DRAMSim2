@@ -3,7 +3,8 @@ include Parsers
 
 module Parsers
 $mem_latency = /system.l3.overall_avg_miss_latency::total\s*(\d*.\d*)/
-$l3_miss = /system.l3.overall_misses::total[\s]*(\d*)/
+$l3_latency  = /system.l20.overall_avg_miss_latency::total\s*(\d*.\d*)/
+$l3_miss     = /system.l3.overall_misses::total[\s]*(\d*)/
 
 def get_stats( conf = {} )
     conf = {
