@@ -80,7 +80,7 @@ def grouped_bar data, o={}
     x_num_inner: data[0].size,
     legend: [1,2,3,4,5,6],
     h: 200,
-    w: 800 
+    w: 400 
   }.merge(o)
 
   data_max = data.inject(data[0][0]) do |max, i|
@@ -91,8 +91,8 @@ def grouped_bar data, o={}
   h = o[:h]
   w = o[:w]
   x = pv.Scale.ordinal(pv.range(o[:x_num_outer])).
-    split_banded(0, w-30, 7/8.0)
-  y = pv.Scale.linear(0, data_max*1.1).range(0, h)
+    split_banded(0, w-30, 5/6.0)
+  y = pv.Scale.linear(0, data_max*1.1).range(0, h-20)
 
   vis = pv.Panel.new.
     width(w).
@@ -112,7 +112,7 @@ def grouped_bar data, o={}
       .data(lambda {|d| d})
       .left(lambda {self.index * x.range_band / o[:x_num_inner]})
       .width(x.range_band / o[:x_num_inner].to_f)
-      .bottom(0)
+      .bottom(20)
       .height(y)
       .fillStyle(lambda { colors.scale(self.index)})
 
@@ -123,8 +123,11 @@ def grouped_bar data, o={}
   
   # X-axis labels
   bar.parent.anchor("bottom").add(pv.Label).
+    top(h-5).
     text_align("center").
     text_baseline("top").
+    text_angle( Math::PI/6).
+    font("9px sans-serif").
     text(lambda { o[:x_labels][self.parent.index]})
 
   # Y-Axis Title
@@ -132,13 +135,13 @@ def grouped_bar data, o={}
     text("Percent Overhead").
     left(-40).
     text_align("center").
-    font("12px sans-serif").
+    font("9px sans-serif").
     text_angle(-Math::PI/2)
 
   # Y-Axis Ticks
   vis.add(pv.Rule).
     data(y.ticks(5)).
-    bottom(y).
+    bottom(lambda { |d| y.scale(d) + 20 }).
     stroke_style(lambda { |d| d==0 ? "#000" : "rgba(255,255,255,.3)" } ).
     add(pv.Rule).
     left(0).
@@ -150,7 +153,7 @@ def grouped_bar data, o={}
   # Legend
   vis.add(pv.Dot).
     data(o[:legend]).
-    bottom(lambda { |_| 15 + self.index * 10 }).
+    bottom(lambda { |_| 35 + self.index * 10 }).
     shape_size(20).
     fillStyle(lambda { |_| colors.scale(self.index) }).
     left(w-28).
