@@ -63,6 +63,18 @@
 #define interesting 0x55fc40
 #define i_era_l     48318210000
 #define i_era_h     48319352000
+
+//fix compiling problem on cluster by replacing to_string
+namespace patch
+{
+    template < typename T > std::string to_string( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
+}
+
 /**
  * A packet queue is a class that holds deferred packets and later
  * sends them using the associated slave port or master port.
@@ -90,7 +102,7 @@ class PacketQueue
         {}
 
         std::string print(){
-          std::string t = std::to_string(tick);
+          std::string t = patch::to_string(tick);
           return "(" + t + ") " + pkt->to_string();
         }
 
