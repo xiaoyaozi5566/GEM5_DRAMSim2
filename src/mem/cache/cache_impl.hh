@@ -955,8 +955,9 @@ Cache<TagStore>::handleResponse(PacketPtr pkt)
                 }
 
                 // If critical word (no offset) return first word time
-                completion_time = tags->getHitLatency() +
-                    (transfer_offset ? pkt->finishTime : pkt->firstWordTime);
+                completion_time = tags->getHitLatency() + ( transfer_offset ?
+                  pkt->finishTime :
+                  pkt->getFirstWordTime(params->cw_first) );
 
                 assert(!target->pkt->req->isUncacheable());
 

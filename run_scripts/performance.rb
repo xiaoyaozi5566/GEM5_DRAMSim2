@@ -35,6 +35,14 @@ module RunScripts
       )
     end
 
+    def baseline_nocwf
+      qsub_scaling(
+        schemes: %w[none],
+        cpus: %w[detailed],
+        nocwf: true
+      )
+    end
+
     def prelim_qsub
         preliminary_results{|opts| qsub_fast opts}
     end

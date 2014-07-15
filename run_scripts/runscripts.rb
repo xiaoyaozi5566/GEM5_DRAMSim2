@@ -148,6 +148,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("    --fast-forward=#{fastforward} \\") unless fastforward == 0
     script.puts("    --maxinsts=#{maxinsts} \\")
     script.puts("    --maxtick=#{$maxtick} \\")
+    script.puts("    --nocwf \\") if options[:nocwf]
 
     #Protection Mechanisms
     script.puts("    --fixaddr \\")       if scheme == "fa" || options[:addrpar]

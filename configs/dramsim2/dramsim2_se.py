@@ -152,6 +152,8 @@ if '--dramsim2' in sys.argv:
             help="do detailed trace for address")
     parser.add_option("--trace_addr", type="int", default=0,
             help="address for detailed trace")
+    parser.add_option("--nocwf", action="store_true", default=False,
+            help="Enable to turn off critical word first timing")
 
 ######################################################################
 

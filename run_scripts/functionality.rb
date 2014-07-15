@@ -76,4 +76,13 @@ module RunScripts
       )}
     end
 
+    def check_fwt
+      secure do |opts|
+        parallel_local opts.merge( maxinsts: 10**6, fastforward: 100,
+                                   benchmarks: %w[ mcf sjeng ],
+                                   nocwf: true
+                                 )
+      end
+    end
+
 end

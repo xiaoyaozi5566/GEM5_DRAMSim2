@@ -73,7 +73,7 @@ def percent_diff(t1,t2)
 end
 
 def avg_arr arr
-    (arr.length != 0 && arr.inject(:+)/arr.length) || -1
+    (arr.length != 0 && arr.inject(:+)/arr.length) || 0xf00
 end
 
 def filename( p={} )

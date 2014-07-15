@@ -1,6 +1,8 @@
 #!/usr/bin/ruby
 require 'colored'
 require_relative 'parsers'
+require_relative 'm5out'
+require_relative 'graph'
 include Parsers
 
 def param_sweeping opts
@@ -9,10 +11,15 @@ def param_sweeping opts
     #build a hash from parameter values to the performance comparison with the
     #baseline
     range.inject({}) { |h, v|
-        #get a hash to specify the name
-        h[v] = perf_compare( opts ) do |p0, other|
-            block_given? ? yield(p0, other, v) : {}
-        end
+        #get a hash of the form: parameter->benchmark->overhead
+
+        h[v] = opts[:regex].nil? ?
+            perf_compare( opts ) {|p0, other|
+                block_given? ? yield(p0, other, v) : {}
+            } :
+            compare_stats( opts ){|p0, other|
+                block_given? ? yield(p0, other, v): {}
+            }
         h
     }
 end
@@ -25,14 +32,14 @@ def l2l3_sweep opts={}
     two_threads = param_sweeping(opts) do |p0, other, v|
         { p0: p0, p1: other, nametag: "l2l3resp_#{v}" }
     end
-    # three_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other, nametag: "l2l3resp_#{v}" }
-    # end
-    # four_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other, p3: other,
-    #       nametag: "l2l3resp_#{v}" }
-    # end
-    #[ two_threads, three_threads, four_threads #]
+    three_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other, nametag: "l2l3resp_#{v}" }
+    end
+    four_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other, p3: other,
+          nametag: "l2l3resp_#{v}" }
+    end
+    [two_threads, three_threads, four_threads ]
 end
 
 def membus_sweep opts={}
@@ -43,15 +50,15 @@ def membus_sweep opts={}
     two_threads = param_sweeping(opts) do |p0, other, v|
         { p0: p0, p1: other, nametag: "membusresp_#{v}" }
     end
-    # three_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other,
-    #       nametag: "membusresp_#{v}" }
-    # end
-    # four_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other, p3: other,
-    #       nametag: "membusresp_#{v}" }
-    # end
-    # [ two_threads, three_threads, four_threads ]
+    three_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other,
+          nametag: "membusresp_#{v}" }
+    end
+    four_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other, p3: other,
+          nametag: "membusresp_#{v}" }
+    end
+    [ two_threads, three_threads, four_threads ]
 end 
 
 def tp_sweep opts={}
@@ -63,52 +70,121 @@ def tp_sweep opts={}
         { p0: p0, p1: other,
           tl0: v, tl1: v }
     end
-    # three_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other,
-    #       tl0: v, tl1: v, tl2: v }
-    # end
-    # four_threads = param_sweeping(opts) do |p0, other, v|
-    #     { p0: p0, p1: other, p2: other, p3: other,
-    #       tl0: v, tl1: v, tl2: v }
-    # end
-    # [ two_threads, three_threads, four_threads ]
+    three_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other,
+          tl0: v, tl1: v, tl2: v }
+    end
+    four_threads = param_sweeping(opts) do |p0, other, v|
+        { p0: p0, p1: other, p2: other, p3: other,
+          tl0: v, tl1: v, tl2: v, tl3: v }
+    end
+    [ two_threads, three_threads, four_threads ]
 end 
 
 def fa_sweep opts = {}
     tp_sweep opts.merge( scheme: "fa" )
 end
 
-def results_to_stdout results
+def results_to_s results
   #print heach benchmark
-  puts $specint.inject("") { |s, b| s+=b+", " }[0..-2]
+  r = $specint.inject("") { |s, b| s+=b+", " }[0..-2] +"\n"
   #for each paramter value, print the overhead
   results.each do |k,v|
-    puts "#{k}" + v.inject("") { |s,pair| s+=", "+pair[1].to_s }
+    r += "#{k}" + v.inject("") { |s,pair| s+=", "+pair[1].to_s }
   end
+  r
 end
 
-def results_to_stdout_t results
+def results_to_s_t results
   #print pramater values
-  puts "%-14s" % ("bench,") + results.keys.inject("") { |s, v|
+  ret = "%-14s" % ("bench,") + results.keys.inject("") { |s, v|
     s += "%-14s" % (v.to_s + ", ")
-  }
+  } + "\n"
   $specint.each do |b|
-    puts "%-14s" % (b + ",") + results.values.inject("") { |s, r|
+    ret += "%-14s" % (b + ",") + results.values.inject("") { |s, r|
       s+= "%-14s" % (("%.4f" % r[b]) + ",")
-    }
+    } + "\n"
   end
+  ret
 end
 
+def string_to_f string, filename
+    File.open(filename, 'w') { |f| f.puts string }
+end
+
+def results_to_a results, benchmarks=$specint
+  # the outer index is the benchmark, and the column index is the parameter 
+  # value
+  benchmarks.inject([]) do |return_val,b|
+    return_val << results.values.inject([]) { |row, param_hash|
+      row << param_hash[b]
+      row
+    }
+    return_val
+  end
+
+end
 
 if __FILE__ == $0
-    puts "l2l3 sweeping:"
-    results_to_stdout_t l2l3_sweep(
-        #otherbench: %w[astar],
-    )
-    puts ""
+    out = ARGV[0].to_s
+    FileUtils.mkdir_p(out) unless File.directory?(out)
 
-    puts "fa sweeping:"
-    results_to_stdout_t fa_sweep(
-        #otherbench: %w[astar]
-    )
+    # Output results
+    main = lambda do |opts|
+      [2,3,4].each do |num_tcids|
+        puts "="*80
+        puts "   #{num_tcids} TCIDS"
+        puts "="*80
+
+        g_opts_bus = { legend: [1,4,8,9,16,17,25,32] }
+        g_opts_mem = { legend: [0,64,96,128,192,256] }
+        
+        puts "l2l3 #{opts[:label]}:"
+        r = l2l3_sweep(
+          opts.merge(regex: opts[:regex].nil? ? nil : $l3_latency)
+        )[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/l2l3_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_bus
+        string_to_f rg, out+"/l2l3_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
+
+        puts "membus #{opts[:label]}:"
+        r = membus_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/membus_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_bus
+        string_to_f rg, out+"/membus_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
+
+        puts "tp #{opts[:label]}:"
+        r = tp_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/tp_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_mem
+        string_to_f rg, out+"/tp_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
+
+        puts "fa #{opts[:label]}:"
+        r = fa_sweep(opts)[num_tcids-2]
+        rs = results_to_s_t r
+        puts rs
+        string_to_f rs, out+"/fa_#{opts[:label]}_#{num_tcids}.csv"
+        rg = grouped_bar (results_to_a r), g_opts_mem
+        string_to_f rg, out+"/fa_#{opts[:label]}_#{num_tcids}.svg"
+        puts ""
+      end
+    end
+
+    #Execution Time Overhead
+    main.call(otherbench: %w[mcf], label: "execution")
+
+    # L3 Miss Latency Overhead
+    main.call(otherbench: %w[astar],
+              regex: $mem_latency,
+         label: "latency_overhead")
+
 end

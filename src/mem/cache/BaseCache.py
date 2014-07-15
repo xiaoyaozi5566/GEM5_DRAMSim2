@@ -69,3 +69,4 @@ class BaseCache(MemObject):
     use_way_part   = Param.Bool(False, "Use way partitioning in L3?")
     split_mshrq    = Param.Bool(False, "Use MSHR Queue per TC?")
     split_rport    = Param.Bool(False, "Use Split Response Port Queue per TC?")
+    cw_first       = Param.Bool(True, "Use critical word first timing")
