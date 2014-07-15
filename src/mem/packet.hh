@@ -338,6 +338,10 @@ class Packet : public Printable
     /// The time at which the first chunk of the packet will be transmitted
     Tick firstWordTime;
 
+    Tick getFirstWordTime( bool useFWT ){
+      return useFWT ? firstWordTime : finishTime;
+    }
+
     /**
      * A virtual base opaque structure used to hold state associated
      * with the packet but specific to the sending device (e.g., an

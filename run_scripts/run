@@ -39,6 +39,7 @@ include RunScripts
 # only_mc
 # only_l2l3
 # only_membus
+# check_fwt
 
 #------------------------------------------------------------------------------
 # Performance
