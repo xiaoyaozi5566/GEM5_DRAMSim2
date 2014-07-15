@@ -297,7 +297,7 @@ def single_qsub opts={}
 end
 
 def parallel_local_scaling opts={}
-  opts = {otherbench: %w[astar]}.merge opts
+  opts = {otherbench: %w[astar], threads: 1}.merge opts
   iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
     f = []
     #2
@@ -305,11 +305,11 @@ def parallel_local_scaling opts={}
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #3
-    p = p.merge(p2: other)
+    p = param.merge(p1: other, p2: other)
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #4
-    p = p.merge(p3: other)
+    p = param.merge(p1: other, p2: other, p3: other)
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     f
