@@ -100,21 +100,21 @@ PacketQueue::schedSendEvent(Tick when, bool isInteresting)
         return;
     }
 
-    if( isInteresting ){
-      printf( "interesting schedEvent when=%lu curTick=%lu\n",
-           when, curTick() );
-    }
+    // if( isInteresting ){
+    //   printf( "interesting schedEvent when=%lu curTick=%lu\n",
+    //        when, curTick() );
+    // }
   
     //printf("schedule send Event @ cycle %llu\n", when);
 	  //if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
 	  if (!sendEvent.scheduled()) {
-        if( isEra() ) printf("schedSendEvent at %lu\n",when);
+        // if( isEra() ) printf("schedSendEvent at %lu\n",when);
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
-        if( isEra() ){
-           printf("scendEvent was scheduled at %lu, rescheduled at %lu\n",
-                   sendEvent.when(), when);
-        }
+        // if( isEra() ){
+        //    printf("scendEvent was scheduled at %lu, rescheduled at %lu\n",
+        //            sendEvent.when(), when);
+        // }
         //printf("Event rescheduled @ cycle %llu\n", when);
       em.reschedule(&sendEvent, when);
     }
@@ -138,10 +138,10 @@ PacketQueue::schedSendTiming(PacketPtr pkt, Tick when, bool send_as_snoop)
         // transmit list before retrying the existing packet
         transmitList.push_front(DeferredPacket(when, pkt, send_as_snoop));
 #ifdef DEBUG_TP
-        if(pkt->getAddr()==interesting && pkt->threadID==0){
-          printf("interesting schedSendTiming->schedSendEvent @ %lu\n",
-              curTick());
-        }
+        // if(pkt->getAddr()==interesting && pkt->threadID==0){
+        //   printf("interesting schedSendTiming->schedSendEvent @ %lu\n",
+        //       curTick());
+        // }
         schedSendEvent(when,(pkt->getAddr())==interesting);
 #else
         schedSendEvent(when,false);
@@ -174,10 +174,10 @@ void PacketQueue::trySendTiming()
     transmitList.pop_front();
 
 #ifdef DEBUG_TP
-    if( dp.pkt->getAddr() == interesting ){
-      printf("interesting trySendTiming within PQ @%lu, dest %i\n",
-          curTick(), dp.pkt->getDest());
-    }
+    // if( dp.pkt->getAddr() == interesting ){
+    //   printf("interesting trySendTiming within PQ @%lu, dest %i\n",
+    //       curTick(), dp.pkt->getDest());
+    // }
 #endif
 
     // use the appropriate implementation of sendTiming based on the

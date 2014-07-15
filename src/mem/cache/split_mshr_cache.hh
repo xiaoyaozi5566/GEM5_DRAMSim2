@@ -29,15 +29,15 @@ class SplitMSHRCache : public Cache<TagStore>
         virtual void requestBus(BaseCache::RequestCause cause, Tick time, int 
             threadID, bool isInteresting){
             DPRINTF(CachePort, "Asserting bus request for cause %d\n", cause);
-            if( isInteresting ){
-              printf( "interesting in split requestBus with time %lu\n", time );
-              if( reqQueues[threadID]->sendEvent.scheduled() ){
-                printf( "sendEvent was already scheduled at %lu\n", 
-                    reqQueues[threadID]->sendEvent.when() );
-              } else {
-                printf("scheduled at time %lu\n", time);
-              }
-            }
+            // if( isInteresting ){
+            //   printf( "interesting in split requestBus with time %lu\n", time );
+            //   if( reqQueues[threadID]->sendEvent.scheduled() ){
+            //     printf( "sendEvent was already scheduled at %lu\n",
+            //         reqQueues[threadID]->sendEvent.when() );
+            //   } else {
+            //     printf("scheduled at time %lu\n", time);
+            //   }
+            // }
             reqQueues[threadID]->schedSendEvent(time, isInteresting);
         }
 
