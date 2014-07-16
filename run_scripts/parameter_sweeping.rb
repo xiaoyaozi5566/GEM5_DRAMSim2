@@ -17,8 +17,25 @@ module RunScripts
     end
   end
 
+  def l2l3_sweeping_l3offset opts = {}
+    opts = { schemes: %w[none], otherbench: %w[astar mcf] }.merge opts
+
+    # sweep resp turn, match req turn
+    [1,4,8,9,12,17,18].each do |tl|
+      #default req turn
+      o = opts.merge(
+        nametag: "l2l3resp_#{tl}",
+        rr_l2l3: true,
+        l2l3resp_tl: tl,
+        l2l3req_tl:  tl,
+        l2l3req_offset: 9
+      )
+      yield o
+    end
+  end
+
   def l2l3_sweeping_local
-    opts = { maxinsts: 10**3, fastforward: 100 }
+    opts = { maxinsts: 10**3, fastforward: 100, nocwf: true }
     l2l3_sweeping(opts) do |o|
       parallel_local_scaling o
     end
@@ -26,6 +43,17 @@ module RunScripts
 
   def l2l3_sweeping_qsub
     l2l3_sweeping { |o| qsub_scaling o.merge(nocwf: true) }
+  end
+
+  def l2l3_sweeping_l3offset_local
+    opts = { maxinsts: 10**3, fastforward: 100, nocwf: true }
+    l2l3_sweeping_l3offset(opts) do |o|
+      parallel_local_scaling o
+    end
+  end
+
+  def l2l3_sweeping_l3offset_qsub
+    l2l3_sweeping_l3offset { |o| qsub_scaling o.merge(nocwf: true) }
   end
 
   def membus_sweeping opts={}

@@ -59,12 +59,14 @@ include RunScripts
 # Parameter Sweeping
 #----------------------------------------------------------------------------
 # l2l3_sweeping_local
+# l2l3_sweeping_l3offset_local
 # membus_sweeping_local
 # memctl_sweeping_local
 # fa_sweeping_local
 # l2l3_sweeping_qsub
+# l2l3_sweeping_l3offset_qsub 
 # membus_sweeping_qsub
-# membus_sweeping_qsub
+# memctl_sweeping_qsub
 # fa_sweeping_qsub
 
 ###############################################################################
