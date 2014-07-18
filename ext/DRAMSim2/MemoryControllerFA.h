@@ -1,5 +1,5 @@
 #include "MemoryControllerTP.h"
-#include "CommandQueueFA.h"
+#include "CommandQueueTPD.h"
 
 using namespace std;
 
