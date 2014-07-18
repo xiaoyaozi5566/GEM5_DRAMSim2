@@ -133,13 +133,14 @@ RRBus::calcFinishTime(int threadID, int data_size, int tl, int offset)
 	int remaining_cycles = tl - 1 - (now / clock) % (num_pids*tl) + (threadID*tl);
 	if (remaining_cycles >= data_size)
 		return now+data_size*clock+offset*clock;
-	int num_turns = ( data_size - remaining_cycles ) / tl;
-	int remaining_data = ( data_size - remaining_cycles ) % tl;
+    // tl must be > 1
+	int num_turns = ( data_size - remaining_cycles ) / (tl-1);
+	int remaining_data = ( data_size - remaining_cycles ) % (tl-1);
 	if (remaining_data == 0)
 		return now + remaining_cycles * clock + num_pids * num_turns * tl * clock + offset*clock;
 	else
 		return now + remaining_cycles * clock + num_pids * num_turns * tl * clock + 
-			(num_pids-1) * tl *clock + remaining_data*clock + offset*clock;
+			(num_pids-1) * tl *clock + (1+remaining_data)*clock + offset*clock;
 }
 
 Tick
