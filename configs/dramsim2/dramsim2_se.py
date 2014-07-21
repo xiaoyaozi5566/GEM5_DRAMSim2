@@ -89,19 +89,19 @@ if '--dramsim2' in sys.argv:
     parser.add_option("--dramoffset", type="int", default=0,
     		help="dram offset")
     # bus turn length and offset
-    parser.add_option("--l2l3req_tl", type="int", default=1,
+    parser.add_option("--l2l3req_tl", type="int", default=2,
             help="l2l3 bus request layer turn length")
     parser.add_option("--l2l3req_offset", type="int", default=0,
             help="l2l3 bus request layer offset")
-    parser.add_option("--l2l3resp_tl", type="int", default=1,
+    parser.add_option("--l2l3resp_tl", type="int", default=2,
             help="l2l3 bus response layer turn length")
     parser.add_option("--l2l3resp_offset", type="int", default=0,
             help="l2l3 bus response layer offset")
-    parser.add_option("--membusreq_tl", type="int", default=1,
+    parser.add_option("--membusreq_tl", type="int", default=2,
             help="membus request layer turn length")
     parser.add_option("--membusreq_offset", type="int", default=0,
             help="membus request layer offset")
-    parser.add_option("--membusresp_tl", type="int", default=1,
+    parser.add_option("--membusresp_tl", type="int", default=2,
             help="membus response layer turn length")
     parser.add_option("--membusresp_offset", type="int", default=0,
             help="membus response layer offset")
