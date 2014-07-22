@@ -108,12 +108,20 @@ if '--dramsim2' in sys.argv:
             
     parser.add_option("--p0", type="string", 
             help="workload for processor 0."),
+    parser.add_option("--p0threadID", type="int", default=0,
+            help="timing compartment id for p0")
     parser.add_option("--p1", type="string",
             help="workload for processor 1.")
+    parser.add_option("--p1threadID", type="int", default=1,
+            help="timing compartment id for p1")
     parser.add_option("--p2",type="string", default="echo \"no p2!\"",
             help="workload for processor 2, default is an echo")
+    parser.add_option("--p2threadID", type="int", default=2,
+            help="timing compartment id for p2")
     parser.add_option("--p3",type="string", default="echo \"no p3!\"",
             help="workload for processor 3, default is an echo")
+    parser.add_option("--p3threadID", type="int", default=3,
+            help="timing compartment id for p3")
     parser.add_option("--gentrace", action="store_true", default=False,
             help="generate the trace for benchmarks.")
     parser.add_option("--numpids", type="int", default=2,
@@ -272,7 +280,7 @@ process0 = LiveProcess()
 #process0.executable = "./tests/test-progs/test/arm/victim"
 #process0.executable = options.p0
 process0.cmd = options.p0.split()
-process0.pid = 0
+process0.pid = options.p0threadID
 multiprocesses.append(process0)
 
 if options.numpids > 1:
@@ -280,19 +288,19 @@ if options.numpids > 1:
     #process1.executable = "./tests/test-progs/test/arm/attacker_H"
     #process1.executable = options.p1
     process1.cmd = options.p1.split()
-    process1.pid = 1
+    process1.pid = options.p1threadID
     multiprocesses.append(process1)
 
 if options.numpids > 2:
     process2 = LiveProcess()
     process2.cmd = options.p2.split()
-    process2.pid = 2
+    process2.pid = options.p2threadID
     multiprocesses.append(process2)
 
 if options.numpids > 3:
     process3 = LiveProcess()
     process3.cmd = options.p3.split()
-    process3.pid = 3
+    process3.pid = options.p3threadID
     multiprocesses.append(process3)
 
 #if len(multiprocesses) == 0:
