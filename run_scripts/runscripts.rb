@@ -298,23 +298,79 @@ def single_qsub opts={}
 end
 
 def parallel_local_scaling opts={}
-  opts = {otherbench: %w[astar]}.merge opts
+  opts = {otherbench: %w[mcf]}.merge opts
   iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
     f = []
     #2
     p = param.merge(p1: other)
+    p = p.merge coordinate(n:2) if opts[:coordination]
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #3
     p = p.merge(p2: other)
+    p = p.merge coordinate(n:3) if opts[:coordination]
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #4
     p = p.merge(p3: other)
+    p = p.merge coordinate(n:4) if opts[:coordination]
     r = sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     f
   end
+end
+
+def coordinate o={}
+  o = {
+    n:    2,                 # number of TCs
+    tl3:  (8.43 * 1.5).ceil, # L3 latency in bus cycles
+    h:    1,                 # header in bytes
+    d:    8,                 # cache block in bytes
+    w:    1,                 # bus width in bytes
+    memt: 64                 # optimal memctl turn length
+  }.merge o
+  n, tl3, h, d, w, memt = o[:n], o[:tl3], o[:h], o[:d], o[:w], o[:memt]
+
+  params ={diffperiod: true}
+
+  # For an unpipleined cache that can tolerate only one read at a time,
+  # all bus layer turn lengths are either the l3 latency or the time to 
+  # transfer a cache block over the bus - whichever is greater. If the 
+  # cache is fully pipelined, it is just time to transfer a cache block.
+  # tbus = [tl3,((h+d)/w).ceil].max
+  tbus = ((h+d)/w).ceil
+  params[:l2l3req_tl]    = tbus
+  params[:l2l3resp_tl]   = tbus
+  params[:membusreq_tl]  = tbus
+  params[:membusresp_tl] = tbus
+  
+  #first multiple of y greater than or equal to x 
+  first_mul_g = -> (x,y){ (x%y==0) ? x : x + (y - x % y) }
+  # Memory controller turn lengths are the first multiple of the bus turn 
+  # length (in memory cycles) multiplied by the number of timing 
+  # compartments plus one. It guarantees that the memory controller turn 
+  # starts and ends with the same TCID on the l3mem respones layer.
+  tbus_m = (tbus / 1.5 * 2.0/3).ceil
+  tmem = first_mul_g.call(memt, (tbus_m * (n + 1)).ceil)
+  params[:tl0] = tmem
+  params[:tl1] = tmem
+  params[:tl2] = tmem unless n < 3
+  params[:tl3] = tmem unless n < 4
+
+  # All offsets are made into a nonpositive number that is equivalent to 
+  # the original modulo the size of a schedule. This is done by simply 
+  # subtracting the schedule size from the offset. A bus schedule is 
+  # n * tbus bus cycles and a memory schedule is n * tmem memory cycles.
+  params[:l2l3req_offset]    = 0
+  params[:l2l3resp_offset]   = (h / w).ceil + tl3 - n * tbus
+  params[:membusreq_offset]  = (h / w).ceil + tl3 - n * tbus
+  params[:membusresp_offset] = params[:l2l3resp_offset] % (n*tbus) - tbus - tl3 -
+    n * tbus
+  params[:dramoffset] = (params[:membusreq_offset] % (n*tbus) / 1.5 * 2.0/3).ceil +
+    (h / w / 1.5 * 2.0/3).ceil - n * tmem
+
+  params
+
 end
 
 def qsub_scaling opts = {}

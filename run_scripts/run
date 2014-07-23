@@ -40,14 +40,15 @@ include RunScripts
 # only_l2l3
 # only_membus
 # check_fwt
+# check_coordination
 
 #------------------------------------------------------------------------------
 # Performance
 #----------------------------------------------------------------------------
-  baseline
+# baseline
 # scalability_local
-  scalability_qsub
-  breakdown
+# scalability_qsub
+# breakdown
 
 #----------------------------------------------------------------------------
 # Parameter Sweeping

@@ -1,11 +1,14 @@
 #------------------------------------------------------------------------------
 # Security Tests
 #------------------------------------------------------------------------------
-require_relative "runscripts"
+require_relative 'runscripts'
+require_relative 'performance'
 require 'colored'
 include RunScripts
 
+
 module RunScripts
+
     def insecure opts={}
      yield ({ 
       cpus: %w[detailed],
@@ -66,7 +69,7 @@ module RunScripts
 
     def secure_deep
       secure{|opts| parallel_local opts.merge(
-        maxinsts: 10**6, fastforward: 100, benchmarks: %w[ mcf sjeng ]
+        maxinsts: 10**7, fastforward: 100, benchmarks: %w[ mcf sjeng ]
       )}
     end
 
@@ -83,6 +86,13 @@ module RunScripts
                                    nocwf: true
                                  )
       end
+    end
+
+    def check_coordination
+      parallel_local_scaling $secure_opts.merge(
+        maxinsts: 10**6, fastforward: 100,
+        benchmarks: %w[mcf sjeng], nametag: "coordinated",
+        coordination: true)
     end
 
 end
