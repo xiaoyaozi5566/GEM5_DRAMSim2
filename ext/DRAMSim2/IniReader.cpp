@@ -603,6 +603,9 @@ void IniReader::InitEnumsFromStrings()
     	queuingStructure = PerRankPerThread;
     } else if(TIMING_PROTECTION == "fr_fcfs"){
     	timingProtection = FR_FCFS;
+    } else if(TIMING_PROTECTION == "timing_partitioning_d"){
+    	timingProtection = TimingPartitioningD;
+		queuingStructure = PerRankPerThread;
     }
 
 	if (SCHEDULING_POLICY == "rank_then_bank_round_robin")

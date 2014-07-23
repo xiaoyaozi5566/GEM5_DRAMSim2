@@ -42,7 +42,7 @@
 #include "SystemConfiguration.h"
 #include "MemoryController.h"
 #include "MemoryControllerFT.h"
-#include "MemoryControllerFA.h"
+#include "MemoryControllerTPD.h"
 #include "MemoryControllerFR.h"
 #include "Rank.h"
 #include "Transaction.h"

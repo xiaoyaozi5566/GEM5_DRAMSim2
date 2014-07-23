@@ -5,33 +5,21 @@ require_relative 'runscripts'
 include RunScripts
 
 module RunScripts
-    def preliminary_results
-        # Baseline
-        opts = {
-            cpus: %w[ detailed ],
-            schemes: %w[ none ],
-            benchmarks: $specint - %w[ bzip2 ],
-            result_dir: "results_preliminary"
-        }
-        yield opts
 
-        #Naive Secure Scheme
-        opts = opts.merge({
-            schemes: %w[ tp ],
-            otherbench: %w[ astar ],
-            rr_nc: true,
-            addrpar: true,
-            setpart: true,
-            split_rport: true,
-            split_mshr: true,
-        })
-        yield opts
-    end
+    $secure_opts = {
+      schemes: %w[tp],
+      addrpar: true,
+      rr_nc: true,
+      use_way_part: true,
+      split_mshr: true,
+      split_rport: true
+    }
 
     def baseline
       qsub_scaling(
         schemes: %w[none],
         cpus: %w[detailed],
+        maxinsts: 10**9
       )
     end
 
@@ -39,141 +27,64 @@ module RunScripts
       qsub_scaling(
         schemes: %w[none],
         cpus: %w[detailed],
+        otherbench: %w[astar mcf],
         nocwf: true
       )
     end
 
-    def prelim_qsub
-        preliminary_results{|opts| qsub_fast opts}
-    end
-
-    def prelim_local
-        preliminary_results{|opts|
-            parallel_local opts.merge(maxinsts: 10**5, fastforward: 10)
-        }
-    end
-
     def scalability_qsub
-        preliminary_results{|opts|
-            qsub_fast_scaling opts.merge(
-                result_dir: "results_scalability"
-            )
-        }
+        qsub_scaling $secure_opts.merge(
+          maxinsts: 10**9
+        )
     end
 
     def scalability_local
-        preliminary_results{|opts|
-            parallel_local_scaling opts.merge(
-                maxinsts: 10**5,
-                fastforward: 10,
-                result_dir: "results_scalability"
-            )
-        }
-    end
-
-    def coordination
-        # Naive Secure Scheme
-        opts = {
-            cpus: %w[ detailed ],
-            benchmarks: $specint - %w[ bzip2 ],
-            otherbench: %w[ astar ],
-            result_dir: "results_coordination",
-            schemes: %w[ tp ],
-            rr_nc: true,
-            addrpar: true,
-            setpart: true,
-            split_rport: true,
-            split_mshr: true,
-        }
-        yield opts
-
-        # Better Baseline
-         opts = opts.merge({
-             nametag: "better_base",
-             l2l3req_tl:        1,
-             l2l3req_offset:    0,
-             l2l3resp_tl:      10,
-             l2l3resp_offset:   0,
-             membusreq_tl:      1,
-             membusreq_offset:  0,
-             membusresp_tl:    10,
-             membusresp_offset: 0,
-             dramoffset:        0
-         })
-        # Better baseline is deprecated because it isn't better.
-        # yield opts
-
-        #Coordinated Scheme
-        opts = opts.merge({
-            nametag: "coordinated",
-            l2l3req_tl:        12,
-            l2l3req_offset:     0,
-            l2l3resp_tl:       12,
-            l2l3resp_offset:   12,
-            membusreq_tl:       1,
-            membusreq_offset:   0,
-            membusresp_tl:     96,
-            membusresp_offset: 49,
-            dramoffset:      -120,
-        })
-        yield opts
-    end
-
-    def coordination_qsub
-        coordination{|opts|
-            qsub_fast opts
-        }
-    end
-
-    def coordination_local
-        coordination{|opts|
-           parallel_local opts.merge( maxinsts: 10**5, fastforward: 10 )
-        }
+     parallel_local_scaling $secure_opts.merge(
+       maxinsts: 10**9
+     ) 
     end
 
     def breakdown
-        # Baseline
-        opts = {
-            cpus: %w[ detailed ],
-            schemes: %w[ none ],
-            benchmarks: $specint - %w[ bzip2 ],
-            result_dir: "results_breakdown"
-        }
-        yield opts
 
-        opts = opts.merge({
-            addrpar: true,
-        })
+      qsub_fast(
+        maxinsts: 10**9,
+        nametag: "only_l2l3",
+        addrpar: true,
+        rr_l2l3: true,
+        schemes: %w[none]
+      )
 
-        # RR Bus
-        yield opts.merge({ nametag: "rrbus", rr_nc: true })
+      qsub_fast(
+        maxinsts: 10**9,
+        nametag: "only_membus",
+        addrpar: true,
+        rr_mem: true,
+        schemes: %w[none]
+      )
 
-        # Set Partitioining
-        yield opts.merge({ nametag: "setpart", setpart: true })
+      qsub_fast(
+        maxinsts: 10**9,
+        nametag: "only_waypart",
+        addrpar: true,
+        waypart: true,
+        schemes: %w[none]
+      )
 
-        # Split MSHR Queues
-        yield opts.merge({ nametag: "splitmshr", split_mshr: true })
-
-        # Split Response Ports 
-        yield opts.merge({ nametag: "splitrport", split_rport: true })
-
-        # TP memory controller
-        yield opts.merge({ schemes: %w[ tp ] })
+      qsub_fast(
+        maxinsts: 10**9,
+        nametag: "only_mc",
+        addrpar: true,
+        schemes: %w[tp]
+      )
 
     end
 
-    def breakdown_qsub
-        breakdown{|opts| qsub_fast opts}
-    end
-
-    def breakdown_local
-        breakdown{|opts|
-            parallel_local opts.merge(maxinsts: 10**5, fastforward: 10)
-        }
-    end
-
-    def multicore_tc_qsub
-        puts "multicore_tc_qsub is unimplemented"
+    def coordination
+      qsub_scaling $secure_opts.merge(
+        maxinsts: 10**9,
+        coordination: true,
+        nametag: "coordinated",
+      )
     end
 
 end

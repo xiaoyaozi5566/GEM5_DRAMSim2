@@ -1,14 +1,13 @@
-#include "MemoryControllerTP.h"
-#include "CommandQueueTPD.h"
+#include "MemoryControllerFA.h"
 
 using namespace std;
 
 namespace DRAMSim
 {
-    class MemoryControllerFA : public MemoryControllerTP
+    class MemoryControllerTPD : public MemoryControllerTP
     {
         public:
-            MemoryControllerFA(MemorySystem* ms, CSVWriter &csvOut_, 
+            MemoryControllerTPD(MemorySystem* ms, CSVWriter &csvOut_, 
                     ostream &dramsim_log_, 
                     const string &outputFilename_,
                     unsigned tpTurnLength_,
