@@ -79,4 +79,12 @@ module RunScripts
 
     end
 
+    def coordination
+      qsub_scaling $secure_opts.merge(
+        maxinsts: 10**9,
+        coordination: true,
+        nametag: "coordinated",
+      )
+    end
+
 end

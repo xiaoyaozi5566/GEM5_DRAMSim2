@@ -49,6 +49,7 @@ include RunScripts
 # scalability_local
 # scalability_qsub
 # breakdown
+# coordination
 
 #----------------------------------------------------------------------------
 # Parameter Sweeping
