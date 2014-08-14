@@ -298,7 +298,7 @@ def single_qsub opts={}
 end
 
 def parallel_local_scaling opts={}
-  opts = {otherbench: %w[astar]}.merge opts
+  opts = {otherbench: %w[astar], threads: 1}.merge opts
   iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
     f = []
     #2
