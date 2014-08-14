@@ -10,7 +10,7 @@ def param_sweeping opts
 
     #build a hash from parameter values to the performance comparison with the
     #baseline
-    range.inject({}) { |h, v|
+    add_avgs range.inject({}) { |h, v|
         #get a hash of the form: parameter->benchmark->overhead
 
         h[v] = opts[:regex].nil? ?
@@ -24,10 +24,24 @@ def param_sweeping opts
     }
 end
 
+# Take a hash of the form parameter->benchmark->overhead and return one that 
+# includes an entry for the average across all benchmarks for each parameter
+def add_avgs in_h 
+  in_h.inject({}) { |out_h, (param, b_to_o)|
+    nl = b_to_o.values.inject([]) { |vals, v|
+      vals << v unless v == -1
+      vals
+    }
+    avg = avg_arr nl
+    out_h[param] = in_h[param].merge( 'avg' => avg )
+    out_h
+  }
+end
+
 def l2l3_sweep opts={}
     opts = {
         scheme: "none",
-        range: [1,4,8,9,16,17,25,32]
+        range: [1,4,8,9,12,17,18]
     }.merge opts
     two_threads = param_sweeping(opts) do |p0, other, v|
         { p0: p0, p1: other, nametag: "l2l3resp_#{v}" }
@@ -45,7 +59,7 @@ end
 def membus_sweep opts={}
     opts = {
         scheme: "none",
-        range: [1,4,8,9,16,17,25,32]
+        range: [1,4,8,9,12,17,18]
     }.merge opts
     two_threads = param_sweeping(opts) do |p0, other, v|
         { p0: p0, p1: other, nametag: "membusresp_#{v}" }
@@ -100,7 +114,7 @@ def results_to_s_t results
   ret = "%-14s" % ("bench,") + results.keys.inject("") { |s, v|
     s += "%-14s" % (v.to_s + ", ")
   } + "\n"
-  $specint.each do |b|
+  ($specint + %w[avg]).each do |b|
     ret += "%-14s" % (b + ",") + results.values.inject("") { |s, r|
       s+= "%-14s" % (("%.4f" % r[b]) + ",")
     } + "\n"
@@ -108,11 +122,7 @@ def results_to_s_t results
   ret
 end
 
-def string_to_f string, filename
-    File.open(filename, 'w') { |f| f.puts string }
-end
-
-def results_to_a results, benchmarks=$specint
+def results_to_a results, benchmarks=$specint+%w[avg]
   # the outer index is the benchmark, and the column index is the parameter 
   # value
   benchmarks.inject([]) do |return_val,b|
@@ -136,8 +146,10 @@ if __FILE__ == $0
         puts "   #{num_tcids} TCIDS"
         puts "="*80
 
-        g_opts_bus = { legend: [1,4,8,9,16,17,25,32] }
-        g_opts_mem = { legend: [0,64,96,128,192,256] }
+        g_opts_bus = { legend: [1,4,8,9,12,17,18],
+                       x_labels: $specint + %w[Mean] }
+        g_opts_mem = { legend: [0,64,96,128,192,256],
+                       x_labels: $specint + %w[Mean] }
         
         puts "l2l3 #{opts[:label]}:"
         r = l2l3_sweep(
@@ -185,6 +197,6 @@ if __FILE__ == $0
     # L3 Miss Latency Overhead
     main.call(otherbench: %w[astar],
               regex: $mem_latency,
-         label: "latency_overhead")
+              label: "latency_overhead")
 
 end

@@ -73,7 +73,7 @@ def percent_diff(t1,t2)
 end
 
 def avg_arr arr
-    (arr.length != 0 && arr.inject(:+)/arr.length) || 0xf00
+    (arr.length != 0 && arr.inject(:+)/arr.length) || -1 #0xf00
 end
 
 def filename( p={} )
@@ -108,36 +108,41 @@ def bench_swap_file( p={} )
 end
 
 def perf_compare( conf = {} )
-    conf = {
-        cpu: "detailed",
-        scheme: "tp",
-        bench: $specint,
-        use_base_avg: false,
-    }.merge conf
+  conf = {
+    cpu: "detailed",
+    scheme: "tp",
+    bench: $specint,
+    use_base_avg: false,
+  }.merge conf
 
-    conf[:otherbench]=conf[:bench]  if conf[:otherbench].nil?
-    use_base_avg = conf[:use_base_avg]
+  conf[:otherbench]=conf[:bench]  if conf[:otherbench].nil?
+  use_base_avg = conf[:use_base_avg]
 
-    results = {}
-    conf[:bench].each do |p0|
-        overheads = []
-        (conf[:otherbench]).each do |other|
-            fopts = ( block_given? && conf.merge(yield(p0,other)) ) ||
-                conf.merge({ p0:p0, p1: other })
-            # overhead = ( use_base_avg && diff_from_base_avg( fopts ) ) ||
-            #            ( percent_overhead fopts )
-            overhead = diff_from_base_avg( fopts )
-            overheads << overhead unless overhead.nil?
-        end
-        results[p0] = avg_arr overheads
+  results = {}
+  conf[:bench].each do |p0|
+    overheads = []
+    (conf[:otherbench]).each do |other|
+      fopts = ( block_given? && conf.merge(yield(p0,other)) ) ||
+        conf.merge({ p0:p0, p1: other })
+      # overhead = ( use_base_avg && diff_from_base_avg( fopts ) ) ||
+      #            ( percent_overhead fopts )
+      overhead = diff_from_base_avg( fopts )
+      overheads << overhead unless overhead.nil?
     end
-    results
+    results[p0] = avg_arr overheads
+  end
+  results
 end
 
 def calculate_base_avg( conf = {} )
     conf = {
         cpu: "detailed",
         bench: $specint,
+        base: {
+          nametag: nil,
+          scheme: "none",
+          tl0: 6, tl1: 6, tl2: 6, tl3: 6
+        }
     }.merge conf
 
     conf[:otherbench] = conf[:bench] if conf[:otherbench].nil?
@@ -148,8 +153,7 @@ def calculate_base_avg( conf = {} )
                 {p0: p0, p1: other}
             )
             # force the options to reflect the baseline
-            fopts = yieldopts.merge( nametag:nil, scheme: "none", tl0:6, tl1:6,
-                                    tl2:6, tl3: 6 )
+            fopts = yieldopts.merge( conf[:base] )
             time,found = findTime( stdo_file( fopts ), fopts )
             #puts "#{stdo_file fopts} time not found!" unless found
             o << time if found; o
@@ -160,14 +164,23 @@ end
 
 def base_avg( conf={} )
   conf = {
-    nametag:nil, scheme: "none", tl0:6, tl1:6, tl2:6, tl3: 6,
-           cpu: conf[:cpu], bench: conf[:bench], otherbench: conf[:otherbench]
-  }
+        base: {
+          nametag: nil,
+          scheme: "none",
+          tl0: 6, tl1: 6, tl2: 6, tl3: 6
+        }
+  }.merge conf
+  conf = conf[:base].merge ({
+    cpu: conf[:cpu], bench: conf[:bench], otherbench: conf[:otherbench]
+  })
   @base_avg ||= {}
   @base_avg[conf] ||= calculate_base_avg conf
   @base_avg[conf]
 end
 
+def string_to_f string, filename
+    File.open(filename, 'w') { |f| f.puts string }
+end
 
 def diff_from_base_avg( opts = {} )
     time, found = findTime( stdo_file( opts ), opts )

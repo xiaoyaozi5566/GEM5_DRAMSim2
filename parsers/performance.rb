@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 require 'colored'
 require_relative 'parsers'
+require_relative 'graph'
 include Parsers
 
 def perf_compare_prelim opts
@@ -8,7 +9,6 @@ def perf_compare_prelim opts
 end
 
 def perf_compare_scalability opts
-    one_tc    = perf_compare( opts ){|p0,other| { p0: p0, p1: nil} }
     two_tcs   = perf_compare( opts ){|p0,other| { p0: p0, p1: other } }
     three_tcs = perf_compare( opts ){|p0,other|
         { p0: p0, p1: other, p2: other }
@@ -17,36 +17,45 @@ def perf_compare_scalability opts
         { p0: p0, p1: other, p2: other, p3: other}
     }
     [
-        one_tc,
         two_tcs,
         three_tcs,
         four_tcs
     ]
 end
 
+def scalability_wmean opts
+  r = perf_compare_scalability opts
+  r_full = perf_compare_scalability opts.merge(
+    bench: $specint
+  )
+  r.map.with_index { |i,index|
+    #puts avg_arr( r_full[index].values )
+    i.values << avg_arr(r_full[index].values)
+  }
+end
+
 def perf_compare_breakdown opts
-    rr_bus    = perf_compare( opts ){|p0,other|
-        {p0: p0, p1: other, nametag: "rrbus" }
+    l2l3    = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "only_l2l3" }
     }
-    setpart   = perf_compare( opts ){|p0,other|
-        {p0: p0, p1: other, nametag: "setpart" }
+    waypart = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "only_waypart" }
     }
-    splitmshr = perf_compare( opts ){|p0,other|
-        {p0: p0, p1: other, nametag: "splitmshr" }
+    membus = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "only_membus" }
     }
-    splitrport = perf_compare( opts ){|p0,other|
-        {p0: p0, p1: other, nametag: "splitrport" }
+    mc     = perf_compare( opts ){|p0,other|
+        {p0: p0, p1: other, nametag: "only_mc" }
     }
-    tp = perf_compare( opts ){|p0,other|
-        { p0: p0, p1: other }
-    }
-    {
-        "rr_bus      " => rr_bus,
-        "setpart     " => setpart,
-        "splitmshr   " => splitmshr,
-        "splitrport  " => splitrport,
-        "tp          " => tp,
-    }
+    [
+      # l2l3,
+      # membus,
+      #waypart,
+      (1..10).inject({}){|h,i| h[i]=1;h},
+      (1..10).inject({}){|h,i| h[i]=1;h},
+      (1..10).inject({}){|h,i| h[i]=3;h},
+      mc
+    ]
 end
 
 def results_to_stdout results
@@ -56,31 +65,50 @@ def results_to_stdout results
 end
 
 if __FILE__ == $0
-    # Preliminary Results
-    results_to_stdout perf_compare_prelim(
-        dir: "results_preliminary",
-        otherbench: %w[ astar ],
-        use_base_avg: true,
-    )
+  in_dir  = ARGV[0].to_s
+  out_dir = ARGV[1].to_s
+  FileUtils.mkdir_p(out_dir) unless File.directory?(out_dir)
 
-    # Scalability
-    (1..4).each do |num_tcs|
-        puts "#{num_tcs} TCs"
-        opts = {
-            nametag: "coordinated",
-            dir: "results_scalability",
-            otherbench: %w[ astar ],
-            use_base_avg: true,
-        }
-        results_to_stdout(
-            perf_compare_scalability( opts )[num_tcs-1]
-        )
-    end
+  # Scalability Results
+  r = scalability_wmean(
+    dir: in_dir,
+    #otherbench: %w[ astar ],
+    use_base_avg: true,
+  )
+  gb = grouped_bar r.transpose, legend: [2,3,4], x_labels: $specint + %w[mean]
+  string_to_f gb, "#{out_dir}/scalability.svg"
 
-    # Performance Breakdown 
-    results_to_tdout perf_compare_breakdown(
-       dir: "results_breakdown",
-       otherbench: %w[ astar ],
-       use_base_avg: true,
-    )
+  # Scalability w/o libquantum
+  r = scalability_wmean(
+    dir: in_dir,
+    bench: $specint - %w[libquantum],
+    otherbench: $specint,
+    use_base_avg: true,
+  )
+  gb = grouped_bar r.transpose, legend: [2,3,4],
+    x_labels: $specint - %w[libquantum] + %w[mean],
+    w: COLUMN_W * 10/11.0
+  string_to_f gb, "#{out_dir}/scalability_nolibq.svg"
+
+  # Scalability libquantum
+  r = perf_compare_scalability(
+    dir: in_dir,
+    bench: %w[libquantum],
+    otherbench: $specint,
+    use_base_avg: true,
+  ).map { |i| i.values }
+  gb = grouped_bar r.transpose,
+    x_labels: %w[libquantum],
+    w: COLUMN_W * 1/11.0
+  string_to_f gb, "#{out_dir}/scalability_libq.svg"
+
+  #Breakdown Results
+  r = perf_compare_breakdown(
+    dir: in_dir,
+    use_base_avg: true
+  ).map { |i| i.values }
+  sb = stacked_bar r, legend: %w[l2l3 membus waypart mc],
+    x_labels: $specint, w: COLUMN_W, h: COLUMN_H
+  string_to_f sb, "#{out_dir}/breakdown.svg"
+
 end
