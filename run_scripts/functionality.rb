@@ -55,6 +55,13 @@ module RunScripts
         nametag: "onlywaypart", addrpar: true, waypart: true)}
     end
 
+    def debug_only_waypart
+      insecure{ |opts| parallel_local opts.merge(
+        benchmarks: %w[astar], otherbench: %w[gobmk],
+        maxinsts: 10**7,
+        nametag: "only_waypart", addrpar: true, waypart: true) }
+    end
+
     def secure_scaling
       secure{|opts| parallel_local_scaling opts}
     end
@@ -93,6 +100,25 @@ module RunScripts
         maxinsts: 10**6, fastforward: 100,
         benchmarks: %w[mcf sjeng], nametag: "coordinated",
         coordination: true)
+    end
+
+    def test_double_tc
+      parallel_local_scaling $secure_opts.merge(
+        threads: 1,
+        maxinsts: 10**7,
+        fastforward: 0,
+        nametag: "double_tc",
+        benchmarks: $specint - %w[bzip2],
+        numcpus: 3,
+        numpids: 2,
+        do_cache_trace: true,
+        skip2: true,
+        skip4: true,
+        p0threadID: 0,
+        p1threadID: 1,
+        p2threadID: 1,
+        debug: true
+      )
     end
 
 end

@@ -41,6 +41,8 @@ include RunScripts
 # only_membus
 # check_fwt
 # check_coordination
+# debug_only_waypart
+# test_double_tc
 
 #------------------------------------------------------------------------------
 # Performance

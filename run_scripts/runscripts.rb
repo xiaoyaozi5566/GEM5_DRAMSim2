@@ -125,6 +125,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     filename = "#{options[:nametag]}_"+filename if options[:nametag]
    
     numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
+    numpids = options[:numpids] unless options[:numpids].nil?
 
     FileUtils.mkdir_p( result_dir ) unless File.directory?( result_dir )
 
@@ -177,6 +178,13 @@ def sav_script( cpu, scheme, p0, options = {} )
       end
     end
 
+    #Security Policy
+    [:p0threadID, :p1threadID, :p2threadID].each do |param|
+      unless options[param].nil?
+        script.puts("    --#{param.to_s} #{options[param]}\\") 
+      end
+    end
+
     #Trace Options
     script.puts("    --do_cache_trace \\") if options[:do_cache_trace]
     l3tracefile  = l3tracefile || "#{result_dir}/l3trace_#{filename}.txt"
@@ -203,6 +211,9 @@ def sav_script( cpu, scheme, p0, options = {} )
     end
     script.puts("    --outputfile=/dev/null \\")
     script.puts("    --numpids=#{numpids} \\")
+    unless options[:numcpus].nil?
+      script.puts("    --numcpus=#{options[:numcpus]} \\")
+    end
     script.puts("    --p0=#{invoke(p0)}\\")
     script.puts("    --p1=#{invoke(p1)}\\") unless p1.nil?
     script.puts("    --p2=#{invoke(p2)}\\") unless p2.nil?
@@ -298,23 +309,23 @@ def single_qsub opts={}
 end
 
 def parallel_local_scaling opts={}
-  opts = {otherbench: %w[astar], threads: 1}.merge opts
+  opts = {otherbench: %w[astar]}.merge opts
   iterate_and_submit(opts) do |cpu, scheme, param, p0, other|
     f = []
     #2
     p = param.merge(p1: other)
     p = p.merge coordinate(n:2) if opts[:coordination]
-    r = sav_script(cpu, scheme, p0, p)
+    r = opts[:skip2]? [true,""] : sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #3
     p = p.merge(p2: other)
     p = p.merge coordinate(n:3) if opts[:coordination]
-    r = sav_script(cpu, scheme, p0, p)
+    r = opts[:skip3]? [true,""] : sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     #4
     p = p.merge(p3: other)
     p = p.merge coordinate(n:4) if opts[:coordination]
-    r = sav_script(cpu, scheme, p0, p)
+    r = opts[:skip4]? [true,""] : sav_script(cpu, scheme, p0, p)
     f << r[1] unless r[0]
     f
   end

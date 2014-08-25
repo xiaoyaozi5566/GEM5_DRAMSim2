@@ -126,6 +126,8 @@ if '--dramsim2' in sys.argv:
             help="generate the trace for benchmarks.")
     parser.add_option("--numpids", type="int", default=2,
             help="determine the number of PIDs")
+    parser.add_option("--numcpus", type="int", default=None,
+            help="set the number of cpus if different from PIDs")
     parser.add_option("--l3tracefile", type="string", default="l3trace.txt",
             help="Output file for l3 cache traces")
     parser.add_option("--l2tracefile", type="string", default="l2trace.txt",
@@ -180,7 +182,8 @@ if args:
     sys.exit(1)
 
 # Number of CPUs
-options.num_cpus = options.numpids
+options.num_cpus = ( options.numpids if ( options.numcpus == None )
+        else options.numcpus )
 
 #Allow rr_nc to apply rr to both buses
 if options.rr_nc :
@@ -283,7 +286,7 @@ process0.cmd = options.p0.split()
 process0.pid = options.p0threadID
 multiprocesses.append(process0)
 
-if options.numpids > 1:
+if options.num_cpus > 1:
     process1 = LiveProcess()
     #process1.executable = "./tests/test-progs/test/arm/attacker_H"
     #process1.executable = options.p1
@@ -291,13 +294,13 @@ if options.numpids > 1:
     process1.pid = options.p1threadID
     multiprocesses.append(process1)
 
-if options.numpids > 2:
+if options.num_cpus > 2:
     process2 = LiveProcess()
     process2.cmd = options.p2.split()
     process2.pid = options.p2threadID
     multiprocesses.append(process2)
 
-if options.numpids > 3:
+if options.num_cpus > 3:
     process3 = LiveProcess()
     process3.cmd = options.p3.split()
     process3.pid = options.p3threadID

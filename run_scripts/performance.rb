@@ -19,6 +19,7 @@ module RunScripts
       qsub_scaling(
         schemes: %w[none],
         cpus: %w[detailed],
+        otherbench: $specint,
         maxinsts: 10**9
       )
     end
@@ -84,6 +85,20 @@ module RunScripts
         maxinsts: 10**9,
         coordination: true,
         nametag: "coordinated",
+      )
+    end
+
+    def double_tc
+      qsub_scaling $secure_opts.merge(
+        maxinsts: 10**9,
+        nametag: "double_tc",
+        skip2: true,
+        skip4: true,
+        numcpus: 3,
+        numpids: 2,
+        p0threadID: 0,
+        p1threadID: 1,
+        p2threadID: 1
       )
     end
 
