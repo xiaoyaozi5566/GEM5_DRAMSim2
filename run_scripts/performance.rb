@@ -93,12 +93,13 @@ module RunScripts
         maxinsts: 10**9,
         nametag: "double_tc",
         skip2: true,
-        skip4: true,
-        numcpus: 3,
+        skip3: true,
+        numcpus: 4,
         numpids: 2,
         p0threadID: 0,
-        p1threadID: 1,
-        p2threadID: 1
+        p1threadID: 0,
+        p2threadID: 1,
+        p3threadID: 1
       )
     end
 
