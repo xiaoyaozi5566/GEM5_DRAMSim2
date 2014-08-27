@@ -277,7 +277,7 @@ def parallel_local opts={}
 end
 
 def qsub_fast opts={}
-  iterate_and_submit opts.merge(runmode: :qsub)
+  iterate_and_submit ({runmode: :qsub}).merge(opts)
 end
 
 def single opts={}
@@ -356,7 +356,7 @@ def coordinate o={}
   params[:membusresp_tl] = tbus
   
   #first multiple of y greater than or equal to x 
-  first_mul_g = -> (x,y){ (x%y==0) ? x : x + (y - x % y) }
+  first_mul_g = lambda { |x, y| (x%y==0) ? x : x + (y - x % y) }
   # Memory controller turn lengths are the first multiple of the bus turn 
   # length (in memory cycles) multiplied by the number of timing 
   # compartments plus one. It guarantees that the memory controller turn 
