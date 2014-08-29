@@ -4,7 +4,9 @@
 
 require_relative 'runscripts'
 require_relative '../parsers/parsers'
+require_relative '../parsers/m5out'
 include RunScripts
+include Parsers
 
 module RunScripts
 
@@ -19,86 +21,137 @@ module RunScripts
 
     def hill_climb
       HillClimber.new $secure_opts.merge(
+        :@l2l3req_tl => 7,
+        :@l2l3resp_tl => 7,
+        :@membusreq_tl => 7,
+        :@membusresp_tl => 7,
+        :@tl0 => 64,
+        maxinsts: 10**6,
+        fastforward: 10,
+        maxiter: 30,
+        exectime: false,
+        benchmarks: %w[mcf]
       )
     end
 
-    #Don't do configuration here do it in hill_climb abive.
-    class HillClimber
+  #Don't do configuration here do it in hill_climb abive.
+  class HillClimber
 
-      def initialize(evalopts={})
+    def initialize(evalopts={})
 
-        @evalopts = evalopts
-        @min = Float::INFINITY
-        @step = 0
+      @evalopts = evalopts.merge( diffperiod: true )
+      @min = Float::INFINITY
+      @step = 0
 
-        @params = [
-          :@l2l3req_tl,
-          :@l2l3resp_tl,
-          :@membusreq_tl,
-          :@membusresp_tl,
-          :@tl0,
-        ]
+      @max_steps = 10
 
-        @params.each { |p| set_instance_variable(p, evalopts[p]) }
+      @params = [
+        :@l2l3req_tl,
+        :@l2l3resp_tl,
+        :@membusreq_tl,
+        :@membusresp_tl,
+        :@tl0,
+      ]
 
-        while @step < @max_steps
-          take_step
-          wait_until_done
-          find_direction
-          @step += 1
-          break if direction_is_crazy
+      @params.each { |p| instance_variable_set(p, evalopts[p]) }
+
+      loop do 
+        take_step
+        wait_until_done
+        d = find_direction
+        if !d || direction_is_crazy || (@step > @max_steps)
+          print_results
+          break
         end
+        print_results
+        @step += 1
       end
-
-      def ps param_symbol
-        param_symbol.to_s.delete(":@")
-      end
-
-      def take_step
-        [-1].product(@params).each do |step,pi|
-          new_p = instance_variable(pi) + step
-          break if step_is_unsafe pi, new_p
-          iterate_and_submit @params.inject({}){ |hsh,pj| 
-            hsh[pj] = instance_variable(pj); hsh
-          }.merge(
-            pi => new_p,
-            :tl1 => pi == :@tl0 ? new_p : @tl0
-          ).merge(
-            filename: "climbing_step_#{@step}_#{ps(pi)}_#{new_p}"
-          )
-        end
-      end
-
-      def wait_until_done
-        # check if jobs are done and data is available
-        # should not wait forever if the jobs crash or take too long
-      end
-
-      def find_direction
-        directions = Dir['*'].select {|f| f =~ /climing_step_#{@step}/}
-        directions.each do |f|
-          time = findTime(f)[0]
-          if time < @min
-            @params.each { |p|
-              instance_variable_set(p,
-                f.match(/#{p.to_s.delete("@")}_(\d*)/)[1])
-            }
-            @min = time
-          end
-        end
-      end
-
-      def direction_is_crazy
-        return false if @mem < 64
-        @params.inject(false) do |iscrazy,p|
-          iscrazy = iscrazy || instance_variable(p) < 0
-        end
-      end
-
-      def step_is_unsafe param
-        #whether or not param is out of bounds
-      end
-
     end
+
+    def print_results
+      puts @params.map { |p|
+        "#{p}, #{instance_variable_get(p)}".green
+      } << ["#{@step}".green]
+    end
+
+    def ps param_symbol
+      param_symbol.to_s.delete("@").intern
+    end
+
+    def take_step
+      [-1].product(@params).each do |step,pi|
+        new_p = instance_variable_get(pi) + step
+        break if step_is_unsafe pi, new_p
+        o = @params.inject({}){ |hsh,pj| 
+          hsh[ps(pj)] = instance_variable_get(pj); hsh
+        }.merge(
+          ps(pi) => new_p,
+          :tl1 => pi == :@tl0 ? new_p : @tl0
+        ).merge(
+          filename: "climbing_step_#{@step}_#{ps(pi)}_#{new_p}"
+        ).merge @evalopts
+        iterate_and_submit o
+      end
+    end
+
+    def wait_until_done
+      # check if jobs are done and data is available
+      # should not wait forever if the jobs crash or take too long
+      iterations = 0
+      loop do
+        puts "waiting"
+        return if iterations > @evalopts[:maxiter]
+        return if @params.map{ |p|
+          findTime("results/stdout_climbing_step_#{@step}_#{ps p}_" +
+                   "#{instance_variable_get(p)-1}.out")[1]
+        }.reduce(:|)
+        puts "iteration done"
+        iterations += 1
+        sleep 60
+      end
+    end
+
+    def find_direction
+      ## Current problem: Globs in working directory, not results
+      wd = Dir.pwd
+      Dir.chdir @evalopts[:exectime]? "results" : "m5out"
+      directions = Dir['*'].select {|f| f =~ /\w*climbing_step_#{@step}\w*/}
+      directions.each do |f|
+        datum = @evalopts[:exectime]?
+          Parsers::findTime(f)[0].to_i :
+          Parsers::get_datum(f,Parsers::MEMLATENCY)[0].to_i
+        if datum < @min
+          @params.each { |p|
+            m = f.match(/\w*#{ps(p)}_(\d*)\w*/)
+            instance_variable_set(p,m[1].to_i) unless m.nil?
+          }
+          @min = datum
+          Dir.chdir wd
+          return true
+        end
+      end
+      Dir.chdir wd
+      return false
+    end
+
+    def direction_is_crazy
+      return false if @tl0 < 64
+      @params.inject(false) do |iscrazy,p|
+        iscrazy = iscrazy || instance_variable_get(p) < 0
+     end
+    end
+
+    def step_is_unsafe param, val
+      return @params.inject(false){ |s,p|
+        s |= instance_variable_get(p) < 1
+      } || @tl0 < 44
+    end
+
+  end
+
+end
+
+if __FILE__ == $0
+  hill_climb
 
 end

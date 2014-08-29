@@ -123,6 +123,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     filename += "_c#{cacheSize}MB"
 
     filename = "#{options[:nametag]}_"+filename if options[:nametag]
+    filename = options[:filename] unless options[:filename].nil?
    
     numpids = [p0,p1,p2,p3].inject(0){|sum,i| ( i.nil? && sum ) || sum+1}
     numpids = options[:numpids] unless options[:numpids].nil?
