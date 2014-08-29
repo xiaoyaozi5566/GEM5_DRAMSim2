@@ -28,10 +28,10 @@ def simple_bar data, o={}
   vis = pv.Panel.new.
     width(w).
     height(h).
-    bottom(20).
+    bottom(30).
     left(50).
     right(5).
-    top(10)
+    top(14)
   
   # Bars
   bar = vis.add(pv.Bar).
@@ -42,14 +42,16 @@ def simple_bar data, o={}
     height(y)
   
   # Value lables on bars
-  bar.anchor("top").add(pv.Label).
-    text_style("white").
-    text(lambda { |d| "%.2f" % d })
+  # bar.anchor("top").add(pv.Label).
+  #   text_style("white").
+  #   text(lambda { |d| "%.2f" % d })
   
   # X-axis labels
   bar.anchor("bottom").add(pv.Label).
+    top(h+15).
     text_align("center").
     text_baseline("top").
+    text_angle(Math::PI/6).
     text(lambda { o[:x_labels][self.index]})
 
   # Y-Axis Title
