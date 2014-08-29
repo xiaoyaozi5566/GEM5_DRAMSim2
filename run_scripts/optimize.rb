@@ -10,31 +10,44 @@ include Parsers
 
 module RunScripts
 
-    $secure_opts = {
-      schemes: %w[tp],
-      addrpar: true,
-      rr_nc: true,
-      use_way_part: true,
-      split_mshr: true,
-      split_rport: true
-    }
+  $secure_opts = {
+    schemes: %w[tp],
+    addrpar: true,
+    rr_nc: true,
+    use_way_part: true,
+    split_mshr: true,
+    split_rport: true
+  }
 
-    def hill_climb
-      HillClimber.new $secure_opts.merge(
-        :@l2l3req_tl => 7,
-        :@l2l3resp_tl => 7,
-        :@membusreq_tl => 7,
-        :@membusresp_tl => 7,
-        :@tl0 => 64,
-        maxinsts: 10**6,
-        fastforward: 10,
-        maxiter: 30,
-        exectime: false,
-        benchmarks: %w[mcf]
-      )
-    end
+  def hill_climb
+   o=$secure_opts.merge(
+      maxinsts: 10**8,
+      fastforward: 10**9,
+      maxiter: 3*60,
+      maxsteps: 85,
+      exectime: false,
+      benchmarks: %w[mcf],
+      runmode: :qsub
+   )
+   HillClimber.new o.merge(
+     nametag: "above",
+     :@l2l3req_tl => 12,
+     :@l2l3resp_tl => 12,
+     :@membusreq_tl => 12,
+     :@membusresp_tl => 12,
+     :@tl0 => 75,
+   )
+   HillClimber.new o.merge(
+     nametag: "below",
+     :@l2l3req_tl => 7,
+     :@l2l3resp_tl => 7,
+     :@membusreq_tl => 7,
+     :@membusresp_tl => 7,
+     :@tl0 => 75,
+   )
+  end
 
-  #Don't do configuration here do it in hill_climb abive.
+  #Don't do configuration here do it in hill_climb above.
   class HillClimber
 
     def initialize(evalopts={})
@@ -43,7 +56,9 @@ module RunScripts
       @min = Float::INFINITY
       @step = 0
 
-      @max_steps = 10
+      @max_steps = evalopts[:maxsteps]
+
+      @outfile = File.open("hill_climb_#{evalopts[:nametag]}",'w')
 
       @params = [
         :@l2l3req_tl,
@@ -61,15 +76,19 @@ module RunScripts
         d = find_direction
         if !d || direction_is_crazy || (@step > @max_steps)
           print_results
+          @outfile.puts "crazy direction" if direction_is_crazy
           break
         end
         print_results
         @step += 1
       end
+
+      @outfile.close
+
     end
 
     def print_results
-      puts @params.map { |p|
+      @outfile.puts @params.map { |p|
         "#{p}, #{instance_variable_get(p)}".green
       } << ["#{@step}".green]
     end
@@ -81,14 +100,15 @@ module RunScripts
     def take_step
       [-1].product(@params).each do |step,pi|
         new_p = instance_variable_get(pi) + step
-        break if step_is_unsafe pi, new_p
+        next if step_is_unsafe pi, new_p
         o = @params.inject({}){ |hsh,pj| 
           hsh[ps(pj)] = instance_variable_get(pj); hsh
         }.merge(
           ps(pi) => new_p,
           :tl1 => pi == :@tl0 ? new_p : @tl0
         ).merge(
-          filename: "climbing_step_#{@step}_#{ps(pi)}_#{new_p}"
+          filename: "climbing_step_#{@step}_#{ps(pi)}_#{new_p}" +
+            "_#{@evalopts[:nametag]}"
         ).merge @evalopts
         iterate_and_submit o
       end
@@ -99,13 +119,11 @@ module RunScripts
       # should not wait forever if the jobs crash or take too long
       iterations = 0
       loop do
-        puts "waiting"
         return if iterations > @evalopts[:maxiter]
         return if @params.map{ |p|
           findTime("results/stdout_climbing_step_#{@step}_#{ps p}_" +
-                   "#{instance_variable_get(p)-1}.out")[1]
+                   "#{instance_variable_get(p)-1}_#{@evalopts[:nametag]}.out")[1]
         }.reduce(:|)
-        puts "iteration done"
         iterations += 1
         sleep 60
       end
@@ -115,14 +133,16 @@ module RunScripts
       ## Current problem: Globs in working directory, not results
       wd = Dir.pwd
       Dir.chdir @evalopts[:exectime]? "results" : "m5out"
-      directions = Dir['*'].select {|f| f =~ /\w*climbing_step_#{@step}\w*/}
+      directions = Dir['*'].select {|f|
+        f =~ /\w*climbing_step_#{@step}\w*_#{@evalopts[:nametag]}\w*/
+      }
       directions.each do |f|
         datum = @evalopts[:exectime]?
           Parsers::findTime(f)[0].to_i :
           Parsers::get_datum(f,Parsers::MEMLATENCY)[0].to_i
         if datum < @min
           @params.each { |p|
-            m = f.match(/\w*#{ps(p)}_(\d*)\w*/)
+            m = f.match(/\w*#{ps(p)}_(\d*)\w*_#{@evalopts[:nametag]}\w*/)
             instance_variable_set(p,m[1].to_i) unless m.nil?
           }
           @min = datum
