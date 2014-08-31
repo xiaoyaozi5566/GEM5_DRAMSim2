@@ -5,6 +5,7 @@
 require_relative 'runscripts'
 require_relative '../parsers/parsers'
 require_relative '../parsers/m5out'
+require 'parallel_each'
 include RunScripts
 include Parsers
 
@@ -27,7 +28,8 @@ module RunScripts
       maxsteps: 85,
       exectime: false,
       benchmarks: %w[mcf],
-      runmode: :qsub
+      runmode: :local,
+      threads: 1 #multithreading is done in HillClimber
    )
    HillClimber.new o.merge(
      nametag: "above",
@@ -35,7 +37,7 @@ module RunScripts
      :@l2l3resp_tl => 12,
      :@membusreq_tl => 12,
      :@membusresp_tl => 12,
-     :@tl0 => 75,
+     :@tl0 => 70,
    )
    HillClimber.new o.merge(
      nametag: "below",
@@ -43,7 +45,15 @@ module RunScripts
      :@l2l3resp_tl => 7,
      :@membusreq_tl => 7,
      :@membusresp_tl => 7,
-     :@tl0 => 75,
+     :@tl0 => 70,
+   )
+   HillClimber.new o.merge(
+     nametag: "bottom",
+     :@l2l3req_tl => 1,
+     :@l2l3resp_tl => 1,
+     :@membusreq_tl => 1,
+     :@membusresp_tl => 1,
+     :@tl0 => 43,
    )
   end
 
@@ -71,9 +81,13 @@ module RunScripts
       @params.each { |p| instance_variable_set(p, evalopts[p]) }
 
       loop do 
+        puts "#{'='*80}\n#{' '*36}step #{@step}#{' '*36}\n#{'='*80}"
         take_step
-        wait_until_done
+        puts "took step".green
+        # wait_until_done
+        # puts "done waiting".green
         d = find_direction
+        puts "looked for direction".green
         if !d || direction_is_crazy || (@step > @max_steps)
           print_results
           @outfile.puts "crazy direction" if direction_is_crazy
@@ -98,7 +112,7 @@ module RunScripts
     end
 
     def take_step
-      [-1].product(@params).each do |step,pi|
+      [-2,2].product(@params).p_each(10) do |step,pi|
         new_p = instance_variable_get(pi) + step
         next if step_is_unsafe pi, new_p
         o = @params.inject({}){ |hsh,pj| 
@@ -121,11 +135,16 @@ module RunScripts
       loop do
         return if iterations > @evalopts[:maxiter]
         return if @params.map{ |p|
-          findTime("results/stdout_climbing_step_#{@step}_#{ps p}_" +
-                   "#{instance_variable_get(p)-1}_#{@evalopts[:nametag]}.out")[1]
+          f = "results/stdout_climbing_step_#{@step}_#{ps p}_" +
+                "#{instance_variable_get(p)-1}_#{@evalopts[:nametag]}.out"
+          puts f
+          findTime(f)[1]
         }.reduce(:|)
+        puts "1".blue
         iterations += 1
-        sleep 60
+        puts "2".blue
+        sleep(3.0)
+        puts "3".blue
       end
     end
 
@@ -136,22 +155,54 @@ module RunScripts
       directions = Dir['*'].select {|f|
         f =~ /\w*climbing_step_#{@step}\w*_#{@evalopts[:nametag]}\w*/
       }
+
+      puts "directions"
+      puts directions
+
+      extract = lambda do |f|
+        datum = @evalopts[:exectime]?
+          Parsers::findTime(f) :
+          Parsers::get_datum(f,Parsers::MEMLATENCY)
+        puts "#{f} had a bad datum".red unless datum[1]
+        datum = datum[1]? datum[0] : datum[1]
+      end
+
+      data = directions.inject({}) do |d,f|
+        m = f.match(/\w*step_#{@step}_(\w*)\w*_#{@evalopts[:nametag]}\w*/)
+        name = m.nil? ? "notfound" : m[1]
+        d[name] = extract.call f
+        d
+      end
+
+      puts "found_data"
+      puts data
+      puts "current params"
+      puts @params.inject(''){ |s,p| s += "(#{p} = #{instance_variable_get(p)}) " }
+
+      next_direction = @min, nil, nil
       directions.each do |f|
         datum = @evalopts[:exectime]?
           Parsers::findTime(f)[0].to_i :
           Parsers::get_datum(f,Parsers::MEMLATENCY)[0].to_i
-        if datum < @min
-          @params.each { |p|
+        param_n, param_v = @params.inject(nil) { |r,p|
             m = f.match(/\w*#{ps(p)}_(\d*)\w*_#{@evalopts[:nametag]}\w*/)
-            instance_variable_set(p,m[1].to_i) unless m.nil?
-          }
-          @min = datum
-          Dir.chdir wd
-          return true
+            r = p, m[1].to_i unless m.nil?
+            r
+        }
+        if datum < next_direction[0]
+          puts "#{datum} < #{next_direction[0]}"
+          next_direction = datum, param_n, param_v
         end
       end
       Dir.chdir wd
-      return false
+      if next_direction[1].nil?
+        puts "didn't find a direction"
+        return false
+      else
+        @min = next_direction[0]
+        instance_variable_set(next_direction[1],next_direction[2])
+        return true
+      end
     end
 
     def direction_is_crazy
@@ -164,7 +215,7 @@ module RunScripts
     def step_is_unsafe param, val
       return @params.inject(false){ |s,p|
         s |= instance_variable_get(p) < 1
-      } || @tl0 < 44
+      } || @tl0 < 43
     end
 
   end
