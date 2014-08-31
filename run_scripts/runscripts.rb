@@ -180,7 +180,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     end
 
     #Security Policy
-    [:p0threadID, :p1threadID, :p2threadID].each do |param|
+    [:p0threadID, :p1threadID, :p2threadID, :p3threadID].each do |param|
       unless options[param].nil?
         script.puts("    --#{param.to_s} #{options[param]}\\") 
       end
