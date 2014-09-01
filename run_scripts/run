@@ -10,6 +10,7 @@ require_relative 'memctl_unoptimized'
 require_relative 'memctl_optimized'
 require_relative 'memctl_scheduler'
 require_relative 'memctl_synthetic'
+require_relative 'optimize'
 include RunScripts
 
 #------------------------------------------------------------------------------
@@ -66,7 +67,7 @@ include RunScripts
 # membus_sweeping_qsub
 # memctl_sweeping_qsub
 # fa_sweeping_qsub
-
+hill_climb
 ###############################################################################
 # Memory Controller Tests
 ###############################################################################

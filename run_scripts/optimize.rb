@@ -164,7 +164,7 @@ module RunScripts
           Parsers::findTime(f) :
           Parsers::get_datum(f,Parsers::MEMLATENCY)
         puts "#{f} had a bad datum".red unless datum[1]
-        datum = datum[1]? datum[0] : datum[1]
+        datum = datum[1]? datum[0] : Float::INFINITY
       end
 
       data = directions.inject({}) do |d,f|
@@ -181,13 +181,13 @@ module RunScripts
 
       next_direction = @min, nil, nil
       directions.each do |f|
-        datum = @evalopts[:exectime]?
-          Parsers::findTime(f)[0].to_i :
-          Parsers::get_datum(f,Parsers::MEMLATENCY)[0].to_i
+        datum = extract.call f
+        # datum = @evalopts[:exectime]?
+        #   Parsers::findTime(f)[0].to_i :
+        #   Parsers::get_datum(f,Parsers::MEMLATENCY)[0].to_i
         param_n, param_v = @params.inject(nil) { |r,p|
             m = f.match(/\w*#{ps(p)}_(\d*)\w*_#{@evalopts[:nametag]}\w*/)
-            r = p, m[1].to_i unless m.nil?
-            r
+            m.nil? ? [nil, nil] : [p, m[1].to_i]
         }
         if datum < next_direction[0]
           puts "#{datum} < #{next_direction[0]}"
