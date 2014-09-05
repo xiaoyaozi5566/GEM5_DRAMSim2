@@ -1,59 +1,18 @@
 require 'colored'
 
-class NumericBusLayer
-
-  def initialize o = {ntcs: 2, offset: 0, turn_l: 1}
-    @ntcs, @offset, @turn_l = o[:ntcs], o[:offset], o[:turn_l]
-  end
-
-
-  def cycle_complete time, message_length
-    t = time
-    m = message_length
-
-    while m > 0 do
-      puts "m = #{m}"
-      print_stats t
-
-      #Wait until you can consume
-      t = next_avail t
-
-      #Consume what can be sent now
-      left = t_left t
-      t += [m,left].min
-      m -= left
-
-    end
-
-    return t
-    
-  end
-  
-  def print_stats t
-    [ :avail, :next_avail, :t_left, :curr_turn, :time_o ].each do |p|
-      eval "puts \"#{p.to_s} #{t} = #{method(p).call t}\""
-    end
-  end
-
-  def schedule() @turn_l * @ntcs end
-  def avail(t) curr_turn(t) == 0 end
-  def next_avail(t) avail(t) ? t : t + schedule - (t % schedule) end
-  def t_left(t) avail(t) ? @turn_l - (t % schedule) : 0 end
-  def curr_turn(t) time_o(t) / @turn_l % @ntcs  end
-  def time_o(t) t - @offset end
-
-end
-
 class BusLayer
 
   def initialize o = {}
+  
     o = {
       ntcs: 2, offset: 0, turn_l: 1,
       name: "", message: 1
     }.merge o
     @message_length  = o[:message]
     @name = o[:name]
+
     @time = 0
+
     @slots = [true] * o[:turn_l] +
       [false] * o[:turn_l] * (o[:ntcs] - 1)
     @slots = @slots.rotate(-o[:offset])
@@ -62,25 +21,20 @@ class BusLayer
   #Memoized Constructor
   @@buses = {}
   def self.new_m o
-    @@buses[o] ||= self.new o 
+    @@buses[o] ||= self.new o
   end
 
+  # Calculate when the data for a packet entering at "time" will be available
+  # based on the parameters from initializaiton
   def cycle_complete time
-
     update time
 
     @message_length.times do
-      consume while !@slots[0]
-      consume
+      update(@time + 1) while !@slots[0]
+      update(@time + 1)
     end
 
     @time
-
-  end
-
-  def consume
-    @slots.rotate!
-    @time +=1
   end
 
   def update time
@@ -92,6 +46,7 @@ class BusLayer
   BLKSQ   = "\u25A0"
   def to_s
     "(#{"%4d" % @time}) " + "%10s" % @name +
+      (SHIFT ? " " *  @time : "") +
       " #{@slots.inject(""){ |s,slot| s += slot ? BLKSQ : WHITESQ }}"
   end
   
@@ -107,6 +62,12 @@ class PipelinedCache
     @name = o[:name]
     @t_l3 = o[:t_l3]
     @t    = 0
+  end 
+
+  #Memoized Constructor
+  @@caches = {}
+  def self.new_m o
+    @@caches[o] ||= self.new(o)
   end
 
   def cycle_complete(t) @t = t + @t_l3 end
@@ -114,8 +75,78 @@ class PipelinedCache
   def self.new_m(o) new(o) end
 
   def to_s
-    "(#{"%4d" % @t}) " + "%10s" % @name + " " + WHITESQ * @t_l3
+    "(#{"%4d" % @t}) " + "%10s" % @name +
+    (SHIFT ? " " * (1+@t) : " ") +
+    WHITESQ * @t_l3
   end
+end
+
+class MemoryController
+  def initialize o={}
+    o = {
+      name:        "MemCtl",
+      ntcs:        2,
+      offset:      0,
+      t_mem:       64, # total turn length, not when data is available
+      wc:          43,
+      wc_read:     24, # tRCD + tCAS + WL/2
+      flight_time: 43  # time required to 
+    }.merge o
+
+    @name = o[:name]
+    @time = 0
+    @message = o[:wc_read]
+
+    # Model assumes that a request can only be started in the right turn,
+    # and not during the dead time. If a request cannot finish by the dead 
+    # time, it waits until the next turn
+    dead_time = (o[:t_mem] - (o[:t_mem] - o[:wc])/10.0).ceil
+    @slots = [:active] * (o[:t_mem] - dead_time) +
+      [:dead] * dead_time +
+      [:other] * o[:t_mem] * (o[:ntcs] - 1)
+    @slots.rotate!(o[:offset])
+  end
+
+  @@memcs = {}
+  def self.new_m o
+    @@memcs[o] ||= self.new o
+  end
+
+  def cycle_complete t
+    # Advance to cycle t
+    update t
+
+    # Advance to the next @message consecutive cycles of a turn that begins 
+    # outside of the dead time. 
+    update( @time + 1) until @slots[0] == :active && @slots[@message] != :other
+
+    #Consume the entire memory access
+    update( @time + @message )
+
+  end
+
+  def update time
+    @slots.rotate!(time-@time)
+    @time = time
+  end
+
+  WHITESQ = "\u25A1"
+  BLKSQ   = "\u25A0"
+  BLKDIA  = "\u25C6"
+
+  def sym_to_s sym
+    ( sym == :active && BLKSQ ) ||
+      ( sym == :dead && BLKDIA )  ||
+      ( sym == :other && WHITESQ )
+  end
+
+  def to_s
+    "(#{"%4d" % @time}) " + "%10s" % @name +
+      (SHIFT ? " " *  @time : "") +
+      " #{@slots.inject(""){ |s,slot| s += sym_to_s slot }}" +
+      "#{@slots.inject(""){ |s,slot| s += sym_to_s slot }}"
+  end
+
 end
 
 def simulate_l3_hit o = {}
@@ -133,6 +164,7 @@ def simulate_l3_hit o = {}
     t_l3:  9,
     t_req:  1,
     t_resp: 9,
+    # Test case
     ntcs:   2,
     time:   0,
   }.merge o
@@ -163,11 +195,97 @@ def simulate_l3_hit o = {}
   end
 end
 
+def simulate_l3_miss o = {}
+  o = {
+    # System Configuration
+    l2l3req_tl:   1,
+    l2l3req_o:    0,
+    l2l3resp_tl:  9,
+    l2l3resp_o:   0,
+    l3memreq_tl:  1,
+    l3memreq_o:   0,
+    l3memresp_tl: 9,
+    l3memresp_o:  0,
+    # Environment
+    t_l3:  9,
+    t_req:  1,
+    t_resp: 9,
+    # Test case
+    ntcs:   2,
+    time:   0,
+  }.merge o
+
+  [
+    BusLayer.new_m(
+      name:    "l2l3_req",
+      message: o[:t_req],
+      ntcs:    o[:ntcs],
+      turn_l:  o[:l2l3req_tl],
+      offset:  o[:l2l3req_o],
+    ),
+    l3 = PipelinedCache.new_m(
+      name: "L3",
+      t_l3:  o[:t_l3]
+    ),
+    BusLayer.new_m(
+      name:    "l3mem_req",
+      message: o[:t_req],
+      ntcs:    o[:ntcs],
+      turn_l:  o[:l3memreq_tl],
+      offset:  o[:l3memreq_o],
+    ),
+    MemoryController.new_m(
+      name: "MemCtl",
+      ntcs: o[:ntcs],
+      # t_mem: o[:t_mem],
+      # offset: o[:mem_offset],
+      #other env params
+    ),
+    BusLayer.new_m(
+      name:    "l3mem_resp",
+      message: o[:t_resp],
+      ntcs:    o[:ntcs],
+      turn_l:  o[:l3memresp_tl],
+      offset:  o[:l3memresp_o],
+    ),
+    l3,
+    BusLayer.new_m(
+      name:    "l2l3_resp",
+      message: o[:t_resp],
+      ntcs:    o[:ntcs],
+      turn_l:  o[:l2l3resp_tl],
+      offset:  o[:l2l3resp_o],
+    )
+  ].inject(o[:time]) do |time, component|
+    component.update time #happens automatically, needed for print
+    puts component.to_s.green if DEBUG
+    time = component.cycle_complete time
+  end
+end
+
 if __FILE__ == $0
   DEBUG = true
+  SHIFT = true 
   # a = SlotBusLayer.new(ntcs: 4, offset: 0, turn_l: 3, name: "l2l3_req")
   # puts a.cycle_complete 0, 3
 
-  puts simulate_l3_hit.to_s.magenta
+  # puts simulate_l3_hit(
+  #   time: 0
+  # ).to_s.magenta
+
+  # puts simulate_l3_hit(
+  #   time: 0,
+  #   l2l3req_tl: 1,
+  #   l2l3resp_o: 1+9 #t_req + t_l3
+  # ).to_s.magenta
+
+  # puts simulate_l3_hit(
+  #   time: 0,
+  #   l2l3req_tl: 9,
+  #   t_req: 2,
+  #   l2l3resp_o: 1+9 #t_req + t_l3
+  # ).to_s.magenta
+
+  puts simulate_l3_miss.to_s.magenta
 
 end
