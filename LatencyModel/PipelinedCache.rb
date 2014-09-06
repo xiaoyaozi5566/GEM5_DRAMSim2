@@ -15,7 +15,7 @@ class PipelinedCache
   #Memoized Constructor
   @@caches = {}
   def self.new_m o
-    @@caches[o] ||= self.new(o)
+    @@caches[o.merge(time: 0)] ||= self.new(o)
   end
 
   def cycle_complete(t) @t = t + @t_l3 end

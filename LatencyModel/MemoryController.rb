@@ -65,3 +65,16 @@ class MemoryController
   end
 
 end
+
+class NonPreemptingMC < MemoryController
+
+  def initialize o={}
+    super o
+    dead_time = o[:wc]
+    @slots = [:active] * (o[:t_mem] - dead_time) +
+      [:dead] * dead_time +
+      [:other] * o[:t_mem] * (o[:ntcs] - 1)
+    @slots.rotate!(-o[:offset])
+  end
+
+end
