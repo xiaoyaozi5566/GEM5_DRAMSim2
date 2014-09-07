@@ -221,10 +221,11 @@ def try_everyhit o={}
         o[:l2l2req_o],
         o[:l2l3resp_o],
       ) = offsets
-      l = l3_hit_latencies(o)
+      o_curr = o.clone
+      l = l3_hit_latencies(o_curr)
       a = avg l
-      maximum = [a,o] if a > maximum[0]
-      minimum = [a,o] if a < minimum[0]
+      maximum = [a,o_curr] if a > maximum[0]
+      minimum = [a,o_curr] if a < minimum[0]
     end
   end
   puts " max = #{maximum} "
