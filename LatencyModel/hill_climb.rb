@@ -8,7 +8,7 @@ class HillClimber
     @ops = o
     @min = Float::INFINITY
 
-    @params = [
+    @params = o[:params] || [
       :@l2l3req_tl,
       :@l2l3req_o, 
       :@l2l3resp_tl, 
@@ -81,6 +81,10 @@ def step_is_unsafe param, val
   return true if param.to_s.include?("_tl") && val < 1
   return true if param.to_s.include?("mem_tl") && val < 44
   return false
+end
+
+class HitClimber
+
 end
 
 
