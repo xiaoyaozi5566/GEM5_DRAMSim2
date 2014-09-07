@@ -4,7 +4,7 @@ require 'colored'
 def acceptance_probability e, e_prime, temp
   return 1.0 if e_prime < e
   d = (e-e_prime)/e.to_f * 25
-  r = Math.exp(d * (1.0-temp))
+  r = Math.exp(d.abs * (1.0-temp))
   puts "P=#{r}".to_s.yellow if DEBUG_S
   r
 end
@@ -14,14 +14,18 @@ def temperature time
 end
 
 def simulate_annealing o={}
+  o = {
+    shuffle: lambda { State.new.shuffle },
+    max_time: 400
+  }.merge o
 
   time = 0 
   total_time = 0
-  max_time = 400
+  max_time = o[:max_time] 
   best_state = nil
   best_energy = Float::INFINITY
   restart_probability = 0.001
-  current_state = State.new.shuffle
+  current_state = o[:shuffle].call
 
   while total_time < max_time
 
@@ -31,9 +35,11 @@ def simulate_annealing o={}
       puts "=" * 80
     end
 
+    puts current_state.to_s
+
     new_state = if rand < restart_probability
-      State.new.shuffle
       time = 0
+      o[:shuffle].call
     else
       current_state.neighbor
     end
@@ -61,8 +67,8 @@ def simulate_annealing o={}
       best_state = new_state
     end
 
-    time+=1
-    total_time+=1
+    time += 1
+    total_time += 1
 
   end
 
@@ -72,7 +78,8 @@ def simulate_annealing o={}
 end
 
 if __FILE__ == $0
-  DEBUG_S = false #true
+  DEBUG_S = true
   #DEBUG = true
-  simulate_annealing
+  simulate_annealing( max_time: 5000 )
+  #simulate_annealing( shuffle: lambda {MaximizingState.new.shuffle}, max_time: 5000 )
 end

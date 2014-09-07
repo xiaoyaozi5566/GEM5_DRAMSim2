@@ -1,5 +1,9 @@
-Dir['*rb'].each { |f| puts f; require_relative f }
+Dir['*rb'].each { |f| require_relative f }
 require 'colored'
+
+DEBUG = false
+BOXES = false 
+SHIFT = false
 
 def simulate_l3_hit o = {}
   o = {
@@ -8,10 +12,6 @@ def simulate_l3_hit o = {}
     l2l3req_o:    0,
     l2l3resp_tl:  9,
     l2l3resp_o:   0,
-    l3memreq_tl:  1,
-    l3memreq_o:   0,
-    l3memresp_tl: 9,
-    l3memresp_o:  0,
     # Environment
     t_l3:  9,
     t_req:  1,
@@ -54,10 +54,6 @@ def l3_hit_latencies o={}
     l2l3req_o:    0,
     l2l3resp_tl:  9,
     l2l3resp_o:   0,
-    l3memreq_tl:  1,
-    l3memreq_o:   0,
-    l3memresp_tl: 9,
-    l3memresp_o:  0,
     # Environment
     t_l3:   9,
     t_req:  1,
@@ -121,7 +117,7 @@ def simulate_l3_miss o = {}
       turn_l:  o[:l3memreq_tl],
       offset:  o[:l3memreq_o],
     ),
-    MemoryController.new_m(
+    NonPreemptingMC.new_m(
       name:    "MemCtl",
       wc:      o[:mem_wc],
       wc_read: o[:mem_wc_read],
@@ -188,14 +184,59 @@ def l3_miss_latencies o={}
   end
 end
 
+def try_everything o={}
+  #[*1..15].repeated_permutation(4).to_a.product( (44..70).to_a ) do |tl|
+  [*1..3].repeated_permutation(2).to_a.product( [*44..46] ) do |tl|
+    [
+      o[:l2l3req_tl]   = 1, #tl[0][0],
+      o[:l2l3resp_tl]  = tl[0][0],
+      o[:l3memreq_tl]  = 1, #tl[0][2],
+      o[:l3memresp_tl] = tl[0][1],
+      o[:mem_tl]       = tl[1]
+    ].map{ |i| i.times.to_a }.reduce(:product).flatten.each_slice(5) do |offsets|
+      (
+        o[:l2l2req_o],
+        o[:l2l3resp_o],
+        o[:l3memreq_o],
+        o[:l3memresp_o],
+        o[:mem_o]
+      ) = offsets
+      puts o
+      l = l3_miss_latencies o
+      puts "|L| = #{avg l}".to_s.magenta
+      puts "#{l.max } < L < #{l.min}".to_s.magenta
+    end
+  end
+end
+
+def try_everyhit o={}
+  maximum = [0,nil]
+  minimum = [Float::INFINITY,nil]
+  [*1..15].repeated_permutation(2) do |req,resp|
+    [
+      o[:l2l3req_tl]   = req,
+      o[:l2l3resp_tl]  = resp
+    ].map{ |i| (2*i).times.to_a }.reduce(:product).flatten.each_slice(2) do |offsets|
+      (
+        o[:l2l2req_o],
+        o[:l2l3resp_o],
+      ) = offsets
+      l = l3_hit_latencies(o)
+      a = avg l
+      maximum = [a,o] if a > maximum[0]
+      minimum = [a,o] if a < minimum[0]
+    end
+  end
+  puts " max = #{maximum} "
+  puts " min = #{minimum} "
+end
+
 def avg arr
   arr.reduce(:+)/arr.length.to_f
 end
 
 if __FILE__ == $0
-  DEBUG = true
-  BOXES = false
-  SHIFT = true 
+
   # a = SlotBusLayer.new(ntcs: 4, offset: 0, turn_l: 3, name: "l2l3_req")
   # puts a.cycle_complete 0, 3
 
@@ -222,16 +263,29 @@ if __FILE__ == $0
   #   mem_o:      11,
   #   l3memresp_o: 11+24
   # ).to_s.magenta
- 
-  hit_latencies = l3_miss_latencies(
-    l3memreq_o:        10,
-    mem_o:             11,
-    l3memresp_o:    11+24,
-    l2l3resp_o:   11+24+9,
-    mem_tl:            64,
-  ) 
 
-  puts "|L| = #{avg hit_latencies}".to_s.magenta
-  puts "#{hit_latencies.max } < L < #{hit_latencies.min}".to_s.magenta
+   
+  #latencies = l3_miss_latencies(
+  #  l3memreq_o:        10,
+  #  mem_o:             11,
+  #  l3memresp_o:    11+24,
+  #  l2l3resp_o:     11+24,
+  #  mem_tl:            72,
+  #) 
+
+  # latencies = l3_miss_latencies(
+  #   l3memresp_tl:        64,
+  #   l2l3resp_tl:         16,
+  #   mem_tl:              64,
+  #   l3memreq_o:          16,
+  #   mem_o:               11,
+  #   l3memresp_o:      11+24,
+  #   l2l3resp_o:   11+24+9+9,
+  # )
+
+  # puts "|L| = #{avg latencies}".to_s.magenta
+  # puts "#{latencies.max } < L < #{latencies.min}".to_s.magenta
+  
+  try_everyhit
 
 end
