@@ -21,7 +21,7 @@ class BusLayer
   #Memoized Constructor
   @@buses = {}
   def self.new_m o
-    @@buses[o] ||= self.new o
+    @@buses[o.merge(time: 0)] ||= self.new o
   end
 
   # Calculate when the data for a packet entering at "time" will be available
