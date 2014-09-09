@@ -47,11 +47,10 @@
 
 using namespace std;
 
-PacketQueue::PacketQueue(EventManager& _em, const std::string& _label)
-    : em(_em), sendEvent(this), drainEvent(NULL), label(_label),
+PacketQueue::PacketQueue(EventManager& _em, const std::string& _label, int _ID)
+    : em(_em), sendEvent(this), drainEvent(NULL), label(_label), ID(_ID),
       waitingOnRetry(false)
 {
-    ID=0;
 	//printf("SendEvent initialized %d\n", sendEvent.initialized());
 	//cout<< _label << endl;
 }
@@ -109,6 +108,7 @@ PacketQueue::schedSendEvent(Tick when, bool isInteresting)
 	  //if (sendEvent.scheduled()) printf("Event scheduled @ cycle %llu\n", when);
 	  if (!sendEvent.scheduled()) {
         // if( isEra() ) printf("schedSendEvent at %lu\n",when);
+		  //printf("schedule send Event @ cycle %llu\n", when);
         em.schedule(&sendEvent, when);
     } else if (sendEvent.when() > when) {
         // if( isEra() ){
@@ -183,6 +183,8 @@ void PacketQueue::trySendTiming()
     // use the appropriate implementation of sendTiming based on the
     // type of port associated with the queue, and whether the packet
     // is to be sent as a snoop or not
+	// if (dp.pkt->threadID == 1)
+// 		printf("Request %llx from 1 call sendTiming @ cycle %llu\n SendAsSnoop: %d\n", dp.pkt->getAddr(), curTick(), dp.sendAsSnoop);
     waitingOnRetry = !sendTiming(dp.pkt, dp.sendAsSnoop);
 
     if (waitingOnRetry) {
@@ -249,8 +251,8 @@ PacketQueue::drain(Event *de)
 }
 
 MasterPacketQueue::MasterPacketQueue(EventManager& _em, MasterPort& _masterPort,
-                                     const std::string _label)
-    : PacketQueue(_em, _label), masterPort(_masterPort)
+                                     const std::string _label, int ID)
+    : PacketQueue(_em, _label, ID), masterPort(_masterPort)
 {
 }
 
@@ -265,8 +267,8 @@ MasterPacketQueue::sendTiming(PacketPtr pkt, bool send_as_snoop)
 }
 
 SlavePacketQueue::SlavePacketQueue(EventManager& _em, SlavePort& _slavePort,
-                                   const std::string _label)
-    : PacketQueue(_em, _label), slavePort(_slavePort)
+                                   const std::string _label, int _ID)
+    : PacketQueue(_em, _label, _ID), slavePort(_slavePort)
 {
 }
 
