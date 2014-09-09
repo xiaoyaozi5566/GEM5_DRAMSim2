@@ -1,14 +1,18 @@
 Dir['*rb'].each { |f| require_relative f }
 
+class Integer
+  def to_bus() (self*1.5).ceil end
+end
+
 class MemoryController
   def initialize o={}
     o = {
       name:        "MemCtl",
       ntcs:        2,
       offset:      0,
-      t_mem:       64, # total turn length, not when data is available
-      wc:          43,
-      wc_read:     24, # tRCD + tCAS + WL/2
+      t_mem:       44.to_bus, # total turn length, not when data is available
+      wc:          43.to_bus,
+      wc_read:     24.to_bus # tRCD + tCAS + WL/2
     }.merge o
 
     @name = o[:name]
@@ -18,7 +22,9 @@ class MemoryController
     # Model assumes that a request can only be started in the right turn,
     # and not during the dead time. If a request cannot finish by the dead 
     # time, it waits until the next turn
-    dead_time = (o[:t_mem] - (o[:t_mem] - o[:wc])/10.0).ceil
+   
+    dead_time = (o[:t_mem] - (o[:t_mem] - o[:wc])/15.0).ceil
+    dead_time = o[:wc] if o[:t_mem] == o[:wc]
     @slots = [:active] * (o[:t_mem] - dead_time) +
       [:dead] * dead_time +
       [:other] * o[:t_mem] * (o[:ntcs] - 1)

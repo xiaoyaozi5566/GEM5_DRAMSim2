@@ -4,7 +4,7 @@ require 'colored'
 def acceptance_probability e, e_prime, temp
   return 1.0 if e_prime < e
   d = (e-e_prime)/e.to_f * 25
-  r = Math.exp(d.abs * (1.0-temp))
+  r = Math.exp(-1*(d.abs) * (1.0-temp))
   puts "P=#{r}".to_s.yellow if DEBUG_S
   r
 end
@@ -16,6 +16,7 @@ end
 def simulate_annealing o={}
   o = {
     shuffle: lambda { State.new.shuffle },
+    init: lambda { State.new.shuffle},
     max_time: 400
   }.merge o
 
@@ -25,7 +26,8 @@ def simulate_annealing o={}
   best_state = nil
   best_energy = Float::INFINITY
   restart_probability = 0.001
-  current_state = o[:shuffle].call
+  best_state = current_state = o[:init].call
+  best_energy = current_state.energy
 
   while total_time < max_time
 
@@ -34,8 +36,6 @@ def simulate_annealing o={}
       puts " "*38 + "#{time}" + " "*38
       puts "=" * 80
     end
-
-    puts current_state.to_s
 
     new_state = if rand < restart_probability
       time = 0
@@ -67,6 +67,9 @@ def simulate_annealing o={}
       best_state = new_state
     end
 
+    puts "best_energy = #{best_energy}".red
+    puts best_state.to_s.red
+
     time += 1
     total_time += 1
 
@@ -79,7 +82,25 @@ end
 
 if __FILE__ == $0
   DEBUG_S = true
-  #DEBUG = true
-  simulate_annealing( max_time: 5000 )
+
+  simulate_annealing(
+    max_time: 20,
+    init: lambda do
+      BalancedHitState.new(
+        l2l3req_tl:                11,
+        l2l3resp_tl:               11,
+        l3memreq_tl:               66,
+        l3memresp_tl:              66,
+        mem_tl:                    66,
+        l2l3req_o:                  0,
+        l3memreq_o:                10,
+        mem_o:                   10+1,
+        l3memresp_o:          10+1+36,
+        l2l3resp_o: (10+11+36+9+9)%11,
+      )
+    end,
+    shuffle: lambda { BalancedHitState.new.shuffle }
+  )
+
   #simulate_annealing( shuffle: lambda {MaximizingState.new.shuffle}, max_time: 5000 )
 end

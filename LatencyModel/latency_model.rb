@@ -1,9 +1,9 @@
 Dir['*rb'].each { |f| require_relative f }
 require 'colored'
 
-DEBUG = false
-BOXES = false 
-SHIFT = false
+DEBUG = false #true
+BOXES = false #true
+SHIFT = false #true
 
 def simulate_l3_hit o = {}
   o = {
@@ -77,22 +77,22 @@ end
 def simulate_l3_miss o = {}
   o = {
     # System Configuration
-    l2l3req_tl:   1,
+    l2l3req_tl:   9,
     l2l3req_o:    0,
     l2l3resp_tl:  9,
     l2l3resp_o:   0,
-    l3memreq_tl:  1,
+    l3memreq_tl:  9,
     l3memreq_o:   0,
     l3memresp_tl: 9,
     l3memresp_o:  0,
-    mem_tl:      64,
+    mem_tl:      44.to_s,
     mem_o:        0,
     # Environment
     t_l3:   9,
     t_req:  1,
     t_resp: 9,
-    mem_wc: 43,
-    mem_wc_read: 24,
+    mem_wc: 43.to_bus,
+    mem_wc_read: 24.to_bus,
     # Test case
     ntcs:   2,
     time:   0,
@@ -150,23 +150,31 @@ end
 def l3_miss_latencies o={}
   o = {
     # System Configuration
-    l2l3req_tl:   1,
+    l2l3req_tl:   9,
     l2l3req_o:    0,
     l2l3resp_tl:  9,
     l2l3resp_o:   0,
-    l3memreq_tl:  1,
+    l3memreq_tl:  9,
     l3memreq_o:   0,
     l3memresp_tl: 9,
     l3memresp_o:  0,
-    mem_tl:      64,
+    mem_tl:      44.to_bus,
     mem_o:        0,
     # Environment
     t_l3:    9,
     t_req:   1,
     t_resp:  9,
-    mem_wc: 43,
+    mem_wc: 43.to_bus,
+    mem_wc_read: 24.to_bus,
     ntcs:    2,
   }.merge o
+  p = [
+    o[:l2l3req_tl],
+    o[:l2l3resp_tl],
+    o[:l3memreq_tl],
+    o[:l3memresp_tl],
+    o[:mem_tl]
+  ]
 
   ([
     o[:l2l3req_tl],
@@ -184,27 +192,30 @@ def l3_miss_latencies o={}
   end
 end
 
-def try_everything o={}
-  #[*1..15].repeated_permutation(4).to_a.product( (44..70).to_a ) do |tl|
-  [*1..3].repeated_permutation(2).to_a.product( [*44..46] ) do |tl|
+def try_everything_constrained o={}
+  o[:l2l3req_tl]   = 9 
+  o[:l2l3resp_tl]  = 9
+  o[:l2l2req_o]    = 0
+  o[:l2l3resp_o]   = 10
+  maximum = [0,nil]
+  minimum = [Float::INFINITY,nil]
+  [*9..44].repeated_permutation(2).to_a.product( [*44..80] ).
+    flatten.each_slice(3) do |req,resp,mem|
     [
-      o[:l2l3req_tl]   = 1, #tl[0][0],
-      o[:l2l3resp_tl]  = tl[0][0],
-      o[:l3memreq_tl]  = 1, #tl[0][2],
-      o[:l3memresp_tl] = tl[0][1],
-      o[:mem_tl]       = tl[1]
-    ].map{ |i| i.times.to_a }.reduce(:product).flatten.each_slice(5) do |offsets|
+      o[:l3memreq_tl]  = req,
+      o[:l3memresp_tl] = resp,
+      o[:mem_tl]       = mem
+    ].map{ |i| (2*i).times.to_a }.reduce(:product).flatten.each_slice(3) do |offsets|
       (
-        o[:l2l2req_o],
-        o[:l2l3resp_o],
         o[:l3memreq_o],
         o[:l3memresp_o],
         o[:mem_o]
       ) = offsets
-      puts o
-      l = l3_miss_latencies o
-      puts "|L| = #{avg l}".to_s.magenta
-      puts "#{l.max } < L < #{l.min}".to_s.magenta
+      o_curr = o.clone
+      l = l3_miss_latencies o_curr
+      a = avg l
+      maximum = [a,o_curr] if a > maximum[0]
+      minimum = [a,o_curr] if a < minimum[0]
     end
   end
 end
@@ -212,7 +223,7 @@ end
 def try_everyhit o={}
   maximum = [0,nil]
   minimum = [Float::INFINITY,nil]
-  [*1..15].repeated_permutation(2) do |req,resp|
+  [*9..21].repeated_permutation(2) do |req,resp|
     [
       o[:l2l3req_tl]   = req,
       o[:l2l3resp_tl]  = resp
@@ -266,13 +277,12 @@ if __FILE__ == $0
   # ).to_s.magenta
 
    
-  #latencies = l3_miss_latencies(
-  #  l3memreq_o:        10,
-  #  mem_o:             11,
-  #  l3memresp_o:    11+24,
-  #  l2l3resp_o:     11+24,
-  #  mem_tl:            72,
-  #) 
+  # latencies = l3_hit_latencies(
+  #   l2l3req_tl:          9,
+  #   l2l3req_tl:          1,
+  #   l2l3resp_tl:         9,
+  #   l2l3resp_o:         10,
+  # ) 
 
   # latencies = l3_miss_latencies(
   #   l3memresp_tl:        64,
@@ -283,10 +293,50 @@ if __FILE__ == $0
   #   l3memresp_o:      11+24,
   #   l2l3resp_o:   11+24+9+9,
   # )
+ 
+  # #Intelligent miss scheme for NPMC 
+  latencies = l3_hit_latencies(
+    l2l3req_tl:          11,
+    l2l3resp_tl:         11,
+    l3memreq_tl:         11,
+    l3memresp_tl:        11,
+    mem_tl:              66,
+    l3memreq_o:          10,
+    mem_o:             10+1,
+    l3memresp_o:    10+1+24.to_bus,
+    l2l3resp_o:   10+1+24.to_bus+9+9,
+  )
 
-  # puts "|L| = #{avg latencies}".to_s.magenta
-  # puts "#{latencies.max } < L < #{latencies.min}".to_s.magenta
+  #Intelligent hit scheme for NPMC 
+  # latencies = l3_hit_latencies(
+  #   l2l3req_tl:          9,
+  #   l2l3resp_tl:         9,
+  #   l3memreq_tl:         9,
+  #   l3memresp_tl:        9,
+  #   mem_tl:              72,
+  #   l3memreq_o:          10,
+  #   mem_o:             10+1,
+  #   l3memresp_o:    10+1+24.to_bus,
+  #   l2l3resp_o:   10+24.to_bus+9+9,
+  # )
+
+  #Intelligent Scheme for MC
+  latencies = l3_hit_latencies(
+    l2l3req_tl:           9,
+    l2l3resp_tl:          9,
+    l3memreq_tl:         72,
+    l3memresp_tl:        72,
+    mem_tl:              72,
+    l3memreq_o:          10,
+    mem_o:             10+1,
+    l3memresp_o:    10+1+24,
+    l2l3resp_o:          10,
+  )
+
+  puts "|L| = #{avg latencies}".to_s.magenta
+  puts "#{latencies.max } < L < #{latencies.min}".to_s.magenta
   
-  try_everyhit
+  #try_everything_constrained
+  #try_everyhit
 
 end
