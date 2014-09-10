@@ -282,14 +282,14 @@ elif options.cmd:
 
 process0 = LiveProcess()
 # process0.executable = "./tests/m5threads/tests/test_atomic"
-process0.executable = options.p0
+#process0.executable = options.p0
 # process0.cmd = "./tests/m5threads/tests/test_atomic 2"
 process0.cmd = options.p0.split()
 process0.pid = options.p0threadID
 multiprocesses.append(process0)
 
 process1 = LiveProcess()
-process1.executable = options.p1
+#process1.executable = options.p1
 process1.cmd = options.p1.split()
 process1.pid = options.p1threadID
 multiprocesses.append(process1)
