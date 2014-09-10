@@ -6,6 +6,15 @@ include RunScripts
 
 module RunScripts
 
+    $secure_opts = {
+      schemes: %w[tp],
+      addrpar: true,
+      rr_nc: true,
+      use_way_part: true,
+      split_mshr: true,
+      split_rport: true
+    }
+
     def cache_security
         opts = {
             maxinsts: 10**3,
@@ -90,44 +99,18 @@ module RunScripts
     end
 
     def security_debug
-        opts = {
+        iterate_and_submit $secure_opts.merge(
             nametag: "debug_traces",
-            p1: "astar",
+            benchmarks: %w[gobmk],
+            otherbench: %w[astar libquantum],
             maxinsts: 5*10**7,
             fastforward: 0,
-            waypart: true,
-            rr_nc: true,
-            split_mshr: true,
-            split_rport: true,
-            addrpar: true,
             #memdebug: true,
             #runmode: :qsub,
             do_cache_trace: true,
             do_bus_trace: true,
             do_mem_trace: true,
-        }
-        fork do 
-          if block_given? 
-              yield opts.merge( p0: "gcc" )
-          else
-              sav_script( "detailed", "tp", "gobmk", opts )
-          end
-        end
-        fork do
-          opts = opts.merge( { p1: "gcc" } )
-          if block_given?
-              yield opts.merge( p0: "gcc" )
-          else
-              sav_script( "detailed", "tp", "gobmk", opts )
-          end
-        end
-    end
-
-    def paddr_test
-        security_debug{ |opts|
-            sav_script( "detailed", "tp", opts[:p0],
-               opts.merge( maxinsts: 10**5 , nametag: "paddr_test" ) )
-        }
+        )
     end
 
 end
