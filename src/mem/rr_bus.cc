@@ -174,6 +174,35 @@ RRBus::calcPacketTiming(PacketPtr pkt, int threadID, int tl, int offset)
     return headerTime;
 }
 
+Tick
+RRBus::calcPacketTiming(PacketPtr pkt)
+{
+    // determine the current time rounded to the closest following
+    // clock edge
+    Tick now = nextCycle();
+
+    Tick headerTime = now + headerCycles * clock;
+
+    // The packet will be sent. Figure out how long it occupies the bus, and
+    // how much of that time is for the first "word", aka bus width.
+    int numCycles = 0;
+    if (pkt->hasData()) {
+        // If a packet has data, it needs ceil(size/width) cycles to send it
+        int dataSize = pkt->getSize();
+        numCycles += dataSize/width;
+        if (dataSize % width)
+            numCycles++;
+    }
+
+    // The first word will be delivered after the current tick, the delivery
+    // of the address if any, and one bus cycle to deliver the data
+    pkt->firstWordTime = headerTime + clock;
+
+    pkt->finishTime = headerTime + numCycles * clock;
+
+    return headerTime;
+}
+
 template <typename PortClass>
 RRBus::Layer<PortClass>::Layer(RRBus& _bus, const std::string& _name,
                                  Tick _clock, int _tl, int _offset) :
@@ -414,6 +443,182 @@ RRBus::Layer<PortClass>::recvRetry(int threadID)
     }
 }
 
+template <typename PortClass>
+RRBus::Layer1<PortClass>::Layer1(RRBus& _bus, const std::string& _name,
+                                 Tick _clock) :
+    bus(_bus), _name(_name), state(IDLE), clock(_clock), drainEvent(NULL),
+    releaseEvent1(this)
+{
+}
+
+template <typename PortClass>
+void RRBus::Layer1<PortClass>::occupyLayer(Tick until)
+{
+    // ensure the state is busy or in retry and never idle at this
+    // point, as the bus should transition from idle as soon as it has
+    // decided to forward the packet to prevent any follow-on calls to
+    // sendTiming seeing an unoccupied bus
+    assert(state != IDLE);
+
+    // note that we do not change the bus state here, if we are going
+    // from idle to busy it is handled by tryTiming, and if we
+    // are in retry we should remain in retry such that
+    // succeededTiming still sees the accurate state
+
+    // until should never be 0 as express snoops never occupy the bus
+    assert(until != 0);
+    bus.schedule(releaseEvent1, until);
+
+    DPRINTF(BaseBus, "The bus is now busy from tick %d to %d\n",
+            curTick(), until);
+}
+
+template <typename PortClass>
+bool
+RRBus::Layer1<PortClass>::tryTiming(PortClass* port)
+{
+    // first we see if the bus is busy, next we check if we are in a
+    // retry with a port other than the current one
+    if (state == BUSY || (state == RETRY && port != retryList.front())) {
+        // put the port at the end of the retry list
+        retryList.push_back(port);
+        return false;
+    }
+
+    // update the state which is shared for request, response and
+    // snoop responses, if we were idle we are now busy, if we are in
+    // a retry, then do not change
+    if (state == IDLE)
+        state = BUSY;
+
+    return true;
+}
+
+template <typename PortClass>
+void
+RRBus::Layer1<PortClass>::succeededTiming(Tick busy_time)
+{
+    // if a retrying port succeeded, also take it off the retry list
+    if (state == RETRY) {
+        DPRINTF(BaseBus, "Remove retry from list %s\n",
+                retryList.front()->name());
+        retryList.pop_front();
+        state = BUSY;
+    }
+
+    // we should either have gone from idle to busy in the
+    // tryTiming test, or just gone from a retry to busy
+    assert(state == BUSY);
+
+    // occupy the bus accordingly
+    occupyLayer(busy_time);
+}
+
+template <typename PortClass>
+void
+RRBus::Layer1<PortClass>::failedTiming(PortClass* port, Tick busy_time)
+{
+    // if we are not in a retry, i.e. busy (but never idle), or we are
+    // in a retry but not for the current port, then add the port at
+    // the end of the retry list
+    if (state != RETRY || port != retryList.front()) {
+        retryList.push_back(port);
+    }
+
+    // even if we retried the current one and did not succeed,
+    // we are no longer retrying but instead busy
+    state = BUSY;
+
+    // occupy the bus accordingly
+    occupyLayer(busy_time);
+}
+
+template <typename PortClass>
+void
+RRBus::Layer1<PortClass>::releaseLayer()
+{
+    // releasing the bus means we should now be idle
+    assert(state == BUSY);
+    assert(!releaseEvent1.scheduled());
+
+    // update the state
+    state = IDLE;
+
+    // bus is now idle, so if someone is waiting we can retry
+    if (!retryList.empty()) {
+        // note that we block (return false on recvTiming) both
+        // because the bus is busy and because the destination is
+        // busy, and in the latter case the bus may be released before
+        // we see a retry from the destination
+        retryWaiting();
+    } else if (drainEvent) {
+        DPRINTF(Drain, "Bus done draining, processing drain event\n");
+        //If we weren't able to drain before, do it now.
+        drainEvent->process();
+        // Clear the drain event once we're done with it.
+        drainEvent = NULL;
+    }
+}
+
+template <typename PortClass>
+void
+RRBus::Layer1<PortClass>::retryWaiting()
+{
+    // this should never be called with an empty retry list
+    assert(!retryList.empty());
+
+    // we always go to retrying from idle
+    assert(state == IDLE);
+
+    // update the state which is shared for request, response and
+    // snoop responses
+    state = RETRY;
+
+    // note that we might have blocked on the receiving port being
+    // busy (rather than the bus itself) and now call retry before the
+    // destination called retry on the bus
+    retryList.front()->sendRetry();
+
+    // If the bus is still in the retry state, sendTiming wasn't
+    // called in zero time (e.g. the cache does this)
+    if (state == RETRY) {
+        retryList.pop_front();
+
+        //Burn a cycle for the missed grant.
+
+        // update the state which is shared for request, response and
+        // snoop responses
+        state = BUSY;
+
+        // determine the current time rounded to the closest following
+        // clock edge
+        Tick now = bus.nextCycle();
+
+        occupyLayer(now + clock);
+    }
+}
+
+template <typename PortClass>
+void
+RRBus::Layer1<PortClass>::recvRetry()
+{
+    // we got a retry from a peer that we tried to send something to
+    // and failed, but we sent it on the account of someone else, and
+    // that source port should be on our retry list, however if the
+    // bus layer is released before this happens and the retry (from
+    // the bus point of view) is successful then this no longer holds
+    // and we could in fact have an empty retry list
+    if (retryList.empty())
+        return;
+
+    // if the bus layer is idle
+    if (state == IDLE) {
+        // note that we do not care who told us to retry at the moment, we
+        // merely let the first one on the retry list go
+        retryWaiting();
+    }
+}
+
 PortID
 RRBus::findPort(Addr addr)
 {
@@ -609,6 +814,21 @@ RRBus::Layer<PortClass>::drain(Event * de)
     return 0;
 }
 
+template <typename PortClass>
+unsigned int
+RRBus::Layer1<PortClass>::drain(Event * de)
+{
+    //We should check that we're not "doing" anything, and that noone is
+    //waiting. We might be idle but have someone waiting if the device we
+    //contacted for a retry didn't actually retry.
+    if (!retryList.empty() || state != IDLE) {
+        DPRINTF(Drain, "Bus not drained\n");
+        drainEvent = de;
+        return 1;
+    }
+    return 0;
+}
+
 /**
  * Bus layer template instantiations. Could be removed with _impl.hh
  * file, but since there are only two given options (MasterPort and
@@ -616,3 +836,4 @@ RRBus::Layer<PortClass>::drain(Event * de)
  */
 template class RRBus::Layer<SlavePort>;
 template class RRBus::Layer<MasterPort>;
+template class RRBus::Layer1<SlavePort>;

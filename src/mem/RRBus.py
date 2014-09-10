@@ -35,3 +35,10 @@ class RR_NoncoherentBus(RRBus):
     resp_tl = Param.Int(1, "response layer turn length")
     resp_offset = Param.Int(0, "response layer turn length offset")
     bus_trace_file = Param.String("bustrace.txt", "output file for bus trace")
+
+class RR_CoherentBus(RRBus):
+    type = 'RR_CoherentBus'
+    req_tl = Param.Int(1, "requst layer turn length")
+    req_offset = Param.Int(0, "request layer turn length offset")
+    resp_tl = Param.Int(1, "response layer turn length")
+    resp_offset = Param.Int(0, "response layer turn length offset")
