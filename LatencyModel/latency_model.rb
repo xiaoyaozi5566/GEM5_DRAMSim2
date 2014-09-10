@@ -176,6 +176,8 @@ def l3_miss_latencies o={}
     o[:mem_tl]
   ]
 
+  #return Float::INFINITY if p.reduce(:lcm) > 200000
+
   ([
     o[:l2l3req_tl],
     o[:l2l3resp_tl],
@@ -192,6 +194,7 @@ def l3_miss_latencies o={}
   end
 end
 
+# Should take <10 hours
 def try_everything_constrained o={}
   o[:l2l3req_tl]   = 9 
   o[:l2l3resp_tl]  = 9
@@ -199,7 +202,7 @@ def try_everything_constrained o={}
   o[:l2l3resp_o]   = 10
   maximum = [0,nil]
   minimum = [Float::INFINITY,nil]
-  [*9..44].repeated_permutation(2).to_a.product( [*44..80] ).
+  [*9..120].repeated_permutation(2).to_a.product( [*66..120] ).
     flatten.each_slice(3) do |req,resp,mem|
     [
       o[:l3memreq_tl]  = req,
@@ -216,8 +219,12 @@ def try_everything_constrained o={}
       a = avg l
       maximum = [a,o_curr] if a > maximum[0]
       minimum = [a,o_curr] if a < minimum[0]
+      puts " max = #{maximum} ".yellow
+      puts " min = #{minimum} ".yellow
     end
-  end
+  end 
+  puts " max = #{maximum} ".green
+  puts " min = #{minimum} ".green
 end
 
 def try_everyhit o={}
@@ -248,6 +255,10 @@ def avg arr
 end
 
 if __FILE__ == $0
+
+  # DEBUG = true
+  # BOXES = true
+  # SHIFT = true
 
   # a = SlotBusLayer.new(ntcs: 4, offset: 0, turn_l: 3, name: "l2l3_req")
   # puts a.cycle_complete 0, 3
@@ -294,18 +305,18 @@ if __FILE__ == $0
   #   l2l3resp_o:   11+24+9+9,
   # )
  
-  # #Intelligent miss scheme for NPMC 
-  latencies = l3_hit_latencies(
-    l2l3req_tl:          11,
-    l2l3resp_tl:         11,
-    l3memreq_tl:         11,
-    l3memresp_tl:        11,
-    mem_tl:              66,
-    l3memreq_o:          10,
-    mem_o:             10+1,
-    l3memresp_o:    10+1+24.to_bus,
-    l2l3resp_o:   10+1+24.to_bus+9+9,
-  )
+  # # #Intelligent miss scheme for NPMC 
+  # latencies = l3_hit_latencies(
+  #   l2l3req_tl:          11,
+  #   l2l3resp_tl:         11,
+  #   l3memreq_tl:         11,
+  #   l3memresp_tl:        11,
+  #   mem_tl:              66,
+  #   l3memreq_o:          10,
+  #   mem_o:             10+1,
+  #   l3memresp_o:    10+1+24.to_bus,
+  #   l2l3resp_o:   10+1+24.to_bus+9+9,
+  # )
 
   #Intelligent hit scheme for NPMC 
   # latencies = l3_hit_latencies(
@@ -320,23 +331,23 @@ if __FILE__ == $0
   #   l2l3resp_o:   10+24.to_bus+9+9,
   # )
 
-  #Intelligent Scheme for MC
-  latencies = l3_hit_latencies(
-    l2l3req_tl:           9,
-    l2l3resp_tl:          9,
-    l3memreq_tl:         72,
-    l3memresp_tl:        72,
-    mem_tl:              72,
-    l3memreq_o:          10,
-    mem_o:             10+1,
-    l3memresp_o:    10+1+24,
-    l2l3resp_o:          10,
-  )
+  # #Intelligent Scheme for MC
+  # latencies = l3_hit_latencies(
+  #   l2l3req_tl:           9,
+  #   l2l3resp_tl:          9,
+  #   l3memreq_tl:         72,
+  #   l3memresp_tl:        72,
+  #   mem_tl:              72,
+  #   l3memreq_o:          10,
+  #   mem_o:             10+1,
+  #   l3memresp_o:    10+1+24,
+  #   l2l3resp_o:          10,
+  # )
 
-  puts "|L| = #{avg latencies}".to_s.magenta
-  puts "#{latencies.max } < L < #{latencies.min}".to_s.magenta
+  # puts "|L| = #{avg latencies}".to_s.magenta
+  # puts "#{latencies.max } < L < #{latencies.min}".to_s.magenta
   
-  #try_everything_constrained
+  try_everything_constrained
   #try_everyhit
 
 end

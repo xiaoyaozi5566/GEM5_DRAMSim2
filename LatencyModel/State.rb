@@ -7,15 +7,15 @@ class State
     @o = {
       max: {
         :l2l3req_tl   => 25,
-        :l2l3req_o    => ( o[:l2l3req_tl] || 15) *2, 
+        :l2l3req_o    => ( o[:l2l3req_tl] || 25) *2, 
         :l2l3resp_tl  => 25,
-        :l2l3resp_o   => ( o[:l2l3resp_tl] || 15) *2,
-        :l3memreq_tl  => o[:mem_tl] || 80,
-        :l3memreq_o   => ( o[:l3memreq_tl] || 15) *2,
-        :l3memresp_tl => o[:mem_tl] || 80,
-        :l3memresp_o  => ( o[:l3memresp_tl] || 80) *2,
-        :mem_tl       => 80,
-        :mem_o        => ( o[:mem_tl] || 80) *2
+        :l2l3resp_o   => ( o[:l2l3resp_tl] || 25  ) *2,
+        :l3memreq_tl  => o[:mem_tl] || 120,
+        :l3memreq_o   => ( o[:l3memreq_tl] || 120 ) *2,
+        :l3memresp_tl => o[:mem_tl] || 120,
+        :l3memresp_o  => ( o[:l3memresp_tl] || 120) *2,
+        :mem_tl       => 120,
+        :mem_o        => ( o[:mem_tl] || 120 ) *2
       },
       min: {
         :l2l3req_tl   => 1,
