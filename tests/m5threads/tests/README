@@ -1,0 +1,33 @@
+command line to run the program:
+
+build/ARM/gem5.fast --stats-file=tp_detailed_astartl6_astartl6_c4MB_stats.txt configs/dramsim2/dramsim2_se.py --cpu-type=detailed --caches --l2cache --l3cache --l3_size=4MB --l3config=shared --fixaddr --rr_nc --split_mshr --split_rport --dramsim2 --tpturnlength=6 --devicecfg=./ext/DRAMSim2/ini/DDR3_micron_16M_8B_x8_sg15.ini --systemcfg=./ext/DRAMSim2/system_tp.ini --outputfile=/dev/null --numpids=2 --p0threadID=0 --p1threadID=1 --p0=./tests/m5threads/tests/test_attacker_s --p1=./tests/m5threads/tests/test_attacker_s
+
+
+If both programs run, you should see the output like this:
+
+Thread 0: shared = 1
+Thread 1: shared = -1
+Thread 0: shared = 2
+Thread 1: shared = -2
+Thread 0: shared = 3
+Thread 1: shared = -3
+Thread 0: shared = 4
+Thread 1: shared = -4
+Thread 0: shared = 5
+Thread 1: shared = -5
+Thread 0: shared = 6
+Thread 1: shared = -6
+Thread 0: shared = 7
+Thread 1: shared = -7
+Thread 0: shared = 8
+Thread 1: shared = -8
+Thread 0: shared = 9
+Thread 1: shared = -9
+Thread 0: shared = 10
+Thread 1: shared = -10
+Thread 0: local = 9
+Thread 1: local = -9
+Attacker PASSED :)
+Victim PASSED :)
+
+Otherwise, only Thread 0 will print out
