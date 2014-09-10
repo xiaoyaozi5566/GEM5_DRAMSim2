@@ -32,7 +32,7 @@ class SplitRPortCache : public SplitMSHRCache<TagStore>
 
 	        this->respQueues = new SlavePacketQueue*[_cache->params->num_tcs];
             for( int i=0; i < (_cache->params->num_tcs); i++ ){
-                this->respQueues[i] = new SlavePacketQueue(*_cache, *this);
+                this->respQueues[i] = new SlavePacketQueue(*_cache, *this, "SlavePacketQueue", i);
             }
         }
     };

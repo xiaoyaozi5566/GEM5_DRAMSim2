@@ -82,7 +82,6 @@ namespace patch
 class PacketQueue
 {
   public:
-    int ID;
     bool isEra(){ return isEra(curTick()); }
     bool isEra(Tick w){
 #ifdef DEBUG_TP
@@ -181,6 +180,8 @@ class PacketQueue
 
     /** Label to use for print request packets label stack. */
     const std::string label;
+	
+	int ID;
 
     /** Remember whether we're awaiting a retry from the bus. */
     bool waitingOnRetry;
@@ -239,7 +240,7 @@ class PacketQueue
      * @param _em Event manager used for scheduling this queue
      * @param _label Label to push on the label stack for print request packets
      */
-    PacketQueue(EventManager& _em, const std::string& _label);
+    PacketQueue(EventManager& _em, const std::string& _label, int _ID);
 
     /**
      * Virtual desctructor since the class may be used as a base class.
@@ -313,7 +314,7 @@ class MasterPacketQueue : public PacketQueue
      * @param _label Label to push on the label stack for print request packets
      */
     MasterPacketQueue(EventManager& _em, MasterPort& _masterPort,
-                      const std::string _label = "MasterPacketQueue");
+                      const std::string _label = "MasterPacketQueue", int ID = 0);
 
     virtual ~MasterPacketQueue() { }
 
@@ -342,7 +343,7 @@ class SlavePacketQueue : public PacketQueue
      * @param _label Label to push on the label stack for print request packets
      */
     SlavePacketQueue(EventManager& _em, SlavePort& _slavePort,
-                     const std::string _label = "SlavePacketQueue");
+                     const std::string _label = "SlavePacketQueue", int ID = 0);
 
     virtual ~SlavePacketQueue() { }
 

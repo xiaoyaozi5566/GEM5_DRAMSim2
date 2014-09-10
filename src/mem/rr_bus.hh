@@ -177,6 +177,140 @@ class RRBus : public MemObject
 		//EventWrapper<Layer, &Layer::retryWaiting> retryEvent1;
 
     };
+	
+    template <typename PortClass>
+    class Layer1
+    {
+
+      public:
+
+        /**
+         * Create a bus layer and give it a name. The bus layer uses
+         * the bus an event manager.
+         *
+         * @param _bus the bus this layer belongs to
+         * @param _name the layer's name
+         * @param _clock clock period in ticks
+         */
+        Layer1(RRBus& _bus, const std::string& _name, Tick _clock);
+
+        /**
+         * Drain according to the normal semantics, so that the bus
+         * can tell the layer to drain, and pass an event to signal
+         * back when drained.
+         *
+         * @param de drain event to call once drained
+         *
+         * @return 1 if busy or waiting to retry, or 0 if idle
+         */
+        unsigned int drain(Event *de);
+
+        /**
+         * Get the bus layer's name
+         */
+        const std::string name() const { return bus.name() + _name; }
+
+
+        /**
+         * Determine if the bus layer accepts a packet from a specific
+         * port. If not, the port in question is also added to the
+         * retry list. In either case the state of the layer is updated
+         * accordingly.
+         *
+         * @param port Source port resenting the packet
+         *
+         * @return True if the bus layer accepts the packet
+         */
+        bool tryTiming(PortClass* port);
+
+        /**
+         * Deal with a destination port accepting a packet by potentially
+         * removing the source port from the retry list (if retrying) and
+         * occupying the bus layer accordingly.
+         *
+         * @param busy_time Time to spend as a result of a successful send
+         */
+        void succeededTiming(Tick busy_time);
+
+        /**
+         * Deal with a destination port not accepting a packet by
+         * potentially adding the source port to the retry list (if
+         * not already at the front) and occupying the bus layer
+         * accordingly.
+         *
+         * @param busy_time Time to spend as a result of a failed send
+         */
+        void failedTiming(PortClass* port, Tick busy_time);
+
+        /** Occupy the bus layer until until */
+        void occupyLayer(Tick until);
+
+        /**
+         * Send a retry to the port at the head of the retryList. The
+         * caller must ensure that the list is not empty.
+         */
+        void retryWaiting();
+
+        /**
+         * Handler a retry from a neighbouring module. Eventually this
+         * should be all encapsulated in the bus. This wraps
+         * retryWaiting by verifying that there are ports waiting
+         * before calling retryWaiting.
+         */
+        void recvRetry();
+
+      private:
+
+        /** The bus this layer is a part of. */
+        RRBus& bus;
+
+        /** A name for this layer. */
+        std::string _name;
+
+        /**
+         * We declare an enum to track the state of the bus layer. The
+         * starting point is an idle state where the bus layer is
+         * waiting for a packet to arrive. Upon arrival, the bus layer
+         * transitions to the busy state, where it remains either
+         * until the packet transfer is done, or the header time is
+         * spent. Once the bus layer leaves the busy state, it can
+         * either go back to idle, if no packets have arrived while it
+         * was busy, or the bus layer goes on to retry the first port
+         * on the retryList. A similar transition takes place from
+         * idle to retry if the bus layer receives a retry from one of
+         * its connected ports. The retry state lasts until the port
+         * in questions calls sendTiming and returns control to the
+         * bus layer, or goes to a busy state if the port does not
+         * immediately react to the retry by calling sendTiming.
+         */
+        enum State { IDLE, BUSY, RETRY };
+
+        /** track the state of the bus layer */
+        State state;
+
+        /** the clock speed for the bus layer */
+        Tick clock;
+
+        /** event for signalling when drained */
+        Event * drainEvent;
+
+        /**
+         * An array of ports that retry should be called
+         * on because the original send failed for whatever reason.
+         */
+        std::list<PortClass*> retryList;
+
+        /**
+         * Release the bus layer after being occupied and return to an
+         * idle state where we proceed to send a retry to any
+         * potential waiting port, or drain if asked to do so.
+         */
+        void releaseLayer();
+
+        /** event used to schedule a release of the layer */
+        EventWrapper<Layer1, &Layer1::releaseLayer> releaseEvent1;
+
+    };
 
 	/** number of security domains */
 	int num_pids;
@@ -290,6 +424,8 @@ class RRBus : public MemObject
      * will be all that is sent if the target rejects the packet).
      */
     Tick calcPacketTiming(PacketPtr pkt, int threadID, int tl, int offset);
+	
+	Tick calcPacketTiming(PacketPtr ptk);
 
     /**
      * Ask everyone on the bus what their size is

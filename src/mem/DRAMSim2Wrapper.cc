@@ -122,7 +122,7 @@ DRAMSim2Wrapper::MemoryPort::MemoryPort(const std::string& _name,
 { 	
     respQueues = new SlavePacketQueue*[numPids];
     for( int i=0; i < numPids; i++ ){
-        respQueues[i] = new SlavePacketQueue( *_memory, *this);
+        respQueues[i] = new SlavePacketQueue( *_memory, *this, "SlavePacketQueue", i);
     }
 	//printf("memory port is called\n");
 }
