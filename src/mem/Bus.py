@@ -71,3 +71,6 @@ class NoncoherentBus(BaseBus):
 
 class CoherentBus(BaseBus):
     type = 'CoherentBus'
+
+class MagicBus(NoncoherentBus):
+    type = 'MagicBus'
