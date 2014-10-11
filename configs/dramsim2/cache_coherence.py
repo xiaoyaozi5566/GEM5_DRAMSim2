@@ -282,16 +282,20 @@ elif options.cmd:
 
 process0 = LiveProcess()
 # process0.executable = "./tests/m5threads/tests/test_atomic"
-process0.executable = options.p0
+#process0.executable = options.p0
 # process0.cmd = "./tests/m5threads/tests/test_atomic 2"
 process0.cmd = options.p0.split()
 process0.pid = options.p0threadID
+if options.input != "":
+    process0.input = options.input.split(';')[0]
 multiprocesses.append(process0)
 
 process1 = LiveProcess()
-process1.executable = options.p1
+#process1.executable = options.p1
 process1.cmd = options.p1.split()
 process1.pid = options.p1threadID
+if options.input != "":
+    process1.input = options.input.split(';')[1]
 multiprocesses.append(process1)
 # if options.num_cpus > 1:
 #     process1 = LiveProcess()
@@ -317,12 +321,12 @@ multiprocesses.append(process1)
 #    print >> sys.stderr, "No workload specified. Exiting!\n"
 #    sys.exit(1)
 
-if options.input != "":
-    process.input = options.input
-if options.output != "":
-    process.output = options.output
-if options.errout != "":
-    process.errout = options.errout
+# if options.input != "":
+#     process.input = options.input
+# if options.output != "":
+#     process.output = options.output
+# if options.errout != "":
+#     process.errout = options.errout
 
 
 # By default, set workload to path of user-specified binary
