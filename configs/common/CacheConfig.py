@@ -112,20 +112,11 @@ class L3Private( L3Config ):
             self.system.l2[i].mem_side = self.system.tol3bus[i].slave
 
 
-def config_cache(options, system):
-
-    #-------------------------------------------------------------------------
-    # L3
-    #-------------------------------------------------------------------------
-    if options.l3cache:
-        if options.l3config == "shared":
-            l3config = L3Shared( options, system )
-        else:
-            l3config = L3Private( options, system )
-
-    #-------------------------------------------------------------------------
-    # L1
-    #-------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# L1
+#------------------------------------------------------------------------------
+# Add private L1 i/d caches to each cpu
+def config_l1( options, system ):
     for i in xrange(options.num_cpus):
         if options.caches:
             icache = L1Cache(size = options.l1i_size,
@@ -143,9 +134,11 @@ def config_cache(options, system):
                 system.cpu[i].addPrivateSplitL1Caches(icache, dcache)
         system.cpu[i].createInterruptController()
 
-    #-------------------------------------------------------------------------
-    # L2
-    #-------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# L2
+#------------------------------------------------------------------------------
+def config_l2( options, system ):
     system.l2 = [ 
             L2Cache( 
                 size = options.l2_size,
@@ -158,6 +151,9 @@ def config_cache(options, system):
         ]
     system.tol2bus = [NoncoherentBus() for i in xrange( options.num_cpus )]
 
+# Connect private L2 caches to the cached ports of each cpu (usually l1)
+# through system.tol2bus
+def connect_l2( options, system ):
     for i in xrange(options.num_cpus):
         if options.l2cache:
             system.cpu[i].connectAllPorts(system.tol2bus[i])
@@ -166,6 +162,30 @@ def config_cache(options, system):
                 system.l2[i].mem_side = system.membus.slave
         else:
             system.cpu[i].connectAllPorts(system.membus)
+
+
+def config_cache(options, system):
+
+    #-------------------------------------------------------------------------
+    # L3
+    #-------------------------------------------------------------------------
+    if options.l3cache:
+        if options.l3config == "shared":
+            l3config = L3Shared( options, system )
+        else:
+            l3config = L3Private( options, system )
+
+    #-------------------------------------------------------------------------
+    # L1
+    #-------------------------------------------------------------------------
+    
+    config_l1( options, system )
+
+    #-------------------------------------------------------------------------
+    # L2
+    #-------------------------------------------------------------------------
+    config_l2( options, system )
+    connect_l2( options, system )
 
     if options.l3cache:
         l3config.connect_l2()
