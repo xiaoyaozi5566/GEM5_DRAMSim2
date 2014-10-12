@@ -139,7 +139,7 @@ def sav_script( cpu, scheme, p0, options = {} )
     script.puts("--debug-flags=MMU \\") if mmuDebug
     script.puts("--debug-flags=Bus,MMU,Cache\\") if options[:memdebug]
     script.puts("    --stats-file=#{filename}_stats.txt \\")
-    script.puts("    configs/dramsim2/dramsim2_se.py \\")
+    script.puts("    configs/#{options[:config] || "dramsim2/dramsim2_se.py"} \\")
     script.puts("    --cpu-type=#{cpu} \\")
     script.puts("    --caches \\")
     script.puts("    --l2cache \\")
