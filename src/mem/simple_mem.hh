@@ -62,7 +62,7 @@
 class SimpleMemory : public AbstractMemory
 {
 
-  private:
+  protected:
 
     class MemoryPort : public SimpleTimingPort
     {
@@ -82,7 +82,7 @@ class SimpleMemory : public AbstractMemory
 
     };
 
-    MemoryPort port;
+    MemoryPort *port;
 
     Tick lat;
     Tick lat_var;

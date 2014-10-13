@@ -49,8 +49,9 @@ using namespace std;
 
 SimpleMemory::SimpleMemory(const Params* p) :
     AbstractMemory(p),
-    port(name() + ".port", *this), lat(p->latency), lat_var(p->latency_var)
+    lat(p->latency), lat_var(p->latency_var)
 {
+  port = new MemoryPort(name() + ".port", *this);
 }
 
 void
@@ -58,8 +59,8 @@ SimpleMemory::init()
 {
     // allow unconnected memories as this is used in several ruby
     // systems at the moment
-    if (port.isConnected()) {
-        port.sendRangeChange();
+    if (port->isConnected()) {
+        port->sendRangeChange();
     }
 }
 
@@ -95,14 +96,14 @@ SimpleMemory::getSlavePort(const std::string &if_name, int idx)
     if (if_name != "port") {
         return MemObject::getSlavePort(if_name, idx);
     } else {
-        return port;
+        return *port;
     }
 }
 
 unsigned int
 SimpleMemory::drain(Event *de)
 {
-    int count = port.drain(de);
+    int count = port->drain(de);
 
     if (count)
         changeState(Draining);
