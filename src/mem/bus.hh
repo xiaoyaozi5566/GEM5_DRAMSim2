@@ -319,7 +319,7 @@ class BaseBus : public MemObject
      * Returns the tick at which the packet header is completed (which
      * will be all that is sent if the target rejects the packet).
      */
-    Tick calcPacketTiming(PacketPtr pkt);
+    virtual Tick calcPacketTiming(PacketPtr pkt);
 
     /**
      * Ask everyone on the bus what their size is
