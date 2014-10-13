@@ -8,17 +8,17 @@ from m5.defines import buildEnv
 from m5.objects import *
 from m5.util import addToPath, fatal
 addToPath('../dramsim2')
-import dramsim2_se
-from dramsim2_se import *
+import dramsim2_base
+from dramsim2_base import *
 
 
 ###############################################################################
 # System Configuration
 ###############################################################################
 
-#All the functions called in this section are in dramsim2_se.py
+#All the functions called in this section are in dramsim2_base.py
 
-#Incorporate all the options available do dramsim2_se.py
+#Incorporate all the options available do dramsim2_base.py
 options = add_options()
 #Use DRAMSim for the shared memory
 DRAM = setup_dramsim(options)
@@ -27,7 +27,7 @@ multiprocesses = setup_workloads(options)
 #Setup CPUs
 (CPUClass,test_mem_mode,FutureClass) = setup_cpus(options)
 
-#Use a bus that doesn't model interference
+# Use a bus that doesn't model interference
 systembus = MagicBus()
 
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(options.num_cpus)],
