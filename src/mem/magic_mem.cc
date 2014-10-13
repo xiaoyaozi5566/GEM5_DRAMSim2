@@ -4,13 +4,6 @@
 
 MagicMemory::MagicMemory(const Params* p):
   SimpleMemory(p)
-{
-  this->port = new MagicMemoryPort(name() + ".port", *this);
-}
-
-MagicMemory::MagicMemoryPort::MagicMemoryPort(const std::string& _name,
-    SimpleMemory& _memory) :
-  SimpleMemory::MemoryPort(_name, _memory)
 { }
 
 MagicMemory*

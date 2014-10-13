@@ -5,20 +5,10 @@ class MagicMemory : public SimpleMemory
 {
   protected:
 
-  class MagicMemoryPort : public SimpleMemory::MemoryPort
-  {
+  virtual Tick calculateLatency(PacketPtr pkt){
+    return 0;
+  }
 
-    public:
-    MagicMemoryPort( const std::string& _name, SimpleMemory& _memory );
-
-    protected:
-    virtual bool recvTimingReq(PacketPtr pkt){
-      SimpleMemory::recvFunctional(pkt);
-      return true;
-    }
-
-  };
-    
   public:
   MagicMemory(const Params *p);
 };

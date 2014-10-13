@@ -76,6 +76,16 @@ module RunScripts
       }
     end
 
+    def test_busdebug
+      insecure{|opts| parallel_local_scaling opts.merge(
+          config: "debug/busdebug.py",
+          threads:1,
+          schemes: %w[none],
+          rr_nc: true
+        )
+      }
+    end
+
     def secure_sanity
       secure{|opts| parallel_local opts}
     end

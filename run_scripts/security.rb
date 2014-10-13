@@ -49,6 +49,17 @@ module RunScripts
       )
     end
 
+    def execution_time_memdebug
+      qsub_fast(
+        schemes: %w[none],
+        rr_nc: true,
+        maxinsts: 10**8,
+        fastforward: 0,
+        config: "debug/busdebug.py",
+        nametag: "busdebug"
+      )
+    end
+
     def setpart_vs_private
         opts = {
             l3config: "private",

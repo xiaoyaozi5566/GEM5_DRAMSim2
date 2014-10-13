@@ -76,7 +76,7 @@ class SimpleTimingPort : public QueuedSlavePort
     void recvFunctional(PacketPtr pkt);
 
     /** Implemented using recvAtomic(). */
-    bool recvTimingReq(PacketPtr pkt);
+    virtual bool recvTimingReq(PacketPtr pkt);
 
     virtual Tick recvAtomic(PacketPtr pkt) = 0;
 
