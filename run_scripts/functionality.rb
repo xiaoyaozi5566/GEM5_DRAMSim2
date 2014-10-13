@@ -66,6 +66,16 @@ module RunScripts
       secure{|opts| parallel_local_scaling opts}
     end
 
+    def test_memdebug
+      insecure{|opts| parallel_local_scaling opts.merge(
+          config: "debug/memdebug.py",
+          threads:1,
+          schemes: %w[tp],
+          fixaddr: true
+        )
+      }
+    end
+
     def secure_sanity
       secure{|opts| parallel_local opts}
     end

@@ -38,6 +38,17 @@ module RunScripts
         parallel_local opts
     end
 
+    def execution_time_memdebug
+      qsub_fast(
+        schemes: %w[tp],
+        addrpar: true,
+        maxinsts: 10**8,
+        fastforward: 0,
+        config: "debug/memdebug.py",
+        nametag: "memdebug"
+      )
+    end
+
     def setpart_vs_private
         opts = {
             l3config: "private",
