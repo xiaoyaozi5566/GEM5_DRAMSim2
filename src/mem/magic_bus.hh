@@ -31,7 +31,10 @@ class MagicBus : public NoncoherentBus
     //Explode on failure
     assert( success );
     // Explode on failure in gem5.fast
-    if(!success){ fprintf(stderr,"%s","unmagical recvTimingReq\n"); exit 1; }
+    if(!success){
+      fprintf(stderr,"%s","unmagical recvTimingReq\n");
+      exit(1);
+    }
 
     return true;
   }
@@ -46,7 +49,10 @@ class MagicBus : public NoncoherentBus
     //Explode on failure
     assert( success );
     //Explode on failure in gem5.fast
-    if(!success){ fprintf(stderr,"%s","unmagical recvTimingResp\n"); exit 1; }
+    if(!success){
+      fprintf(stderr,"%s","unmagical recvTimingResp\n");
+      exit(1);
+    }
 
     return true;
   }
