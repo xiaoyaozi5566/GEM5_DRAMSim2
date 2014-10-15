@@ -50,8 +50,10 @@
 #include "params/ArmTableWalker.hh"
 #include "sim/eventq.hh"
 #include "sim/fault_fwd.hh"
+#include "sim/process.hh"
 
 class ThreadContext;
+class Process;
 
 namespace ArmISA {
 class Translation;

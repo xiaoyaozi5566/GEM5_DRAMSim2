@@ -232,6 +232,8 @@ def sav_script( cpu, scheme, p0, options = {} )
 
     FileUtils.mkdir_p( "stderr" ) unless File.directory?( "stderr" )
     FileUtils.mkdir_p( "stdout" ) unless File.directory?( "stdout" )
+    
+    sleep(1)
 
     if runmode == :qsub
         success = system "qsub -wd #{$gem5home.path} -e stderr/ -o stdout/ #{script_abspath}"
