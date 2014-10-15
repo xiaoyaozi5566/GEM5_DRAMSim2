@@ -5,6 +5,7 @@
 #include "mem/bus.hh"
 #include "params/MagicBus.hh"
 #include "mem/noncoherent_bus.hh"
+#include "stdio.h"
 class MagicBus : public NoncoherentBus
 {
   public:

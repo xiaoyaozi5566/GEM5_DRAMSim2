@@ -48,6 +48,7 @@
 
 #include "dev/io_device.hh"
 #include "params/DmaDevice.hh"
+#include "stdio.h"
 
 class DmaPort : public MasterPort
 {
